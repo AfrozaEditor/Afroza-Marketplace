@@ -1,0 +1,20 @@
+services:
+    adminer:
+        image: adminer
+        container_name: adminer_vide-dressing
+        restart: always
+        ports:
+            - 8080:8080
+    postgres:
+        image: postgres:latest
+        container_name: postgres_vide-dressing
+        ports:
+            - '5432:5432'
+        environment:
+            POSTGRES_DB: db_vide-dressing
+            POSTGRES_USER: jedidia
+            POSTGRES_PASSWORD: Jed@@25!!
+        volumes:
+            - 'postgres_data:/var/lib/postgresql/data'
+volumes:
+    postgres_data:
