@@ -34,8 +34,10 @@ export function UserMenu({ user }: UserMenuProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
+                <Button variant="ghost" className="relative h-7 w-7 rounded-full">
+                    <Avatar
+                        // className="h-7 w-7"
+                    >
                         <AvatarImage src={user.avatar} alt={user.name} />
                         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
@@ -52,7 +54,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href={route('profile')} className="cursor-pointer flex items-center">
+                    <Link href={route('profile.edit')} className="cursor-pointer flex items-center">
                         <User className="mr-2 h-4 w-4" />
                         <span>Profil</span>
                     </Link>

@@ -28,7 +28,7 @@ function ProductCard({product}: Props) {
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute top-0 right-0 m-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
+                            <Button
                                 className="bg-white p-2 rounded-full text-teal-500 hover:text-teal-700 transition-colors shadow-md"
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -36,7 +36,7 @@ function ProductCard({product}: Props) {
                                 }}
                             >
                                 <Heart size={20} />
-                            </button>
+                            </Button>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div className="flex items-center text-white">

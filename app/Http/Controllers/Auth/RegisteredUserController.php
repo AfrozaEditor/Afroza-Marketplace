@@ -33,7 +33,9 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+//            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:buyer,vendor,delivery'],
         ]);
 
         $user = User::create([
@@ -42,10 +44,16 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        $user->assignSingleRole($request->role);
+
         event(new Registered($user));
 
         Auth::login($user);
 
-        return to_route('dashboard');
+
+//         if($user->getRole()=='seller')
+//             return to_route('dashboard');
+//         else
+            return to_route('home');
     }
 }

@@ -24,7 +24,7 @@ class MarketplaceController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('marketplace/Create');
     }
 
     /**

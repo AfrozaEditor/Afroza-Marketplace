@@ -35,7 +35,13 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user()->load('cart');
 
-        return redirect()->intended(route('dashboard', absolute: false));
+//        dd($user->getRole());
+       if($user->getRole()->name=='vendor'){
+           return redirect()->route('dashboard');
+       } else {
+            return redirect()->route('home');
+       }
+//        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

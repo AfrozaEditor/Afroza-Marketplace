@@ -12,10 +12,12 @@ import {
     ShoppingCart,
     Twitter,
     User,
+    Bell,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { UserMenu } from '@/components/user-menu';
 
 const mainNavItems: NavItem[] = [
     {
@@ -72,6 +74,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     // const getInitials = useInitials();
     console.log(auth.user?.cart?.total_quantity);
+    // console.log(auth.user.role);
     return (
         <header className="sticky top-0 z-10">
             {/* Barre de réseaux sociaux */}
@@ -97,13 +100,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     <UserMenuContent user={auth.user} />
                                 </DropdownMenuContent>
                             </DropdownMenu>
+                            // <UserMenu user={auth.user} />
                         ) : (
                             // <Button size="icon" asChild className="text-white gap-1 bg-primary flex items-center justify-center hover:text-gray-600 hover:bg-teal-600">
-                                <Link href={route('login')} className="flex text-white items-center justify-center gap-1">
+                                <Link href={route('login')} className="flex text-white items-center justify-center gap-2 text-sm size-15">
                                     <User className="h-5 w-5" />
                                     <span>Profil</span>
                                 </Link>
                         )}
+                        <Link href="" className="flex items-center relative text-white text-sm hover:text-teal-200 transition-colors">
+                            <Bell size={16} className="mr-1" />
+                            <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white">
+                            </span>
+                        </Link>
                         <div className="flex justify-center items-center gap-4">
                             <Link
                                 href="https://facebook.com"
@@ -181,13 +190,13 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     {/* Actions à droite */}
                     <div className="flex items-center space-x-4">
                         {/*Button de connexion/inscription*/}
-                        <Button className="text-teal-600 bg-white hover:bg-white/80">
+                        <Button className="text-teal-600 bg-white hover:bg-white/80" disabled={!!auth.user}>
                             <Link href={route('register')}>
                                 <span>Se connecter</span>
                             </Link>
                         </Button>
-                        <Button className="text-teal-600 bg-white hover:bg-white/80">
-                            <Link href="#">
+                        <Button className="text-teal-600 bg-white hover:bg-white/80" disabled>
+                            <Link href={route('marketplace.create')}>
                                 <span>Vends tes articles</span>
                             </Link>
                         </Button>
@@ -202,8 +211,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
             {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (
-                <div className="border-b border-gray-200 ">
-                    <div className="mx-auto flex h-12 items-center px-4 md:max-w-7xl ">
+                <div className="border-b border-gray-200 bg-white">
+                    <div className="mx-auto flex h-12 items-center px-4 md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>

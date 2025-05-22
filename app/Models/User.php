@@ -35,7 +35,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $with = ['cart'];
+    protected $with = [
+        'cart',
+        // 'roles',
+    ];
 
     /**
      * Get the attributes that should be cast.

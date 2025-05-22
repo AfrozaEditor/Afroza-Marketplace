@@ -32,7 +32,7 @@ const formSchema = z.object({
     password: z.string().min(8, {
         message: "Le mot de passe doit contenir au moins 8 caractères.",
     }),
-    role: z.enum(['buyer', 'vendor', 'delivery'], {
+    role: z.enum(['customer', 'vendor', 'delivery'], {
         required_error: "Veuillez sélectionner un rôle.",
     }),
 });
@@ -53,7 +53,7 @@ export default function Register() {
             email: "",
             password: "",
             // password_confirmation: "",
-            role: "buyer",
+            role: "customer",
         },
     });
 
@@ -140,7 +140,7 @@ export default function Register() {
                     {/*    />*/}
                     {/*    <InputError message={errors.password_confirmation} />*/}
                     {/*</div>*/}
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="role"
                         render={({ field }) => (
@@ -152,11 +152,11 @@ export default function Register() {
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                     >
-                                        <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'buyer' ? 'border-primary bg-muted/50' : ''}`}>
+                                        <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'customer' ? 'border-primary bg-muted/50' : ''}`}>
                                             <FormControl>
                                                 <RadioGroupItem value="buyer" className="sr-only" />
                                             </FormControl>
-                                            <User className={`h-6 w-6 ${field.value === 'buyer' ? 'text-primary' : ''}`} />
+                                            <User className={`h-6 w-6 ${field.value === 'customer' ? 'text-primary' : ''}`} />
                                             <FormLabel className="font-normal text-center">Acheteur</FormLabel>
                                         </FormItem>
                                         <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'vendor' ? 'border-primary bg-muted/50' : ''}`}>

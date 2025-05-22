@@ -22,7 +22,7 @@ function Index({shops}: Props) {
                 buttons={{
                     primary: {
                         text: "Commencer à vendre",
-                        href: "/register",
+                        href: route('marketplace.create'),
                     },
                     secondary: {
                         text: "Découvrir les boutiques",
@@ -79,7 +79,7 @@ function Index({shops}: Props) {
                                     className="w-full"
                                 >
                                     <Button
-                                        className="w-full bg-primary hover:bg-secondary"
+                                        className="w-full bg-primary hover:bg-primary/80"
                                     >
                                         Visiter la boutique
                                     </Button>

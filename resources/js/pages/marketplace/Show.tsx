@@ -1,47 +1,55 @@
-import React from 'react';
-import { Shop } from '@/types';
-import AppLayout from '@/layouts/app-layout';
-import { Heart, MessageSquare, Share, ShoppingCart, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { formatDate } from '@/lib/utils';
-
+import AppLayout from '@/layouts/app-layout';
+import { formatDateShort } from '@/lib/utils';
+import { Shop } from '@/types';
+import { Heart, MessageSquare, Share, ShoppingCart, Star, Users } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
     shop: Shop;
 }
 
-function Show({shop}: Props) {
+function Show({ shop }: Props) {
+    const [isFollowing, setIsFollowing] = useState(false);
+
+    const handleFollow = () => {
+        setIsFollowing(!isFollowing);
+        if (!isFollowing) {
+            toast.success(`Vous suivez maintenant ${shop.name}`);
+        } else {
+            toast.error(`Vous ne suivez plus ${shop.name}`);
+        }
+    };
+
     return (
         <AppLayout>
-            <div className="relative h-48 md:h-64 overflow-hidden">
+            <div className="relative h-48 overflow-hidden md:h-64">
                 <img
                     // src={seller.coverImage}
                     alt={`${shop.name} couverture`}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             </div>
 
-
-            <div className="container mx-auto px-4 md:px-8 -mt-16 relative">
-                <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="relative container mx-auto -mt-16 px-4 md:px-8">
+                <div className="mb-8 flex flex-col gap-4 md:flex-row">
                     {/* Profile image and info */}
-                    <div className="bg-white rounded-lg shadow-md p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
-                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
+                    <div className="flex w-full flex-col items-center gap-4 rounded-lg bg-white p-4 shadow-md md:flex-row md:gap-6 md:p-6">
+                        <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-md md:h-32 md:w-32">
                             <img
                                 // src={seller.image}
                                 alt={shop.name}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                             />
                         </div>
 
                         <div className="flex-grow text-center md:text-left">
-                            <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-2">
+                            <div className="flex flex-col items-center justify-between gap-2 md:flex-row md:items-start">
                                 <div>
-                                    <h1 className="text-2xl md:text-3xl font-bold">{shop.name}</h1>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 justify-center md:justify-start">
+                                    <h1 className="text-2xl font-bold md:text-3xl">{shop.name}</h1>
+                                    <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start">
                                         <div className="flex items-center gap-1 text-amber-500">
                                             <Star size={18} fill="currentColor" />
                                             <span>
@@ -63,8 +71,8 @@ function Show({shop}: Props) {
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="text-gray-600 mt-2">{shop.description}</p>
-                                    <div className="flex flex-wrap gap-1 mt-2 justify-center md:justify-start">
+                                    <p className="mt-2 text-gray-600">{shop.description}</p>
+                                    <div className="mt-2 flex flex-wrap justify-center gap-1 md:justify-start">
                                         {/*{seller.categories.map(cat => (*/}
                                         {/*    <Badge key={cat} variant="outline" className="bg-gray-100">*/}
                                         {/*        {cat}*/}
@@ -73,16 +81,14 @@ function Show({shop}: Props) {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-2 mt-4 md:mt-0">
+                                <div className="mt-4 flex flex-col gap-2 md:mt-0">
                                     <Button
-                                        // onClick={handleFollow}
-                                        // variant={isFollowing ? "default" : "outline"}
-                                        // className={isFollowing ? "bg-primary" : ""}
+                                        onClick={handleFollow}
+                                        variant={isFollowing ? 'default' : 'outline'}
+                                        className={isFollowing ? 'bg-primary' : ''}
                                     >
-                                        <Heart size={16} className="mr-2"
-                                               // fill={isFollowing ? "white" : "none"}
-                                        />
-                                        {/*{isFollowing ? "Abonné" : "Suivre"}*/}
+                                        <Heart size={16} className="mr-2" fill={isFollowing ? 'white' : 'none'} />
+                                        {isFollowing ? 'Abonné' : 'Suivre'}
                                     </Button>
                                     <div className="flex gap-2">
                                         <Button
@@ -103,8 +109,8 @@ function Show({shop}: Props) {
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-4 text-sm text-gray-500 mt-3 justify-center md:justify-start">
-                                <span>Membre depuis {formatDate(shop.created_at)}</span>
+                            <div className="mt-3 flex flex-wrap justify-center gap-4 text-sm text-gray-500 md:justify-start">
+                                <span>Membre depuis {formatDateShort(shop.created_at)}</span>
                                 <span>•</span>
                                 {/*<span>{seller.location}</span>*/}
                             </div>
