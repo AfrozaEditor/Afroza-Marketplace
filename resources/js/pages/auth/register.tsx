@@ -152,21 +152,30 @@ export default function Register() {
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                     >
-                                        <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'customer' ? 'border-primary bg-muted/50' : ''}`}>
+                                        <FormItem
+                                            className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'customer' ? 'border-primary bg-muted/50' : ''}`}
+                                            onClick={() => field.onChange('customer')}
+                                        >
                                             <FormControl>
-                                                <RadioGroupItem value="buyer" className="sr-only" />
+                                                <RadioGroupItem value="customer" className="sr-only" />
                                             </FormControl>
                                             <User className={`h-6 w-6 ${field.value === 'customer' ? 'text-primary' : ''}`} />
                                             <FormLabel className="font-normal text-center">Acheteur</FormLabel>
                                         </FormItem>
-                                        <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'vendor' ? 'border-primary bg-muted/50' : ''}`}>
+                                        <FormItem
+                                            className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'vendor' ? 'border-primary bg-muted/50' : ''}`}
+                                            onClick={() => field.onChange('vendor')}
+                                        >
                                             <FormControl>
                                                 <RadioGroupItem value="vendor" className="sr-only" />
                                             </FormControl>
                                             <Store className={`h-6 w-6 ${field.value === 'vendor' ? 'text-primary' : ''}`} />
                                             <FormLabel className="font-normal text-center">Vendeur</FormLabel>
                                         </FormItem>
-                                        <FormItem className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'delivery' ? 'border-primary bg-muted/50' : ''}`}>
+                                        <FormItem
+                                            className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'delivery' ? 'border-primary bg-muted/50' : ''}`}
+                                            // onClick={() => field.onChange('delivery')}
+                                        >
                                             <FormControl>
                                                 <RadioGroupItem value="delivery" className="sr-only" disabled/>
                                             </FormControl>

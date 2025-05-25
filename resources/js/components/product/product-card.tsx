@@ -11,6 +11,10 @@ interface Props {
 
 function ProductCard({product}: Props) {
 
+    const handleAddToCart = () => {
+
+    }
+
     return (
         <div
             className={`transform transition-all duration-500
@@ -18,7 +22,7 @@ function ProductCard({product}: Props) {
             // }
             `}
         >
-            <Link href="#" className="block">
+            <Link href={route('products.show', product.slug)} className="block">
                 <Card className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 pt-0">
                     <div className="relative h-48 overflow-hidden group">
                         <img
@@ -55,7 +59,7 @@ function ProductCard({product}: Props) {
                             <span className="font-bold text-teal-600">{product.price} FCFA</span>
                             <span className="text-xs text-gray-500">
                                 {/* {Math.round(12 * 0.8).toLocaleString()} XAF with code */}
-                                PAR {product.shop.name}
+                                PAR {product.user.name}
                             </span>
                         </div>
                         <Button

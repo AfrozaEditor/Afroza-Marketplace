@@ -15,7 +15,7 @@ class ProductController extends Controller
     public function index()
     {
         return Inertia::render('product/Index',[
-            'products' => Product::with(['category', 'shop'])
+            'products' => Product::with(['category', 'shop', 'user'])
             ->orderBy('created_at', 'desc')
             ->get()
         ]);
@@ -48,9 +48,12 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $slug)
     {
-        //
+        $product = Product::where('slug', $slug)->with(['category', 'shop', 'user'])->firstOrFail();
+        return Inertia::render('product/Show',[
+            'product' => $product,
+        ]);
     }
 
     /**

@@ -13,6 +13,7 @@ class Product extends Model
 
     protected $fillable = [
         'shop_id',
+        'user_id',
         'category_id',
         'name',
         'slug',
@@ -28,6 +29,15 @@ class Product extends Model
         'price' => 'decimal:2',
         'quantity' => 'integer',
     ];
+
+    /**
+     * @use BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
 
     /**
      * @use BelongsTo

@@ -5,6 +5,7 @@ import { Shop } from '@/types';
 import { Heart, MessageSquare, Share, ShoppingCart, Star, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { router } from '@inertiajs/react';
 
 interface Props {
     shop: Shop;
@@ -90,13 +91,18 @@ function Show({ shop }: Props) {
                                         <Heart size={16} className="mr-2" fill={isFollowing ? 'white' : 'none'} />
                                         {isFollowing ? 'Abonné' : 'Suivre'}
                                     </Button>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 justify-center">
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            // onClick={handleContactSeller}
+                                            onClick={() => {
+                                                // Utilisez le router d'Inertia pour faire la requête POST
+                                                router.post(route('chat.start', { user: shop.user.id }));
+                                            }}
+
                                         >
                                             <MessageSquare size={16} />
+                                            {/*<span>Contacter</span>*/}
                                         </Button>
                                         <Button
                                             variant="outline"

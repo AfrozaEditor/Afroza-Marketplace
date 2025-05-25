@@ -12,7 +12,7 @@ import {
     ShoppingCart,
     Twitter,
     User,
-    Bell,
+    Bell, MessageCircle
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Separator } from './ui/separator';
@@ -113,6 +113,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white">
                             </span>
                         </Link>
+                        <Link href={route('chat.index')} className="flex items-center text-white text-sm hover:text-teal-200 transition-colors">
+                            <MessageCircle size={16} className="mr-1" />
+                            {/*<span>chat</span>*/}
+                        </Link>
                         <div className="flex justify-center items-center gap-4">
                             <Link
                                 href="https://facebook.com"
@@ -144,7 +148,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                         {/* Panier */}
                         {/*<Button size="icon" asChild className="text-white bg-primary gap-1 hover:bg-teal-600">*/}
-                            <Link href="/cart" className="flex text-white items-center justify-center">
+                            <Link href={route('my-cart')} className="flex text-white items-center justify-center">
                                 <ShoppingCart className="h-5 w-5" />
                                 <span className="rounded-full bg-orange-400 px-1.5 py-0.5 text-xs ml-1 font-bold">
                                    {auth.user?.cart?.total_quantity ?? 0}

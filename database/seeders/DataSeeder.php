@@ -69,12 +69,27 @@ class DataSeeder extends Seeder
             // Création des produits pour chaque boutique
             for ($j = 1; $j <= 5; $j++) {
                 Product::create([
+                    'user_id' => $vendor->id,
                     'shop_id' => $shop->id,
                     'category_id' => Category::inRandomOrder()->first()->id,
                     'name' => "Produit $j de $shop->name",
                     'slug' => Str::slug("Produit $j de $shop->name"),
                     'description' => "Description du produit $j",
                     'price' => rand(1000, 10000) / 100,
+                    'quantity' => rand(1, 100),
+                    'active' => true,
+                ]);
+            }
+
+            // Création des produits pour chaque vendeur
+            for ($j = 1; $j <= 5; $j++) {
+                Product::create([
+                    'user_id' => $vendor->id,
+                    'category_id' => Category::inRandomOrder()->first()->id,
+                    'name' => "Produit $j de $vendor->name",
+                    'slug' => Str::slug("Produit $j de $vendor->name"),
+                    'description' => "Description du produit $j",
+                    'price' => rand(1000, 10000) ,
                     'quantity' => rand(1, 100),
                     'active' => true,
                 ]);

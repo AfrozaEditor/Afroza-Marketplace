@@ -50,6 +50,14 @@ export interface Cart {
     total_price: number;
     total_quantity: number;
     created_at: string;
+    items: CartItem[];
+}
+
+export interface CartItem {
+    id: number;
+    cart: Cart;
+    product: Product;
+    quantity: number;
 }
 
 export interface Product {
@@ -59,8 +67,10 @@ export interface Product {
     description: string;
     created_at: string;
     category: Category;
+    user: User;
     shop: Shop;
     price: number;
+    quantity: number;
 
 }
 
