@@ -38,15 +38,17 @@ function Show({product}:Props) {
                         <Carousel className="w-full">
                             <CarouselContent>
                                 {/*{product.images.map((image, index) => (*/}
-                                {/*    <CarouselItem key={index}>*/}
-                                {/*        <div className="aspect-square w-full overflow-hidden rounded-md">*/}
-                                {/*            <img*/}
-                                {/*                src={image || '/placeholder.svg'}*/}
-                                {/*                alt={`${product.name} - image ${index + 1}`}*/}
-                                {/*                className="object-cover w-full h-full"*/}
-                                {/*            />*/}
-                                {/*        </div>*/}
-                                {/*    </CarouselItem>*/}
+                                    <CarouselItem key={product.id}>
+                                        <div className="aspect-square w-full overflow-hidden rounded-md">
+                                            <img
+                                                // src={image || '/placeholder.svg'}
+                                                src={'/placeholder.svg'}
+                                                // alt={`${product.name} - image ${index + 1}`}
+                                                alt={`${product.name}`}
+                                                className="object-cover w-full h-full"
+                                            />
+                                        </div>
+                                    </CarouselItem>
                                 {/*))}*/}
                             </CarouselContent>
                             <CarouselPrevious className="left-2" />
@@ -62,8 +64,8 @@ function Show({product}:Props) {
                             <div>
                                 <CardTitle className="text-2xl">{product.name}</CardTitle>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    {/*Catégorie: {product.category}*/}
-                                    Catégorie: R
+                                    Catégorie: {product.category.name}
+                                    {/*Catégorie: R*/}
                                 </p>
                             </div>
                             {/*{product.isPromoted && discount > 0 && (*/}

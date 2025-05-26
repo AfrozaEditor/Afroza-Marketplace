@@ -23,6 +23,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     };
 
     const isVendor = user.role === 'vendor';
+    const isAdmin = user.role === 'admin';
 
     return (
         <>
@@ -37,6 +38,18 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     <>
                         <DropdownMenuItem asChild>
                             <Link className="block w-full" href={route('dashboard')} as="button" prefetch
+                                  onClick={cleanup}>
+                                <LayoutDashboard className="mr-2" />
+                                Dashboard
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                    </>
+                )}
+                {isAdmin && (
+                    <>
+                        <DropdownMenuItem asChild>
+                            <Link className="block w-full" href={route('admin')} as="button" prefetch
                                   onClick={cleanup}>
                                 <LayoutDashboard className="mr-2" />
                                 Dashboard

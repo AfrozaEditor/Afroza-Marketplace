@@ -71,11 +71,15 @@ export interface Product {
     shop: Shop;
     price: number;
     quantity: number;
+    images: string[];
 
 }
 
 export interface Category {
-
+    id: number;
+    name: string;
+    slug: string;
+    parent: Category;
 }
 
 export interface Shop {

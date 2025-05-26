@@ -42,7 +42,7 @@ class ChatController extends Controller
                 ];
             });
 
-        return Inertia::render('Chat/Index', [
+        return Inertia::render('chat/Index', [
             'conversations' => $conversations,
         ]);
     }
@@ -88,7 +88,7 @@ class ChatController extends Controller
             ->first();
 
 
-        return Inertia::render('Chat/Show', [
+        return Inertia::render('chat/Show', [
             'conversation' => [
                 'id' => $conversation->id,
                 'name' => $conversation->is_group ? $conversation->name : $participants->name,
@@ -173,7 +173,7 @@ class ChatController extends Controller
         $users = User::where('id', '!=', Auth::id())
             ->get(['id', 'name']);
 
-        return Inertia::render('Chat/NewConversation', [
+        return Inertia::render('chat/NewConversation', [
             'users' => $users,
         ]);
     }

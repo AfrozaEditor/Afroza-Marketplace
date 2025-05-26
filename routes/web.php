@@ -25,8 +25,14 @@ Route::get('features', function (){
 
 Route::middleware(['auth', 'verified','role:vendor'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        return Inertia::render('vendor/dashboard');
     })->name('dashboard');
+});
+
+Route::middleware(['auth', 'verified','role:admin'])->group(function () {
+    Route::get('admin', function () {
+        return Inertia::render('admin/dashboard');
+    })->name('admin');
 });
 
 Route::middleware('auth')->group(function () {
