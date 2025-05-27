@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                         'name' => $request->user()->name,
                         'email' => $request->user()->email,
                         'role' => $request->user()->getRole()?->name,
+                        'cart' => $request->user()->cart,
                     ]
                     : null, // Return null if no user is authenticated
             ],

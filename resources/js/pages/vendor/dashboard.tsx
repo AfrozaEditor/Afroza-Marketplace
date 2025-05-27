@@ -164,7 +164,6 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <Dialog open={isAddArticleDialogOpen} onOpenChange={setIsAddArticleDialogOpen}>
                 <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                     <div className="flex justify-between mb-8">
                         <Heading title="Tableau de bord vendeur" description="Gérez vos articles, commandes et performances" />
@@ -175,12 +174,12 @@ export default function Dashboard() {
                                     {notifications.filter((n) => !n.read).length}
                                 </span>
                             </Button> */}
-                            <DialogTrigger asChild>
+                            <Link href={route('products.create')}>
                                 <Button>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Ajouter un article
                                 </Button>
-                            </DialogTrigger>
+                            </Link>
                         </div>
                     </div>
                     <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -215,8 +214,8 @@ export default function Dashboard() {
                                 Commandes
                             </TabsTrigger>
                             <TabsTrigger value="chat">
-                                <MessagesSquare className="mr-2 h-4 w-4" />
-                                Chat
+                                <Bell className="mr-2 h-4 w-4" />
+                                Notifications
                             </TabsTrigger>
                             <TabsTrigger value="settings">
                                 <Settings className="mr-2 h-4 w-4" />
@@ -282,40 +281,40 @@ export default function Dashboard() {
                                 </Card>
                             </div>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Notifications</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        {notifications.map((notification) => (
-                                            <div
-                                                key={notification.id}
-                                                className={`rounded-lg p-4 ${notification.read ? 'bg-gray-50' : 'border-l-4 border-blue-500 bg-blue-50'}`}
-                                            >
-                                                <div className="flex justify-between">
-                                                    <p className={`text-sm ${notification.read ? 'text-gray-700' : 'font-medium text-blue-700'}`}>
-                                                        {notification.message}
-                                                    </p>
-                                                    {!notification.read && <Badge variant="outline">Nouveau</Badge>}
-                                                </div>
-                                                <p className="mt-1 text-xs text-gray-500">{notification.time}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            {/*<Card>*/}
+                            {/*    <CardHeader>*/}
+                            {/*        <CardTitle>Notifications</CardTitle>*/}
+                            {/*    </CardHeader>*/}
+                            {/*    <CardContent>*/}
+                            {/*        <div className="space-y-4">*/}
+                            {/*            {notifications.map((notification) => (*/}
+                            {/*                <div*/}
+                            {/*                    key={notification.id}*/}
+                            {/*                    className={`rounded-lg p-4 ${notification.read ? 'bg-gray-50' : 'border-l-4 border-blue-500 bg-blue-50'}`}*/}
+                            {/*                >*/}
+                            {/*                    <div className="flex justify-between">*/}
+                            {/*                        <p className={`text-sm ${notification.read ? 'text-gray-700' : 'font-medium text-blue-700'}`}>*/}
+                            {/*                            {notification.message}*/}
+                            {/*                        </p>*/}
+                            {/*                        {!notification.read && <Badge variant="outline">Nouveau</Badge>}*/}
+                            {/*                    </div>*/}
+                            {/*                    <p className="mt-1 text-xs text-gray-500">{notification.time}</p>*/}
+                            {/*                </div>*/}
+                            {/*            ))}*/}
+                            {/*        </div>*/}
+                            {/*    </CardContent>*/}
+                            {/*</Card>*/}
                         </TabsContent>
 
                         <TabsContent value="products" className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Mes articles ({products.length})</h2>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Ajouter un article
-                                    </Button>
-                                </DialogTrigger>
+                                {/*<DialogTrigger asChild>*/}
+                                {/*    <Button>*/}
+                                {/*        <PlusCircle className="mr-2 h-4 w-4" />*/}
+                                {/*        Ajouter un article*/}
+                                {/*    </Button>*/}
+                                {/*</DialogTrigger>*/}
                             </div>
 
                             {/* ... keep existing code (products list card) */}
@@ -391,7 +390,7 @@ export default function Dashboard() {
                             </Card>
                         </TabsContent>
 
-                        <TabsContent value="chat">{/*<ChatView className="h-auto border-none shadow-none" />*/}</TabsContent>
+                        {/*<TabsContent value="chat">/!*<ChatView className="h-auto border-none shadow-none" />*!/</TabsContent>*/}
 
                         <TabsContent value="settings">
                             {/*<UserSettings />*/}
@@ -399,14 +398,13 @@ export default function Dashboard() {
                         </TabsContent>
                     </Tabs>
                 </div>
-                <DialogContent className="sm:max-w-[625px]">
-                    <DialogHeader>
-                        <DialogTitle>Ajouter un nouvel article</DialogTitle>
-                        <DialogDescription>Remplissez les informations ci-dessous pour ajouter un nouvel article à votre boutique.</DialogDescription>
-                    </DialogHeader>
-                    {/*<AddArticleForm onFormSubmit={() => setIsAddArticleDialogOpen(false)} />*/}
-                </DialogContent>
-            </Dialog>
+                {/*<DialogContent className="sm:max-w-[625px]">*/}
+                {/*    <DialogHeader>*/}
+                {/*        <DialogTitle>Ajouter un nouvel article</DialogTitle>*/}
+                {/*        <DialogDescription>Remplissez les informations ci-dessous pour ajouter un nouvel article à votre boutique.</DialogDescription>*/}
+                {/*    </DialogHeader>*/}
+                {/*    /!*<AddArticleForm onFormSubmit={() => setIsAddArticleDialogOpen(false)} />*!/*/}
+                {/*</DialogContent>*/}
         </AppLayout>
     );
 }

@@ -50,6 +50,7 @@ Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
 //Route::resource('cart', CartController::class);
 Route::get('/my-cart', [CartController::class, 'myCart'])->name('my-cart');
+Route::get('/available',[ProductController::class, 'index']);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

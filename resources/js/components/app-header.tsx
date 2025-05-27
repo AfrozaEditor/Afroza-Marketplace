@@ -73,8 +73,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     // const getInitials = useInitials();
-    console.log(auth.user?.cart?.total_quantity);
+    console.log(auth.user?.cart);
     // console.log(auth.user.role);
+    const isVendor = auth.user?.role === 'vendor';
     return (
         <header className="sticky top-0 z-10">
             {/* Barre de réseaux sociaux */}
@@ -199,8 +200,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 <span>Se connecter</span>
                             </Link>
                         </Button>
-                        <Button className="text-teal-600 bg-white hover:bg-white/80" disabled>
-                            <Link href={route('marketplace.create')}>
+                        <Button className="text-teal-600 bg-white hover:bg-white/80" disabled={!isVendor}>
+                            <Link href={route('products.create')}>
                                 <span>Vends tes articles</span>
                             </Link>
                         </Button>
