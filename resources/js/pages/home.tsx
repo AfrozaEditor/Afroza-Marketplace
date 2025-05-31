@@ -10,6 +10,7 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/comp
 import ListProduct from '@/components/product/list-product';
 import { HeroSection } from '@/components/hero-section';
 import { Product } from '@/types';
+import NewsLetter from '@/components/home/news-letter';
 
 
 const breadcrumbs = [
@@ -97,7 +98,7 @@ function Home({latestProducts}: Props) {
                 buttons={{
                     primary: {
                         text: "Acheter Maintenant",
-                        href: "#"
+                        href: "/available"
                     }
                 }}
                 style={{
@@ -151,8 +152,8 @@ function Home({latestProducts}: Props) {
                 </div>
                 <h2 className="text-3xl font-bold text-center my-6">Nouveautés</h2>
                  <ListProduct products={latestProducts}/>
-
             </div>
+            <NewsLetter/>
         </AppLayout>
     );
 }

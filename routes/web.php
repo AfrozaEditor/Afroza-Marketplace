@@ -8,14 +8,26 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $latestProducts = Product::with(['category', 'shop', 'user'])
+        ->orderBy('created_at', 'desc')
+        ->take(4)
+        ->get();
+    // Générer les URLs temporaires pour chaque produit
+    $latestProducts->transform(function ($product) {
+        $images = $product->images()->get();
+        $imagesUrls = [];
+        foreach ($images as $image) {
+            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30));
+        }
+        $product->images = $imagesUrls;
+        return $product;
+    });
     return Inertia::render('home', [
-        'latestProducts' => Product::with(['category', 'shop', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->take(4)
-            ->get()
+        'latestProducts' => $latestProducts,
     ]);
 })->name('home');
 
@@ -27,6 +39,14 @@ Route::middleware(['auth', 'verified','role:vendor'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('vendor/dashboard');
     })->name('dashboard');
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::resource('products', ProductController::class);
+});
+
+Route::middleware(['auth', 'role:delivery'])->group(function () {
+    Route::get('delivery', function () {
+        return Inertia::render('delivery/Create');
+    })->name('delivery');
 });
 
 Route::middleware(['auth', 'verified','role:admin'])->group(function () {
@@ -45,12 +65,12 @@ Route::middleware('auth')->group(function () {
 
 
 Route::resource('marketplace', MarketplaceController::class);
-Route::resource('products', ProductController::class);
+Route::resource('products', ProductController::class)->only(['index', 'show']);
 Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
 //Route::resource('cart', CartController::class);
 Route::get('/my-cart', [CartController::class, 'myCart'])->name('my-cart');
-Route::get('/available',[ProductController::class, 'index']);
+//Route::get('/available',[ProductController::class, 'index']);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -10,10 +10,10 @@ interface Props {
 }
 
 function ProductCard({product}: Props) {
-
     const handleAddToCart = () => {
 
     }
+
 
     return (
         <div
@@ -26,7 +26,7 @@ function ProductCard({product}: Props) {
                 <Card className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 pt-0">
                     <div className="relative h-48 overflow-hidden group">
                         <img
-                            src="../../../../public/favicon.ico"
+                            src={product.images[0]}
                             alt={product.name}
                             loading="lazy"
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"

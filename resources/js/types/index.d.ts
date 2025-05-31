@@ -75,6 +75,11 @@ export interface Product {
 
 }
 
+export interface Image {
+    id: number;
+    url: string;
+}
+
 export interface Category {
     id: number;
     name: string;

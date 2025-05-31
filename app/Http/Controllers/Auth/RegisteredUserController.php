@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
 //            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'password' => ['required', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:buyer,vendor,delivery'],
+            'role' => ['required', 'string', 'in:customer,vendor,delivery'],
         ]);
 
         $user = User::create([
@@ -46,6 +46,11 @@ class RegisteredUserController extends Controller
 
         $user->assignSingleRole($request->role);
 
+//        dd($user->getRole());
+        $role = $user->getRole();
+        if($role->name == 'delivery')
+            return to_route('delivery');
+
         event(new Registered($user));
 
         Auth::login($user);
@@ -54,6 +59,7 @@ class RegisteredUserController extends Controller
 //         if($user->getRole()=='seller')
 //             return to_route('dashboard');
 //         else
-            return to_route('home');
+        return to_route('home');
+
     }
 }

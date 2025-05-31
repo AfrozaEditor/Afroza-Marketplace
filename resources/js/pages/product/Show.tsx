@@ -5,14 +5,17 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { router } from '@inertiajs/react';
+import Autoplay from 'embla-carousel-autoplay';
 import { Product } from '@/types';
 
 interface Props {
     product: Product;
+    images: string[];
 }
 
-function Show({product}:Props) {
-
+function Show({product, images}:Props) {
+    const [mainImage, setMainImage] = useState(images[0]);
     const [quantity, setQuantity] = useState(1);
 
     const handleQuantityChange = (amount: number) => {
@@ -29,41 +32,86 @@ function Show({product}:Props) {
         }
     };
 
+    const plugin = React.useRef(
+        Autoplay({delay: 5000, stopOnInteraction: true})
+    )
+
+    // const handleContactSeller {
+    //
+    // }
+    // console.log(product.images[0].url);
+    console.log(images);
+
+    const breadcrumbs = [
+        { title: 'Accueil', href: '/' },
+        { title: 'Produits', href: '/products' },
+        { title: product.name, href: `/products/${product.slug}` },
+    ];
+
     return (
-        <AppLayout>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <AppLayout
+            // breadcrumbs={breadcrumbs}
+        >
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 py-6 px-4">
                 {/* Product Images */}
                 <Card className="overflow-hidden border-0 shadow-none">
                     <CardContent className="p-0">
-                        <Carousel className="w-full">
+                        <div className='flex gap-4'>
+                            <div className="flex flex-col gap-2 w-24">
+                            {images.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className={`aspect-square rounded-md overflow-hidden cursor-pointer ${mainImage === image ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100'}`}
+                                    onClick={() => setMainImage(image)}
+                                >
+                                    <img
+                                        src={image}
+                                        alt={`${product.name} - vue ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <div className='flex-1'>
+                            <Carousel
+                        // className="w-full"
+                        plugins={[plugin.current]}
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                        >
                             <CarouselContent>
-                                {/*{product.images.map((image, index) => (*/}
+                                {images.map((image, index) => (
                                     <CarouselItem key={product.id}>
                                         <div className="aspect-square w-full overflow-hidden rounded-md">
                                             <img
-                                                // src={image || '/placeholder.svg'}
-                                                src={'/placeholder.svg'}
-                                                // alt={`${product.name} - image ${index + 1}`}
-                                                alt={`${product.name}`}
-                                                className="object-cover w-full h-full"
+                                                // src="http://localhost:9000/products/1748515032.jpg"
+                                                src={image}
+                                                // src={'/placeholder.svg'}
+                                                alt={`${product.name} - image ${index + 1}`}
+                                                // alt={`${product.name}`}
+                                                className="h-full w-full object-cover"
                                             />
                                         </div>
                                     </CarouselItem>
-                                {/*))}*/}
+                                ))}
                             </CarouselContent>
                             <CarouselPrevious className="left-2" />
                             <CarouselNext className="right-2" />
                         </Carousel>
+                        </div>
+                        </div>
                     </CardContent>
                 </Card>
 
                 {/* Product Info */}
                 <Card>
                     <CardHeader>
-                        <div className="flex justify-between items-start">
+                        <div className="flex items-start justify-between">
                             <div>
                                 <CardTitle className="text-2xl">{product.name}</CardTitle>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-muted-foreground mt-1 text-sm">
                                     Catégorie: {product.category.name}
                                     {/*Catégorie: R*/}
                                 </p>
@@ -74,14 +122,14 @@ function Show({product}:Props) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center space-x-2 mb-4">
+                        <div className="mb-4 flex items-center space-x-2">
                             {/*{product.discountedPrice ? (*/}
                             {/*    <>*/}
                             {/*        <span className="text-3xl font-bold">{product.discountedPrice.toFixed(2)} €</span>*/}
                             {/*        <span className="text-xl text-muted-foreground line-through">{product.price.toFixed(2)} €</span>*/}
                             {/*    </>*/}
                             {/*) : (*/}
-                                <span className="text-3xl font-bold">{product.price} FCFA</span>
+                            <span className="text-3xl font-bold">{product.price} FCFA</span>
                             {/*)}*/}
                         </div>
 
@@ -90,20 +138,15 @@ function Show({product}:Props) {
                             <p className="text-muted-foreground">{product.description}</p>
 
                             <div>
-                                <p className="text-sm mb-2">
-                                    Disponibilité: <span className="text-green-600 font-medium">{product.quantity} en stock</span>
+                                <p className="mb-2 text-sm">
+                                    Disponibilité: <span className="font-medium text-green-600">{product.quantity} en stock</span>
                                 </p>
                             </div>
 
                             <div className="border-t pt-4">
-                                <h3 className="font-medium mb-2">Quantité</h3>
+                                <h3 className="mb-2 font-medium">Quantité</h3>
                                 <div className="flex items-center space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleQuantityChange(-1)}
-                                        disabled={quantity <= 1}
-                                    >
+                                    <Button variant="outline" size="icon" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                                         <Minus className="h-4 w-4" />
                                     </Button>
                                     <Input
@@ -127,7 +170,7 @@ function Show({product}:Props) {
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-3">
-                        <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        <div className="flex w-full flex-col gap-3 sm:flex-row">
                             <Button
                                 className="flex-1"
                                 // onClick={handleAddToCart}
@@ -139,14 +182,20 @@ function Show({product}:Props) {
                             </Button>
                         </div>
                         <Button
-                            variant="secondary"
+                            variant="outline"
                             className="w-full"
-                            // onClick={handleContactSeller}
+                            onClick={() => {
+                                // Utilisez le router d'Inertia pour faire la requête POST
+                                router.post(route('chat.start', { user: product.user.id }));
+                            }}
                         >
                             <MessageCircle className="mr-2 h-4 w-4" /> Contacter le vendeur
                         </Button>
                     </CardFooter>
                 </Card>
+                <section>
+
+                </section>
             </div>
         </AppLayout>
     );

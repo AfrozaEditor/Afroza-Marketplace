@@ -18,6 +18,14 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('logo')->nullable();
+            $table->string('cover_image')->nullable();
+            $table->string('address');
+            $table->string('city');
+            $table->string('phone');
+            $table->string('email');
+            $table->string('website')->nullable();
+            $table->string('facebook')->nullable();
+            $table->string('instagram')->nullable();
             $table->boolean('active')->default(false);
             $table->timestamps();
         });

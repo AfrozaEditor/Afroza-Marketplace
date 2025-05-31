@@ -38,6 +38,8 @@ class AuthenticatedSessionController extends Controller
 //        dd($user->getRole());
        if($user->getRole()->name=='vendor'){
            return redirect()->route('dashboard');
+       } else if ($user->getRole()->name=='admin') {
+           return redirect()->route('admin');
        } else {
             return redirect()->route('home');
        }

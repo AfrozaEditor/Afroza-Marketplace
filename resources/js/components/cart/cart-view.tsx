@@ -26,11 +26,11 @@ function CartView({cart}:Props) {
 
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-6">
             <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Votre Panier ({cart.total_quantity} articles)</CardTitle>
+                        <CardTitle className="text-lg">Votre Panier ({cart.total_quantity} articles)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         {cart.items.map(item => (
@@ -50,7 +50,7 @@ function CartView({cart}:Props) {
             <div className="lg:col-span-1">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Résumé de la commande</CardTitle>
+                        <CardTitle className="text-lg">Résumé de la commande</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex justify-between">
@@ -72,7 +72,7 @@ function CartView({cart}:Props) {
                             Passer la commande
                         </Button>
                         <Button variant="outline" className="w-full" asChild>
-                            <Link href="/boutique">Continuer les achats</Link>
+                            <Link href="/products">Continuer les achats</Link>
                         </Button>
                     </CardFooter>
                 </Card>

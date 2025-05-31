@@ -15,10 +15,10 @@ import { z } from 'zod';
 import { router } from '@inertiajs/react';
 
 const shopFormSchema = z.object({
-    shopName: z.string().min(3, "Le nom de la boutique doit avoir au moins 3 caractères"),
+    name: z.string().min(3, "Le nom de la boutique doit avoir au moins 3 caractères"),
     description: z.string().min(20, "La description doit avoir au moins 20 caractères"),
     logo: z.any().optional(),
-    coverImage: z.any().optional(),
+    cover_image: z.any().optional(),
     address: z.string().min(5, "Veuillez entrer une adresse valide"),
     city: z.string().min(2, "Veuillez entrer une ville valide"),
     phone: z.string().min(8, "Veuillez entrer un numéro de téléphone valide"),
@@ -42,7 +42,7 @@ function Create() {
     const form = useForm<ShopFormValues>({
         resolver: zodResolver(shopFormSchema),
         defaultValues: {
-            shopName: "",
+            name: "",
             description: "",
             address: "",
             city: "",
@@ -114,7 +114,7 @@ function Create() {
                                 <div className="space-y-6">
                                     <FormField
                                         control={form.control}
-                                        name="shopName"
+                                        name="name"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Nom de la boutique *</FormLabel>
@@ -205,7 +205,7 @@ function Create() {
                                                                     <span>Cliquez pour ajouter une image de couverture</span>
                                                                     <input
                                                                         id="cover-upload"
-                                                                        name="coverImage"
+                                                                        name="cover_image"
                                                                         type="file"
                                                                         accept="image/*"
                                                                         className="sr-only"

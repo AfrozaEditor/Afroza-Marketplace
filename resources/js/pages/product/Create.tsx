@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 interface Props {
     categories: Category[];
@@ -22,15 +23,15 @@ const productSchema = z.object({
     name: z.string().min(3, { message: 'Le nom doit contenir au moins 3 caractères.' }),
     description: z.string().min(10, { message: 'La description doit contenir au moins 10 caractères.' }),
     price: z.coerce.number().positive({ message: 'Le prix doit être un nombre positif.' }),
-    discountedPrice: z.coerce.number().positive({ message: 'Le prix réduit doit être un nombre positif.' }).optional().or(z.literal('')),
-    images: z
-        .array(z.string().url({ message: "Veuillez entrer une URL valide pour l'image." }))
-        .min(1, { message: 'Au moins une image est requise.' }),
-    category: z.string().min(3, { message: 'La catégorie doit contenir au moins 3 caractères.' }),
+    // discountedPrice: z.coerce.number().positive({ message: 'Le prix réduit doit être un nombre positif.' }).optional().or(z.literal('')),
+    // images: z
+    //     .array(z.string())
+    //     .min(1, { message: 'Au moins une image est requise.' }),
+    category: z.string().min(1, { message: 'Veillez sélectionner une catégorie.' }),
     stock: z.coerce.number().int().min(0, { message: 'Le stock ne peut pas être négatif.' }),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+type ProductFormData = z.infer<typeof productSchema>
 
 function Create({ categories }: Props) {
     const [images, setImages] = useState<File[]>([]);
@@ -43,8 +44,6 @@ function Create({ categories }: Props) {
             name: '',
             description: '',
             price: 0,
-            discountedPrice: undefined,
-            images: [''],
             category: '',
             stock: 0,
         },
@@ -80,6 +79,38 @@ function Create({ categories }: Props) {
         setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
+
+    const handleSubmit = (data: ProductFormData) => {
+        // Créer un objet FormData pour envoyer les fichiers
+    const formData = new FormData();
+
+    // Ajouter les données du produit
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('price', data.price.toString());
+    formData.append('category', data.category);
+    formData.append('stock', data.stock.toString());
+
+    // Ajouter les images
+    images.forEach((image) => {
+        formData.append('images[]', image);
+    });
+        router.post(route('products.store'), formData, {
+            onSuccess: () => {
+                toast.success('Produit créé avec succès!', {
+                    description: 'Vous allez être redirigé vers le dashboard.'
+                });
+                // Optionnel : reset le formulaire
+                // form.reset();
+            },
+            onError: () => {
+                toast.error('Une erreur est survenue lors de la création du produit.', {
+                    description: 'Veuillez vérifier vos informations et réessayer.'
+                });
+            }
+        });
+    };
+
     return (
         <AppLayout>
             <div className="container mx-auto max-w-4xl px-4 py-8">
@@ -90,7 +121,7 @@ function Create({ categories }: Props) {
 
                 <p className="mb-8 text-gray-600">Remplissez les informations ci-dessous pour ajouter un nouveau produit sur Vide Dressing.</p>
                 <Form {...form}>
-                    <form className="space-y-6">
+                    <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
                         <Card>
                             <CardContent>
                                 <h2 className="mb-4 text-xl font-semibold">Informations générales</h2>

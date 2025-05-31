@@ -25,6 +25,7 @@ class DataSeeder extends Seeder
             'admin' => Role::create(['name' => 'admin']),
             'vendor' => Role::create(['name' => 'vendor']),
             'customer' => Role::create(['name' => 'customer']),
+            'delivery' => Role::create(['name' => 'delivery']),
         ];
 
         // Création de l'administrateur
