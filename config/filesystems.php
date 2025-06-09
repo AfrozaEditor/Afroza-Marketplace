@@ -58,6 +58,7 @@ return [
 //            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'use_path_style_endpoint' => true, // Set to true for compatibility with MinIO
 //            'throw' => false,
+            'visibility' => 'public',
 //            'report' => false,
         ],
 

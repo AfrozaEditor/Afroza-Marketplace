@@ -8,7 +8,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { ShoppingCart, Star, Users } from 'lucide-react';
 
 interface Props {
-    shops: Shop[];
+    shops: (Shop & {
+        logo_url?: string;
+        cover_image_url?: string;
+    })[];
 }
 
 function Index({shops}: Props) {
@@ -44,7 +47,7 @@ function Index({shops}: Props) {
                         <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-all">
                             <div className="relative h-48 overflow-hidden">
                                 <img
-                                    // src={shop.image}
+                                    src={shop.cover_image_url}
                                     alt={shop.name}
                                     className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
                                 />

@@ -32,6 +32,13 @@ function Show({product, images}:Props) {
         }
     };
 
+    const handleAddToCart = () => {
+    router.post(route('cart.store'), {
+        product_id: product.id,
+        quantity: quantity
+    });
+};
+
     const plugin = React.useRef(
         Autoplay({delay: 5000, stopOnInteraction: true})
     )
@@ -173,7 +180,7 @@ function Show({product, images}:Props) {
                         <div className="flex w-full flex-col gap-3 sm:flex-row">
                             <Button
                                 className="flex-1"
-                                // onClick={handleAddToCart}
+                                onClick={handleAddToCart}
                             >
                                 <ShoppingCart className="mr-2 h-4 w-4" /> Ajouter au panier
                             </Button>

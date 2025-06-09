@@ -6,6 +6,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Marketplace\MarketplaceController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Promotion\PromotionController;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -21,13 +22,14 @@ Route::get('/', function () {
         $images = $product->images()->get();
         $imagesUrls = [];
         foreach ($images as $image) {
-            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30));
+            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
         }
         $product->images = $imagesUrls;
         return $product;
     });
     return Inertia::render('home', [
         'latestProducts' => $latestProducts,
+        'categories' => Category::all(),
     ]);
 })->name('home');
 
@@ -37,7 +39,11 @@ Route::get('features', function (){
 
 Route::middleware(['auth', 'verified','role:vendor'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('vendor/dashboard');
+        $user = auth()->user();
+        $products = Product::with('user')->where('user_id',$user->id)->get();
+        return Inertia::render('vendor/dashboard',[
+            'products' => $products,
+        ]);
     })->name('dashboard');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::resource('products', ProductController::class);
@@ -59,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/users', [ChatController::class, 'users'])->name('chat.users');
     Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+    Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/start/{user}', [ChatController::class, 'startConversation'])->name('chat.start');
     Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.message');
 });
@@ -68,8 +75,11 @@ Route::resource('marketplace', MarketplaceController::class);
 Route::resource('products', ProductController::class)->only(['index', 'show']);
 Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
-//Route::resource('cart', CartController::class);
+
+
+Route::resource('cart', CartController::class)->only(['store']);
 Route::get('/my-cart', [CartController::class, 'myCart'])->name('my-cart');
+Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
 //Route::get('/available',[ProductController::class, 'index']);
 
 require __DIR__.'/settings.php';

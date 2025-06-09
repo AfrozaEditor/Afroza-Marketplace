@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { Product, type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import {
     BarChart2,
@@ -135,6 +135,10 @@ const notifications = [
     },
 ];
 
+interface Props {
+    products: Product[];
+}
+
 const getStatusBadgeColor = (status: string) => {
     switch (status) {
         case 'active':
@@ -157,10 +161,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({products}: Props) {
     const [activeTab, setActiveTab] = useState<string>('overview');
     const [isAddArticleDialogOpen, setIsAddArticleDialogOpen] = useState(false);
-
+    console.log(products);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -182,7 +186,7 @@ export default function Dashboard() {
                             </Link>
                         </div>
                     </div>
-                    <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {/* <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                         {stats.map((stat, index) => (
                             <Card key={index}>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -197,7 +201,7 @@ export default function Dashboard() {
                                 </CardContent>
                             </Card>
                         ))}
-                    </div>
+                    </div> */}
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                         {/* ... keep existing code (TabsList) */}
                         <TabsList className="grid w-full grid-cols-2 gap-2 md:grid-cols-5">
@@ -234,14 +238,14 @@ export default function Dashboard() {
                                         <div className="space-y-4">
                                             {products.slice(0, 3).map((product) => (
                                                 <div key={product.id} className="flex items-center gap-4">
-                                                    <img src={product.image} alt={product.name} className="h-12 w-12 rounded-md object-cover" />
+                                                    <img src={product.images ? product.images[0]: ''} alt={product.name} className="h-12 w-12 rounded-md object-cover" />
                                                     <div className="flex-1">
                                                         <h3 className="text-sm font-medium">{product.name}</h3>
-                                                        <p className="text-sm text-gray-500">{product.price}</p>
+                                                        <p className="text-sm text-gray-500">{product.price} FCFA</p>
                                                     </div>
-                                                    <Badge className={getStatusBadgeColor(product.status)}>
+                                                    {/* <Badge className={getStatusBadgeColor(product.status)}>
                                                         {product.status === 'active' ? 'En vente' : 'Vendu'}
-                                                    </Badge>
+                                                    </Badge> */}
                                                 </div>
                                             ))}
                                         </div>
@@ -324,8 +328,8 @@ export default function Dashboard() {
                                         <div className="grid grid-cols-12 bg-gray-50 p-4 text-sm font-medium text-gray-500">
                                             <div className="col-span-5">Article</div>
                                             <div className="col-span-2 text-center">Prix</div>
-                                            <div className="col-span-2 text-center">Vues</div>
-                                            <div className="col-span-2 text-center">Statut</div>
+                                            <div className="col-span-2 text-center">En stock</div>
+                                            {/* <div className="col-span-2 text-center">Statut</div> */}
                                             <div className="col-span-1 text-right">Actions</div>
                                         </div>
 
@@ -336,12 +340,12 @@ export default function Dashboard() {
                                                     <span>{product.name}</span>
                                                 </div>
                                                 <div className="col-span-2 text-center font-medium">{product.price}</div>
-                                                <div className="col-span-2 text-center">{product.views}</div>
-                                                <div className="col-span-2 text-center">
-                                                    <Badge className={getStatusBadgeColor(product.status)}>
+                                                <div className="col-span-2 text-center">{product.quantity}</div>
+                                                {/* <div className="col-span-2 text-center">
+                                                    <Badge className={getStatusBadgeColor(product.)}>
                                                         {product.status === 'active' ? 'En vente' : 'Vendu'}
                                                     </Badge>
-                                                </div>
+                                                </div> */}
                                                 <div className="col-span-1 text-right">
                                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                                         <Settings className="h-4 w-4" />

@@ -16,25 +16,76 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'shop', 'user'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        // $products = Product::with(['category', 'shop', 'user'])
+        // ->orderBy('created_at', 'desc')
+        // ->paginate(9);
+        $query = Product::with(['category', 'shop', 'user']);
+
+    // Filtre par catégorie
+    if ($request->filled('category')&& $request->category !== '0') {
+        $query->where('category_id', $request->category);
+    }
+
+    // Filtre par recherche
+    // if ($request->has('search')) {
+    //     $query->where('name', 'like', '%' . $request->search . '%');
+    // }
+    if ($request->filled('search')) {
+    $search = $request->search;
+    $query->where(function($q) use ($search) {
+        $q->where('name', 'like', '%' . $search . '%')
+          ->orWhere('description', 'like', '%' . $search . '%');
+    });
+}
+
+    // Filtre par prix
+    if ($request->has('min_price')) {
+        $query->where('price', '>=', $request->min_price);
+    }
+    if ($request->has('max_price')) {
+        $query->where('price', '<=', $request->max_price);
+    }
+
+    // Tri
+    $sort = $request->get('sort', 'newest');
+    switch ($sort) {
+        case 'price-asc':
+            $query->orderBy('price', 'asc');
+            break;
+        case 'price-desc':
+            $query->orderBy('price', 'desc');
+            break;
+        default:
+            $query->orderBy('created_at', 'desc');
+    }
+
+    $products = $query->paginate(9)->withQueryString();
 
         // Générer les URLs temporaires pour chaque produit
     $products->transform(function ($product) {
         $images = $product->images()->get();
         $imagesUrls = [];
         foreach ($images as $image) {
-            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30));
+            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
         }
         $product->images = $imagesUrls;
         return $product;
     });
 
+    $categories = Category::all();
+
         return Inertia::render('product/Index', [
-            'products' => $products
+            'products' => $products,
+            'categories' => $categories,
+            'filters' => [
+            'category' => $request->get('category', '0'),
+            'search' => $request->get('search', ''),
+            'min_price' => $request->get('min_price', '0'),
+            'max_price' => $request->get('max_price', '60000'),
+            'sort' => $sort
+        ]
         ]);
     }
 

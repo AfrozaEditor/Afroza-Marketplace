@@ -14,12 +14,18 @@ class Shop extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'address',
         'phone',
         'email',
         'logo',
-        'cover',
+        'city',
+        'cover_image',
+        'website',
+        'facebook',
+        'instagram',
+        'user_id',
     ];
 
     /**

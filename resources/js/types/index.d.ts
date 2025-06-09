@@ -96,4 +96,14 @@ export interface Shop {
     active: boolean;
     products: Product[];
     created_at: string;
+    logo: string;
+    cover_image: string;
+}
+
+export interface Message {
+  id: number;
+  content: string;
+  created_at: string;
+  user: User;
+  is_mine: boolean;
 }

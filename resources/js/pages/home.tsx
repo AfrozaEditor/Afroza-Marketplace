@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import ListProduct from '@/components/product/list-product';
 import { HeroSection } from '@/components/hero-section';
-import { Product } from '@/types';
+import { Category, Product } from '@/types';
 import NewsLetter from '@/components/home/news-letter';
 
 
@@ -27,6 +27,7 @@ const breadcrumbs = [
 
 interface Props {
     latestProducts: Product[];
+    categories: Category[];
 }
 
 const categories = [
@@ -56,11 +57,11 @@ const categories = [
     },
 ];
 
-function Home({latestProducts}: Props) {
+function Home({latestProducts, categories}: Props) {
     console.log(latestProducts);
 
     return (
-        <AppLayout>
+        <AppLayout categories={categories}>
             <Head title="Accueil" />
 
             {/*<div className="relative w-full h-96">*/}
@@ -98,7 +99,7 @@ function Home({latestProducts}: Props) {
                 buttons={{
                     primary: {
                         text: "Acheter Maintenant",
-                        href: "/available"
+                        href: "/products"
                     }
                 }}
                 style={{
@@ -151,7 +152,7 @@ function Home({latestProducts}: Props) {
                     ))}
                 </div>
                 <h2 className="text-3xl font-bold text-center my-6">Nouveautés</h2>
-                 <ListProduct products={latestProducts}/>
+                 <ListProduct products={latestProducts} className='md:grid-cols-4'/>
             </div>
             <NewsLetter/>
         </AppLayout>

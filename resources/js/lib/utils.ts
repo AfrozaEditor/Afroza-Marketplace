@@ -1,3 +1,4 @@
+import { Category, Product } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -15,3 +16,45 @@ export function formatDateShort(date: string | Date): string {
 export function formatDate(date: string | Date): string {
     return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
 }
+
+
+export const filterProducts = (
+    products: Product[],
+    filters: {
+        searchTerm: string;
+        priceRange: number[];
+        selectedCategory: Category;
+        selectedBrands: string[];
+        selectedSizes: string[];
+        selectedConditions: string[];
+    }
+) => {
+    return products.filter((product) => {
+        // Filtre par recherche
+        if (
+            filters.searchTerm &&
+            !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
+        ) {
+            return false;
+        }
+
+        // Filtre par catégorie
+        if (
+            filters.selectedCategory &&
+            filters.selectedCategory.name !== 'Tous' &&
+            product.category.id !== filters.selectedCategory.id
+        ) {
+            return false;
+        }
+
+        // Filtre par prix
+        if (
+            product.price < filters.priceRange[0] ||
+            product.price > filters.priceRange[1]
+        ) {
+            return false;
+        }
+
+        return true;
+    });
+};

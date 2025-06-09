@@ -1,17 +1,19 @@
 import React from 'react';
 import ProductCard from './product-card';
 import { Product } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface Props {
     products: Product[];
+    className?: string;
 }
 
-function ListProduct({ products }:Props) {
+function ListProduct({ products, className }:Props) {
     // const filteredProducts = category === 'all' ? products : products.filter((product) => product.category === category);
 
     return (
         <div
-            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 transition-opacity duration-500`}
+            className={cn(`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-opacity duration-500 w-full`,className)}
         >
             {products.map((product) => (
                 <ProductCard

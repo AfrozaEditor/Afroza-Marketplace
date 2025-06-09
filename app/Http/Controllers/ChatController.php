@@ -16,36 +16,84 @@ class ChatController extends Controller
      */
     public function index()
     {
-        $conversations = Auth::user()->conversations()
-            ->with(['participants' => function ($query) {
-                $query->where('user_id', '!=', Auth::id());
-            }, 'messages' => function ($query) {
-                $query->latest()->take(1);
-            }])
-            ->get()
-            ->map(function ($conversation) {
-                $lastMessage = $conversation->messages->first();
-                $unreadCount = $conversation->messages()
-                    ->where('user_id', '!=', Auth::id())
-                    ->where('read', false)
-                    ->count();
+        // $conversations = Auth::user()->conversations()
+        //     ->with(['participants' => function ($query) {
+        //         $query->where('user_id', '!=', Auth::id());
+        //     }, 'messages' => function ($query) {
+        //         $query->latest()->take(1);
+        //     }])
+        //     ->get()
+        //     ->map(function ($conversation) {
+        //         $lastMessage = $conversation->messages->last();
+        //         $unreadCount = $conversation->messages()
+        //             ->where('user_id', '!=', Auth::id())
+        //             ->where('read', false)
+        //             ->count();
 
-                return [
-                    'id' => $conversation->id,
-                    'name' => $conversation->is_group ? $conversation->name : $conversation->participants->first()->name,
-                    'last_message' => $lastMessage ? [
-                        'content' => $lastMessage->content,
-                        'created_at' => $lastMessage->created_at,
-                        'is_mine' => $lastMessage->user_id === Auth::id(),
-                    ] : null,
-                    'unread_count' => $unreadCount,
-                ];
-            });
+        //         return [
+        //             'id' => $conversation->id,
+        //             'name' => $conversation->is_group ? $conversation->name : $conversation->participants->first()->name,
+        //             'last_message' => $lastMessage ? [
+        //                 'content' => $lastMessage->content,
+        //                 'created_at' => $lastMessage->created_at,
+        //                 'is_mine' => $lastMessage->user_id === Auth::id(),
+        //             ] : null,
+        //             'unread_count' => $unreadCount,
+        //         ];
+        //     });
+$conversations = Auth::user()->conversations()
+    ->with(['participants' => function ($query) {
+        $query->where('user_id', '!=', Auth::id());
+    }])
+    ->withCount(['messages as unread_count' => function ($query) {
+        $query->where('user_id', '!=', Auth::id())
+            ->where('read', false);
+    }])
+    ->with(['lastMessage' => function ($query) {
+        $query->latest();
+            // ->select('id', 'conversation_id', 'content', 'created_at', 'user_id');
+    }])
+    ->get()
+    ->map(function ($conversation) {        
+        return [
+            'id' => $conversation->id,
+            'name' => $conversation->is_group ? $conversation->name : $conversation->participants->first()->name,
+            'last_message' => $conversation->lastMessage ? [
+                'content' => $conversation->lastMessage->content,
+                'created_at' => $conversation->lastMessage->created_at,
+                'is_mine' => $conversation->lastMessage->user_id === Auth::id(),
+            ] : null,
+            'unread_count' => $conversation->unread_count,
+        ];
+    });
 
         return Inertia::render('chat/Index', [
             'conversations' => $conversations,
         ]);
     }
+
+
+    public function getMessages(Conversation $conversation)
+{
+    // Vérifier que l'utilisateur fait partie de la conversation
+    if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+        abort(403);
+    }
+
+    $messages = $conversation->messages()
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->map(function ($message) {
+            return [
+                'id' => $message->id,
+                'content' => $message->content,
+                'created_at' => $message->created_at,
+                'is_mine' => $message->user_id === Auth::id()
+            ];
+        });
+
+    return response()->json(['props' => ['messages' => $messages]]);
+}
 
     /**
      * Afficher une conversation spécifique
@@ -162,7 +210,15 @@ class ChatController extends Controller
             'read' => false,
         ]);
 
-        return back();
+        // return back();
+        return response()->json([
+        'message' => [
+            'id' => $message->id,
+            'content' => $message->content,
+            'created_at' => $message->created_at,
+            'is_mine' => true
+        ]
+    ]);
     }
 
     /**
@@ -206,7 +262,7 @@ class ChatController extends Controller
             $conversation = $existingConversation;
         }
 
-        return redirect()->route('chat.show', $conversation);
+        return redirect()->route('chat.index', $conversation);
 //        return redirect()->route('chat.show', ['conversation' => $conversation->id]);
     }
 

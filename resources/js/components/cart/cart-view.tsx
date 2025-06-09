@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ShoppingCart } from 'lucide-react';
 import { Cart } from '@/types';
 import CartItem from '@/components/cart/cart-item';
@@ -11,6 +11,12 @@ interface Props{
 }
 function CartView({cart}:Props) {
 
+    const handleClearCart = () => {
+        if (window.confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
+            router.post(route('cart.clear'));
+        }
+    };
+
     if (cart.items.length === 0) {
         return (
             <div className="text-center py-12">
@@ -18,7 +24,7 @@ function CartView({cart}:Props) {
                 <h2 className="text-2xl font-semibold mb-2">Votre panier est vide</h2>
                 <p className="text-gray-600 mb-6">Parcourez nos articles et trouvez votre bonheur !</p>
                 <Button asChild>
-                    <Link href="">Continuer les achats</Link>
+                    <Link href="/products">Continuer les achats</Link>
                 </Button>
             </div>
         );
@@ -40,7 +46,7 @@ function CartView({cart}:Props) {
                 </Card>
                 <Button
                     variant="outline"
-                    // onClick={clearCart}
+                    onClick={handleClearCart}
                     className="mt-6"
                 >
                     Vider le panier

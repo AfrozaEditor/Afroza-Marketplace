@@ -26,9 +26,9 @@ const shopFormSchema = z.object({
     website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
     facebook: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
     instagram: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
-    acceptTerms: z.boolean().refine(val => val, {
-        message: "Vous devez accepter les conditions générales"
-    })
+    // acceptTerms: z.boolean().refine(val => val, {
+    //     message: "Vous devez accepter les conditions générales"
+    // })
 });
 
 type ShopFormValues = z.infer<typeof shopFormSchema>;
@@ -38,6 +38,8 @@ function Create() {
     // const navigate = useNavigate();
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [logo, setLogo] = useState<File>();
+    const [cover, setCover] = useState<File>();
 
     const form = useForm<ShopFormValues>({
         resolver: zodResolver(shopFormSchema),
@@ -51,7 +53,7 @@ function Create() {
             website: "",
             facebook: "",
             instagram: "",
-            acceptTerms: false
+            // acceptTerms: false
         }
     });
 
@@ -64,6 +66,7 @@ function Create() {
             };
             reader.readAsDataURL(file);
         }
+        setLogo(file);
     };
 
     const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,22 +78,56 @@ function Create() {
             };
             reader.readAsDataURL(file);
         }
+        setCover(file);
     };
 
     const onSubmit = (data: ShopFormValues) => {
-        console.log("Form data:", data);
 
-        // In a real application, this would be an API call to create the shop
-        // For now, we'll simulate success with a toast notification
+    const formData = new FormData();
 
-        toast.success("Votre boutique a été créée avec succès!", {
-            description: "Vous allez être redirigé vers votre tableau de bord.",
-            duration: 5000,
-        });
+    // Ajout des données de la boutique
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('address', data.address);
+    formData.append('city', data.city);
+    formData.append('phone', data.phone);
+    formData.append('email', data.email);
+    // formData.append('website', data.website);
+    // formData.append('address', data.address);
+    // formData.append('address', data.address);
 
-        setTimeout(() => {
-            router.get("/dashboard");
-        }, 2000);
+    formData.append('logo', logo);
+    formData.append('cover_image', cover);
+
+    console.log(logo);
+    console.log(formData);
+
+    // Envoyer les données via Inertia
+    router.post(route('marketplace.store'), formData, {
+        onSuccess: () => {
+            toast.success("Votre boutique a été créée avec succès!", {
+                description: "Vous allez être redirigé vers votre boutique.",
+            });
+        },
+        onError: (errors) => {
+            toast.error("Une erreur est survenue", {
+                description: "Veuillez vérifier les informations saisies.",
+            });
+            console.log(errors);
+        }
+    });
+
+        // // In a real application, this would be an API call to create the shop
+        // // For now, we'll simulate success with a toast notification
+
+        // toast.success("Votre boutique a été créée avec succès!", {
+        //     description: "Vous allez être redirigé vers votre tableau de bord.",
+        //     duration: 5000,
+        // });
+
+        // setTimeout(() => {
+        //     router.get("/dashboard");
+        // }, 2000);
     };
 
 
@@ -163,7 +200,7 @@ function Create() {
                                                             <div className="mt-2 text-sm text-gray-500">
                                                                 <label htmlFor="logo-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
                                                                     <span>Cliquez pour ajouter un logo</span>
-                                                                    <input
+                                                                    <Input
                                                                         id="logo-upload"
                                                                         name="logo"
                                                                         type="file"
@@ -203,7 +240,7 @@ function Create() {
                                                             <div className="mt-2 text-sm text-gray-500">
                                                                 <label htmlFor="cover-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
                                                                     <span>Cliquez pour ajouter une image de couverture</span>
-                                                                    <input
+                                                                    <Input
                                                                         id="cover-upload"
                                                                         name="cover_image"
                                                                         type="file"

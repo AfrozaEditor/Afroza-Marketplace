@@ -8,7 +8,10 @@ import { toast } from 'sonner';
 import { router } from '@inertiajs/react';
 
 interface Props {
-    shop: Shop;
+    shop: Shop & {
+        logo_url?: string;
+        cover_image_url?: string;
+    };
 }
 
 function Show({ shop }: Props) {
@@ -22,12 +25,15 @@ function Show({ shop }: Props) {
             toast.error(`Vous ne suivez plus ${shop.name}`);
         }
     };
+    
+    console.log(shop.logo);
+    console.log(shop.cover_image);
 
     return (
         <AppLayout>
             <div className="relative h-48 overflow-hidden md:h-64">
                 <img
-                    // src={seller.coverImage}
+                    src={shop.cover_image_url}
                     alt={`${shop.name} couverture`}
                     className="h-full w-full object-cover"
                 />
@@ -40,7 +46,7 @@ function Show({ shop }: Props) {
                     <div className="flex w-full flex-col items-center gap-4 rounded-lg bg-white p-4 shadow-md md:flex-row md:gap-6 md:p-6">
                         <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-md md:h-32 md:w-32">
                             <img
-                                // src={seller.image}
+                                src={shop.logo_url}
                                 alt={shop.name}
                                 className="h-full w-full object-cover"
                             />

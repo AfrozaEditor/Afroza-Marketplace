@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
+import { Category, type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Bell, Facebook, Instagram, Menu, MessageCircle, Search, ShoppingCart, Twitter, User, X } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -12,6 +12,8 @@ import { Separator } from './ui/separator';
 import { useState } from 'react';
 import { Input } from './ui/input';
 import { UserMenu } from '@/components/user-menu';
+import { Select } from '@radix-ui/react-select';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const mainNavItems: NavItem[] = [
     {
@@ -61,14 +63,16 @@ const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
+    categories: Category[];
 }
 
-export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
+export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const [searchQuery, setSearchQuery] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // const getInitials = useInitials();
+    // console.log(categories[0].name);
     console.log(auth.user?.cart);
     // console.log(auth.user.role);
     const isVendor = auth.user?.role === 'vendor';
@@ -184,22 +188,42 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         {/* Barre de recherche - Desktop */}
                         <div className="hidden md:flex flex-1 max-w-2xl mx-8">
                             <form onSubmit={handleSearch} className="w-full">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <div className="relative flex">
+                                    <Select
+                                    >
+                                        <SelectTrigger 
+              className="bg-white text-gray-800 px-4 py-2 rounded-l-md rounded-r-none border-r focus:outline-none w-40"
+                                        
+                                        >
+                                            <SelectValue placeholder="Catégorie" />
+                                        </SelectTrigger>
+                                        <SelectContent 
+                                            // className="bg-white text-gray-800 px-4 py-2 rounded-l-md border-r focus:outline-none w-40"
+                                        >
+                                            {categories.map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.name}>
+                                                    {cat.name}
+                                                </SelectItem>
+                                            ))}
+                                            {/* <SelectItem key={1} value='essai'>
+                                                Essai
+                                            </SelectItem> */}
+                                        </SelectContent>
+                                    </Select>
                                     <Input
                                         type="text"
                                         placeholder="Rechercher des produits, marques, vendeurs..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-11 pr-24 py-3 w-full border-2 border-gray-200 focus:border-videdressing-primary rounded-lg bg-gray-50 focus:bg-white transition-colors"
+                                        className="pr-24 py-3 w-full border-0 rounded-l-none bg-gray-50 focus:bg-white transition-colors"
                                     />
                                     <Button
                                         type="submit"
                                         size="sm"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 h-8 bg-primary hover:bg-secondary"
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 h-8 bg-primary hover:bg-primary/80"
                                         disabled={!searchQuery.trim()}
                                     >
-                                        Rechercher
+                                        <Search size={18} />
                                     </Button>
                                 </div>
                             </form>
