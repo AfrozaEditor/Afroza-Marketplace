@@ -15,7 +15,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
+import { SocialIcon } from 'react-social-icons/component';
+import google from '../../../../public/google.png';
 // type RegisterForm = {
 //     name: string;
 //     email: string;
@@ -240,6 +241,12 @@ export default function Register() {
                         Créer un compte
                     </Button>
                     {/* </div> */}
+                    <div className="flex justify-center items-center">
+                        <Button className='flex border hover:shadow-primary rounded-full p-2' variant={'outline'}>
+                            <img src={google} width={20} height={20} />
+                        </Button>
+                    </div>
+
 
                     <div className="text-muted-foreground text-center text-sm">
                         Vous avez déjà un compte?{' '}

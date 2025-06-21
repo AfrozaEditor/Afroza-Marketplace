@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import google from '../../../../public/google.png';
 
 type LoginForm = {
     email: string;
@@ -93,6 +94,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Log in
+                    </Button>
+                </div>
+                <div className="flex justify-center items-center">
+                    <Button className='flex border hover:shadow-primary rounded-full p-2' variant={'outline'}>
+                        <img src={google} width={20} height={20} />
                     </Button>
                 </div>
 
