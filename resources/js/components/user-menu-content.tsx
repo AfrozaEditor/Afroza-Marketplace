@@ -8,7 +8,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
+import { Heart, LayoutDashboard, ListOrdered, LogOut, Settings } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -58,6 +58,20 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         <DropdownMenuSeparator />
                     </>
                 )}
+                <DropdownMenuItem asChild>
+                    <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
+                        <Heart className="mr-2" />
+                        Favoris
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
+                        <ListOrdered className="mr-2" />
+                        Commandes
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
                         <Settings className="mr-2" />

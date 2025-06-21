@@ -96,6 +96,16 @@ class CartController extends Controller
         ]);
     }
 
+    public function removeItem($id)
+    {
+        $cart = Cart::where('user_id', auth()->id())->firstOrFail();
+        $cart->items()->findOrFail($id)->delete();
+        
+        $this->updateCartTotals($cart);
+
+        return redirect()->back();
+    }
+
     public function clearCart()
     {
         $user = auth()->user();

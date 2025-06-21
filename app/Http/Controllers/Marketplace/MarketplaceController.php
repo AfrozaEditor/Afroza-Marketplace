@@ -16,7 +16,7 @@ class MarketplaceController extends Controller
      */
     public function index()
     {
-        $shops = Shop::with('products')->get();
+        $shops = Shop::with('products','followers')->get();
 
         // Générer les URLs temporaires pour les logos et images de couverture
         foreach ($shops as $shop) {
@@ -50,11 +50,11 @@ class MarketplaceController extends Controller
         $validated = $request->validate([
             // 'name' => 'required|string|min:3|unique:shops,name',
             'name' => 'required|string|min:3',
-            'description' => 'nullable|string|min:20',
-            'address' => 'nullable|string|min:5',
-            'city' => 'nullable|string|min:2',
-            'phone' => 'nullable|string|min:8',
-            'email' => 'nullable|email',
+            'description' => 'required|string|min:20',
+            'address' => 'required|string|min:5',
+            'city' => 'required|string|min:2',
+            'phone' => 'required|string|min:8',
+            'email' => 'required|email',
             'website' => 'nullable|url',
             'facebook' => 'nullable|url',
             'instagram' => 'nullable|url',
@@ -79,7 +79,7 @@ class MarketplaceController extends Controller
 
         // Créer un slug unique pour la boutique
         $validated['slug'] = Str::slug($validated['name']);
-        
+
         // Ajouter l'ID de l'utilisateur
         $validated['user_id'] = auth()->id();
 
@@ -111,19 +111,46 @@ class MarketplaceController extends Controller
      */
     public function show(string $slug)
     {
-        $shop = Shop::where('slug', $slug)->with(['products', 'user' ])->firstOrFail();
+        $shop = Shop::where('slug', $slug)->with(['products.user', 'user', 'followers', 'reviews'])->firstOrFail();
+
+        // Ajouter cette ligne pour vérifier si l'utilisateur suit la boutique
+    $shop->is_followed = $shop->followers->contains(auth()->id());
 
         // Générer les URLs temporaires si les fichiers existent
         if ($shop->logo) {
             $shop->logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(5));
         }
-        
+
         if ($shop->cover_image) {
             $shop->cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(5));
         }
-        
+
+        // $shop->products()->paginate(6);
+        // Charger les produits paginés
+        $products = $shop->products()->with('user')->paginate(6);
+
+
         return Inertia::render('marketplace/Show', [
             'shop' => $shop,
+            'products' => $products,
+        ]);
+    }
+
+    public function toggleFollow(Request $request, string $slug)
+    {
+        $shop = Shop::where('slug', $slug)->firstOrFail();
+        $user = auth()->user(); // Ou auth()->user();
+
+        // La méthode toggle() ajoute le lien si inexistant, ou le supprime si existant.
+        // Elle retourne un tableau avec 'attached' et 'detached' (les IDs).
+        $syncResult = $shop->followers()->toggle($user->id);
+        $isFollowing = !empty($syncResult['attached']);
+
+        return back()->with([
+        'isFollowing' => $isFollowing,
+        'success' => $isFollowing
+            ? 'Vous suivez maintenant cette boutique.'
+            : 'Vous ne suivez plus cette boutique.'
         ]);
     }
 

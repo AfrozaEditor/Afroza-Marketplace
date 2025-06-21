@@ -26,14 +26,15 @@ function ProductCard({product}: Props) {
                 <Card className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 pt-0">
                     <div className="relative h-48 overflow-hidden group">
                         <img
-                            src={product.images[0]}
+                            src={product.images && product.images.length > 0
+                                ? product.images[0] : '/placeholder.svg'}
                             alt={product.name}
                             loading="lazy"
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute top-0 right-0 m-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
-                                className="bg-white p-2 rounded-full text-teal-500 hover:text-teal-700 transition-colors shadow-md"
+                                className="bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     // Add to wishlist logic
@@ -47,7 +48,7 @@ function ProductCard({product}: Props) {
                                 <Star className="text-yellow-400" size={16} />
                                 <span className="ml-1">0</span>
                                 <span className="mx-1">•</span>
-                                <span>0 reviews</span>
+                                <span>0 Avis</span>
                             </div>
                         </div>
                     </div>

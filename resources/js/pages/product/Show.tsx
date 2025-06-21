@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { router } from '@inertiajs/react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Product } from '@/types';
+import icon from '../../../../public/apple-touch-icon.png';
 
 interface Props {
     product: Product;
@@ -59,7 +60,7 @@ function Show({product, images}:Props) {
         <AppLayout
             // breadcrumbs={breadcrumbs}
         >
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 py-6 px-4">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 py-6 px-4 container mx-auto">
                 {/* Product Images */}
                 <Card className="overflow-hidden border-0 shadow-none">
                     <CardContent className="p-0">

@@ -1,20 +1,115 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { HeroSection } from '@/components/hero-section';
 import { Button } from '@/components/ui/button';
-import { Shop } from '@/types';
+import { Category, Shop } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Star, Users } from 'lucide-react';
+import { MarketplaceFilters } from '@/components/filter/marketplace-filter';
+import Faq from '@/components/faq';
 
 interface Props {
     shops: (Shop & {
         logo_url?: string;
         cover_image_url?: string;
     })[];
+    categories: Category[];
 }
 
-function Index({shops}: Props) {
+
+function Index({shops,categories}: Props) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [priceRange, setPriceRange] = useState<number[]>([0, 400000]);
+  const [ratingFilter, setRatingFilter] = useState(0);
+  const [productsRange, setProductsRange] = useState<number[]>([0, 200]);
+  const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState('rating');
+
+  // Format price in FCFA
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-FR').format(price);
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchTerm('');
+    setPriceRange([0, 400000]);
+    setRatingFilter(0);
+    setProductsRange([0, 200]);
+    setFeaturedOnly(false);
+    setSelectedCategories([]);
+    setSortBy('rating');
+  };
+
+  // Count active filters
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (priceRange[0] > 0 || priceRange[1] < 400000) count++;
+    if (ratingFilter > 0) count++;
+    if (productsRange[0] > 0 || productsRange[1] < 200) count++;
+    if (featuredOnly) count++;
+    if (selectedCategories.length > 0) count++;
+    return count;
+  };
+
+  // Filter and search functionality
+  const filteredSellers = shops
+    .filter(shop => {
+      // Search filter
+      if (searchTerm && !shop.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !shop.description.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Rating filter
+    //   if (ratingFilter > 0 && seller.rating < ratingFilter) {
+    //     return false;
+    //   }
+
+      // Price range filter
+    //   if (seller.maxPrice < priceRange[0] || seller.minPrice > priceRange[1]) {
+    //     return false;
+    //   }
+
+      // Products range filter
+      if (shop.products.length < productsRange[0] || shop.products.length > productsRange[1]) {
+        return false;
+      }
+
+      // Featured filter
+    //   if (featuredOnly && !seller.featured) {
+    //     return false;
+    //   }
+
+      // Categories filter
+    //   if (selectedCategories.length > 0 &&
+    //       !selectedCategories.some(cat => shop.categories.includes(cat))) {
+    //     return false;
+    //   }
+
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+        //   return b.rating - a.rating;
+        case 'products':
+        //   return b.products - a.products;
+        case 'followers':
+        //   return b.followers - a.followers;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+
+
+
     return (
         <AppLayout>
             <Head title="Marketplace"/>
@@ -24,17 +119,39 @@ function Index({shops}: Props) {
                 description="Découvrez les meilleures boutiques de seconde main et connectez-vous directement avec les vendeurs."
                 buttons={{
                     primary: {
-                        text: "Commencer à vendre",
-                        href: route('marketplace.create'),
+                        text: "Commencer à acheter",
+                        href: "/products",
                     },
                     secondary: {
                         text: "Découvrir les boutiques",
-                        href: "/products",
+                        href: "#boutiques",
                     },
                 }}
             />
-            <div className="container p-4">
-
+            <div className="container p-4 mx-auto">
+                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="w-full lg:w-80 lg:shrink-0">
+                <MarketplaceFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  ratingFilter={ratingFilter}
+                  setRatingFilter={setRatingFilter}
+                  productsRange={productsRange}
+                  setProductsRange={setProductsRange}
+                  featuredOnly={featuredOnly}
+                  setFeaturedOnly={setFeaturedOnly}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  resetFilters={resetFilters}
+                  activeFiltersCount={getActiveFiltersCount()}
+                  categories={categories}
+                />
+              </div>
+                <div className="w-full" id='boutiques'>
                 <div className="mb-6 flex justify-between items-center">
                     <h2 className="text-xl font-semibold">Boutiques ({shops.length})</h2>
                     <div className="text-sm text-gray-500">
@@ -42,7 +159,7 @@ function Index({shops}: Props) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {shops.map(shop => (
                         <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-all">
                             <div className="relative h-48 overflow-hidden">
@@ -66,13 +183,13 @@ function Index({shops}: Props) {
                                 </div>
                             </CardHeader>
                             <CardContent className="pb-2">
-                                <p className="text-sm text-gray-600 line-clamp-2">{shop.description}</p>
+                                <p className="text-sm text-gray-600 line-clamp-2 truncate">{shop.description}</p>
                                 <div className="flex justify-between text-sm text-gray-600 mt-2">
                         <span className="flex items-center gap-1">
                           <ShoppingCart size={14} /> {shop.products.length}
                         </span>
                                     <span className="flex items-center gap-1">
-                          <Users size={14} /> {100}
+                          <Users size={14} /> {shop.followers.length}
                         </span>
                                 </div>
                             </CardContent>
@@ -91,17 +208,22 @@ function Index({shops}: Props) {
                         </Card>
                     ))}
                 </div>
+                </div>
+                </div>
 
-            <div className="bg-primary/50 rounded-xl p-6 md:p-8 my-12">
+            <div className="bg-primary/50 rounded-xl p-6 md:p-8 my-12 w-full mx-0">
                 <div className="flex flex-col md:flex-row items-center">
-                    <div className="md:w-2/3 mb-6 md:mb-0 md:pr-8">
+                    <div className="mb-6 md:mb-0 md:pr-8">
                         <h2 className="text-2xl md:text-3xl font-bold mb-3">Vendez sur notre marketplace</h2>
                         <p className="text-gray-700 mb-6">Rejoignez des milliers de vendeurs et donnez une seconde vie à vos vêtements et accessoires. C'est simple, rapide et écologique.</p>
                         <div className="flex flex-wrap gap-3">
-                            <Button className="bg-accent hover:bg-accent/90">
-                                Ouvrir ma boutique
-                            </Button>
-                            <Button variant="outline" className="border-videdressing-primary text-videdressing-primary">
+                            <Link href={route('marketplace.create')}>
+                                <Button className="bg-primary hover:bg-accent/50">
+                                    Ouvrir ma boutique
+                                </Button>
+                            </Link>
+
+                            <Button variant="outline" className="border-primary text-primary">
                                 En savoir plus
                             </Button>
                         </div>
@@ -116,26 +238,7 @@ function Index({shops}: Props) {
                 </div>
             </div>
             {/* FAQ Section */}
-            <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6">Questions fréquentes</h2>
-
-                <div className="space-y-4">
-                    <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold text-lg mb-2">Comment devenir vendeur ?</h3>
-                        <p className="text-gray-600">Pour devenir vendeur, créez un compte, puis complétez votre profil vendeur avec vos informations et préférences de paiement. Une fois approuvé, vous pourrez commencer à publier des articles.</p>
-                    </div>
-
-                    <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold text-lg mb-2">Quelles sont les commissions ?</h3>
-                        <p className="text-gray-600">Nous appliquons une commission de 10% sur chaque vente. Les frais de livraison sont à la charge de l'acheteur, sauf si vous proposez la livraison gratuite.</p>
-                    </div>
-
-                    <div className="border rounded-lg p-4">
-                        <h3 className="font-semibold text-lg mb-2">Comment sont gérés les retours ?</h3>
-                        <p className="text-gray-600">Les acheteurs ont 14 jours pour demander un retour si l'article ne correspond pas à la description. Les frais de retour sont à la charge de l'acheteur, sauf si l'article est défectueux.</p>
-                    </div>
-                </div>
-            </div>
+            <Faq/>
             </div>
         </AppLayout>
     );

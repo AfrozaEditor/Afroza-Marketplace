@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import React from 'react';
 import { Button } from '../ui/button';
 import { Minus, Plus, X } from 'lucide-react';
@@ -13,6 +13,13 @@ function CartItems({item}:Props) {
 
     const handleQuantityChange = (newQuantity: number) => {
         // updateQuantity(item.product.id, newQuantity);
+    };
+
+    const handleRemoveItem = () => {
+        router.delete(`/cart/items/${item.id}`, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -67,7 +74,7 @@ function CartItems({item}:Props) {
                     variant="ghost"
                     size="icon"
                     className="text-gray-500 hover:text-red-500 h-8 w-8"
-                    // onClick={() => removeFromCart(item.product.id)}
+                    onClick={() => handleRemoveItem()}
                 >
                     <X size={18} />
                 </Button>

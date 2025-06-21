@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Category, Product } from '@/types';
 import ListProduct from '@/components/product/list-product';
 import { router } from '@inertiajs/react';
-import { filterProducts } from '@/lib/utils';
 import { FilterSidebar } from '@/components/filter/filter-sidebar';
 
 interface Props {
@@ -54,7 +53,7 @@ function Index({products, categories, filters}: Props) {
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
 
     console.log(selectedCategory);
-    
+
     const resetFilters = () => {
         // Définir les valeurs par défaut
     // const params = new URLSearchParams();
@@ -69,7 +68,7 @@ function Index({products, categories, filters}: Props) {
     // setPriceRange([0, 60000]);
     // setSearchTerm('');
     // setSortBy('newest');
-    
+
     // Utiliser router.get avec des paramètres vides
     router.get('/products', {
         // category: '0',
@@ -128,7 +127,7 @@ function Index({products, categories, filters}: Props) {
 const handlePageChange = (url: string) => {
     if (url) {
         const urlParams = new URLSearchParams(new URL(url).search);
-        
+
         // Ajouter les filtres actuels
         if (selectedCategory) {
             urlParams.set('category', selectedCategory.id.toString());
@@ -154,7 +153,9 @@ const handlePageChange = (url: string) => {
         <AppLayout>
             {/* Page header */}
             <div className="bg-gray-50 py-8">
-                <div className="container mx-auto px-4 md:px-8">
+                <div
+                    className="container mx-auto px-4"
+                >
                     <h1 className="text-3xl font-bold mb-2">Articles Disponibles</h1>
                     <p className="text-gray-600">Découvrez notre collection d'articles de mode de seconde main.</p>
 
@@ -210,9 +211,17 @@ const handlePageChange = (url: string) => {
                     categories={categories}
                     />
                 </div>
-                <ListProduct products={products.data} />
+                <div className="w-full">
+                    <div className="mb-6 flex justify-between items-center">
+                        <h2 className="text-xl font-semibold">Produits ({products.data.length})</h2>
+                        <div className="text-sm text-gray-500">
+                            {products.data.length} résultats
+                        </div>
+                    </div>
+                    <ListProduct products={products.data} />
                 </div>
-                
+                </div>
+
                 {/* <ListProduct products={products.data} /> */}
                 {/* Pagination */}
                 <div className="mt-8 flex justify-center gap-2">

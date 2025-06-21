@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavItem } from '@/types';
 import AppLogo from './app-logo';
-import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Youtube, Linkedin } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import {
     NavigationMenu,
@@ -19,48 +19,48 @@ const mainNavItems: NavItem[] = [
         href: '/',
     },
     {
-        title: 'Boutique',
+        title: 'Disponibles',
         href: '/products',
     },
     {
         title: 'Blog',
-        href: '/categories',
+        href: '/blog',
     },
     {
         title: 'Marketplace',
-        href: '/categories',
+        href: '/marketplace',
     },
 ]
 
 const helpNavItems: NavItem[] = [
     {
         title: 'Centre d\'Aide',
-        href: '/',
+        href: '/help',
     },
     {
         title: 'A Propos',
-        href: '/products',
+        href: '/about',
     },
     {
         title: 'Contact',
-        href: '/categories',
+        href: '/contact',
     },
 ]
 
 const legalNavItems: NavItem[] = [
     {
         title: 'Conditions Générales',
-        href: '/',
+        href: '#',
     },
     {
         title: 'Politique de Confidentialité',
-        href: '/products',
+        href: '#',
     },
 ]
 
 function AppFooter() {
     return (
-        <footer className="bg-gray-800 pt-12 pb-6">
+        <footer className="bg-gray-800 pt-12 pb-6 hidden md:block">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     <div>
@@ -77,11 +77,11 @@ function AppFooter() {
                             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                                 <Twitter size={20} />
                             </a>
-                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                            <a href="https://www.instagram.com/afrozaeditor" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                                 <Instagram size={20} />
                             </a>
-                            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                                <Youtube size={20} />
+                            <a href="https://www.linkedin.com/company/afroza-editor-for-developpement" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                                <Linkedin size={20} />
                             </a>
                         </div>
                     </div>
@@ -212,10 +212,10 @@ function AppFooter() {
                     {/*    </ul>*/}
                     {/*</div>*/}
                 </div>
-                <Separator className="border-gray-700"/>
-                <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
-                    <p>&copy; {new Date().getFullYear()} Vide Dressing Marketplace. Tous droits réservés.</p>
-                </div>
+            </div>
+            <Separator className="border-gray-700"/>
+            <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
+                <p>&copy; {new Date().getFullYear()} Vide Dressing Marketplace. Tous droits réservés.</p>
             </div>
         </footer>
     );

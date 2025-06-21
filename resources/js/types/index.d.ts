@@ -41,6 +41,7 @@ export interface User {
     updated_at: string;
     cart?: Cart;
     role: string;
+    notifications?: Notification[];
     [key: string]: unknown; // This allows for additional properties...
 }
 
@@ -98,6 +99,8 @@ export interface Shop {
     created_at: string;
     logo: string;
     cover_image: string;
+    followers: User[];
+    reviews: ShopReview[];
 }
 
 export interface Message {
@@ -106,4 +109,26 @@ export interface Message {
   created_at: string;
   user: User;
   is_mine: boolean;
+}
+
+export interface Notification {
+    id: number;
+    content: string;
+    title: string;
+    time: number;
+    message: string;
+    unread: boolean;
+}
+
+export interface ShopReview {
+    id: number;
+    shop: Shop;
+    user: User;
+    title: string;
+    rating: number;
+    comment: string;
+    is_approved: boolean;
+    created_at: string;
+    helpful: number;
+    notHelpful: number;
 }

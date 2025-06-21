@@ -94,4 +94,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+
+
+    public function shop(): HasOne
+    {
+        return $this->hasOne(Shop::class);
+    }
+
+    public function favorites(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'favorites')
+            ->withTimestamps();
+    }
+
+    public function followedShops(): BelongsToMany
+    {
+        return $this->belongsToMany(Shop::class, 'followed_shops')
+            ->withTimestamps();
+    }
 }

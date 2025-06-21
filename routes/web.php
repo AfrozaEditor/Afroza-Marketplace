@@ -6,8 +6,10 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Marketplace\MarketplaceController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Promotion\PromotionController;
+use App\Http\Controllers\Review\ShopReviewController;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -47,6 +49,8 @@ Route::middleware(['auth', 'verified','role:vendor'])->group(function () {
     })->name('dashboard');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::resource('products', ProductController::class);
+    Route::resource('marketplace', MarketplaceController::class);
+
 });
 
 Route::middleware(['auth', 'role:delivery'])->group(function () {
@@ -57,29 +61,52 @@ Route::middleware(['auth', 'role:delivery'])->group(function () {
 
 Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::get('admin', function () {
-        return Inertia::render('admin/dashboard');
+        return Inertia::render('admin/dashboard',[
+            'users' => User::all(),
+        ]);
     })->name('admin');
 });
 
 Route::middleware('auth')->group(function () {
+    // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/users', [ChatController::class, 'users'])->name('chat.users');
     Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
     Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/start/{user}', [ChatController::class, 'startConversation'])->name('chat.start');
     Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.message');
+
+    // Cart routes
+    Route::resource('cart', CartController::class)->only(['store']);
+    Route::get('/my-cart', [CartController::class, 'myCart'])->name('my-cart');
+    Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
+    Route::patch('/cart/items/{id}', [CartController::class, 'updateQuantity'])->name('cart.update-quantity');
+    Route::delete('/cart/items/{id}', [CartController::class, 'removeItem'])->name('cart.remove-item');
+
+    // Followed shops
+    Route::post('/shops/{slug}/follow', [MarketplaceController::class, 'toggleFollow'])->name('shops.follow');
+
+    // Shop reviews
+    Route::resource('shop_reviews', ShopReviewController::class)->only(['store']);
 });
 
 
-Route::resource('marketplace', MarketplaceController::class);
+Route::resource('marketplace', MarketplaceController::class)->only(['index', 'show']);
 Route::resource('products', ProductController::class)->only(['index', 'show']);
 Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
+Route::get('/contact', function () {
+   return Inertia::render('contact');
+});
+Route::get('/about', function () {
+   return Inertia::render('about');
+});
+Route::get('/help', function () {
+    return Inertia::render('help');
+});
 
 
-Route::resource('cart', CartController::class)->only(['store']);
-Route::get('/my-cart', [CartController::class, 'myCart'])->name('my-cart');
-Route::post('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
+
 //Route::get('/available',[ProductController::class, 'index']);
 
 require __DIR__.'/settings.php';

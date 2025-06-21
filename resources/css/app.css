@@ -87,8 +87,12 @@
     /*--primary: oklch(0.6 0.118 184.704);*/
     --primary: rgb(20,184,166);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(210 96.1% 40%);
+    --secondary: oklch(0.65 0.10 210);
     --secondary-foreground: oklch(0.205 0 0);
+
+    /*--secondary: 210 40% 96.1%;*/
+    /*--secondary-foreground: 222.2 47.4% 11.2%;*/
+
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
     /*--accent: oklch(0.97 0 0);*/

@@ -1,11 +1,9 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { PlusCircle, Search, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AppLayout from '@/layouts/app-layout';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import ChatArea from '@/components/chat/chat-area';
 import { Message } from '@/types';
@@ -52,10 +50,25 @@ const [searchQuery, setSearchQuery] = useState('');
 const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 const [messages, setMessages] = useState<Message[]>([]);
   const [showMobileChat, setShowMobileChat] = useState(false);
-
+const [isSending, setIsSending] = useState(false);
 const { data, setData, post, processing, reset } = useForm({
     content: '',
   });
+
+  const page = usePage();
+  const urlParams = new URLSearchParams(window.location.search);
+  const conversationIdFromUrl = urlParams.get('conversation');
+
+  useEffect(() => {
+    if (conversationIdFromUrl && conversations.length > 0) {
+      const conv = conversations.find(c => c.id === Number(conversationIdFromUrl));
+      if (conv) {
+        handleSelectConversation(conv);
+        setShowMobileChat(true);
+      }
+    }
+    // eslint-disable-next-line
+  }, [conversationIdFromUrl, conversations]);
 
   const filteredConversations = conversations.filter(conversation =>
     conversation.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -77,8 +90,8 @@ const { data, setData, post, processing, reset } = useForm({
         }
 
         // Mettre à jour la liste des conversations pour refléter le nouveau unread_count
-        const updatedConversations = filteredConversations.map(conv => 
-            conv.id === conversation.id 
+        const updatedConversations = filteredConversations.map(conv =>
+            conv.id === conversation.id
                 ? { ...conv, unread_count: 0 }
                 : conv
         );
@@ -88,8 +101,39 @@ const { data, setData, post, processing, reset } = useForm({
     }
 };
 
-  const handleSendMessage = (content: string) => {
+    useEffect(() => {
+        if (!selectedConversation) return;
+
+        setIsSending(false);
+        // Configuration de l'écoute des messages WebSocket
+        const channel = window.Echo.private(`chat.${selectedConversation.id}`);
+
+        const listener = (event: { message: Message }) => {
+            // Vérifiez si le message existe déjà dans les messages
+            setMessages(prevMessages => {
+                        // Vérifier si le message existe déjà (y compris les messages optimistes)
+                        if (!prevMessages.some(msg => msg.id === event.message.id ||
+                                                     (msg.content === event.message.content &&
+                                                      new Date(msg.created_at).getTime() >= new Date().getTime() - 5000))) {
+                            return [...prevMessages, event.message];
+                        }
+                        return prevMessages;
+                    });
+            };
+
+        channel.listen('.message.new', listener);
+
+        return () => {
+            channel.stopListening('.message.new');
+            channel.unsubscribe();
+        };
+    }, [selectedConversation]);
+
+
+    const handleSendMessage = (content: string) => {
     if (!selectedConversation) return;
+
+    setIsSending(true);
 
     const optimisticMessage = {
         id: Date.now(),
@@ -100,29 +144,49 @@ const { data, setData, post, processing, reset } = useForm({
 
     setMessages(prev => [...prev, optimisticMessage]);
 
-    // Change the post call to correctly handle the response from Inertia
-    router.post(route('chat.message', selectedConversation.id), {
-        content: content,
-        preserveScroll: true,
-        onSuccess: ({ props }: any) => { // Destructure props from the page object
-            console.log('Server response props:', props);
-            if (props && props.message) { // Access message from props
-                setMessages(prev =>
-                    prev.map(msg =>
-                        msg.id === optimisticMessage.id ? props.message : msg // Use props.message
-                    )
-                );
-            } else {
-                console.warn("Server response did not contain 'message' in props.");
-                setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-            }
-        },
-        onError: (errors: any) => {
-            console.error('Error:', errors);
-            setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-        }
-    });
-};
+    // // Change the post call to correctly handle the response from Inertia
+    // router.post(route('chat.message', selectedConversation.id), {
+    //     content: content,
+    //     preserveScroll: true,
+    //     onSuccess: ({ props }: any) => { // Destructure props from the page object
+    //         console.log('Server response props:', props);
+    //         if (props && props.message) { // Access message from props
+    //             setMessages(prev =>
+    //                 prev.map(msg =>
+    //                     msg.id === optimisticMessage.id ? props.message : msg // Use props.message
+    //                 )
+    //             );
+    //         } else {
+    //             console.warn("Server response did not contain 'message' in props.");
+    //             setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+    //         }
+    //     },
+    //     onError: (errors: any) => {
+    //         console.error('Error:', errors);
+    //         setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+    //     }
+    // });
+      axios.post(route('chat.message', selectedConversation.id), {
+          content: content
+      })
+          .then(response => {
+              // Remplacer le message optimiste par le vrai message du serveur
+              if (response.data.props && response.data.props.message) {
+                  setMessages(prev => prev.map(msg =>
+                      msg.id === optimisticMessage.id
+                          ? response.data.props.message
+                          : msg
+                  ));
+              }
+          })
+          .catch(error => {
+              console.error('Erreur lors de l\'envoi du message:', error);
+              // Retirer le message optimiste en cas d'erreur
+              setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+              setIsSending(false);
+          });
+
+  };
 
 console.log('Last messages:', conversations.map(c => c.last_message));
 console.log('Unread Messages:', conversations.map(c => c.unread_count));
@@ -193,7 +257,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
     <AppLayout>
       <Head title="Messagerie" />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="max-w-6xl mx-auto bg-white border rounded-xl shadow-sm overflow-hidden">
           <div className="flex h-[calc(100vh-12rem)]">
             {/* Liste des conversations */}
             <div className={`w-full md:w-1/3 border-r ${showMobileChat ? 'hidden md:block' : ''}`}>
@@ -223,8 +287,11 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                       onClick={() => {
                         handleSelectConversation(conversation)
                         setShowMobileChat(true);
-                        }
-                      }
+                        router.visit(route('chat.index', { conversation: conversation.id }), {
+                          preserveScroll: true,
+                          replace: true // Remplace l'URL sans ajouter à l'historique
+                        });
+                      }}
                       className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
                         selectedConversation?.id === conversation.id ? 'bg-gray-100' : ''
                       }`}
@@ -252,7 +319,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                               </span>
                             )}
                           </div>
-                          {conversation.last_message && 
+                          {conversation.last_message &&
                           (
                             <p className="text-sm text-gray-500 truncate">
                               {conversation.last_message.is_mine ? 'Vous: ' : ''}
@@ -281,7 +348,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                   onSendMessage={handleSendMessage}
                   setShowMobileChat={setShowMobileChat}
                 />
-                
+
               ) : (
                 <div className="flex-1 flex items-center justify-center text-gray-500">
                   Sélectionnez une conversation pour commencer

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewMessage;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -54,7 +55,7 @@ $conversations = Auth::user()->conversations()
             // ->select('id', 'conversation_id', 'content', 'created_at', 'user_id');
     }])
     ->get()
-    ->map(function ($conversation) {        
+    ->map(function ($conversation) {
         return [
             'id' => $conversation->id,
             'name' => $conversation->is_group ? $conversation->name : $conversation->participants->first()->name,
@@ -210,13 +211,29 @@ $conversations = Auth::user()->conversations()
             'read' => false,
         ]);
 
-        // return back();
-        return response()->json([
-        'message' => [
+        $messageData = [
             'id' => $message->id,
             'content' => $message->content,
             'created_at' => $message->created_at,
-            'is_mine' => true
+            'is_mine' => false,
+            'user' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name
+            ]
+        ];
+
+        // Émettre l'événement pour tous les participants sauf l'expéditeur
+        broadcast(new NewMessage($messageData, $conversation->id))->toOthers();
+        // Modification du message pour les autres utilisateurs
+//        $broadcastMessage = array_merge($messageData, ['is_mine' => false]);
+//        broadcast(new NewMessage($broadcastMessage, $conversation->id))->toOthers();
+
+
+
+//         return back();
+        return response()->json([
+        'props' => [
+            'message' => array_merge($messageData, ['is_mine' => true])
         ]
     ]);
     }
@@ -262,8 +279,8 @@ $conversations = Auth::user()->conversations()
             $conversation = $existingConversation;
         }
 
-        return redirect()->route('chat.index', $conversation);
-//        return redirect()->route('chat.show', ['conversation' => $conversation->id]);
+        // return redirect()->route('chat.index', $conversation->id);
+       return redirect()->route('chat.index', ['conversation' => $conversation->id]);
     }
 
 }

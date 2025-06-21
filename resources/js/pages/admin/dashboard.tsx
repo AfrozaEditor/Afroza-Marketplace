@@ -5,15 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
 import { Activity, BarChart3, ShoppingBag, Users } from 'lucide-react';
 import Heading from '@/components/heading';
+import { User } from '@/types';
 
-const adminStats = [
-    { title: "Utilisateurs Inscrits", value: "1,234", icon: <Users className="h-5 w-5 text-muted-foreground" />, change: "+5% ce mois" },
-    { title: "Vendeurs Actifs", value: "56", icon: <ShoppingBag className="h-5 w-5 text-muted-foreground" />, change: "+2 nouveaux" },
-    { title: "Transactions Globales", value: "789", icon: <BarChart3 className="h-5 w-5 text-muted-foreground" />, change: "+12% cette semaine" },
-    { title: "Tickets Support Ouverts", value: "3", icon: <Activity className="h-5 w-5 text-muted-foreground" />, change: "Haute priorité" },
-];
+interface Props {
+    users: User[];
+}
 
-function Dashboard() {
+function Dashboard({users}: Props) {
+
+    const adminStats = [
+        { title: "Utilisateurs Inscrits", value: users.length, icon: <Users className="h-5 w-5 text-muted-foreground" />, change: "+5% ce mois" },
+        { title: "Vendeurs Actifs", value: "56", icon: <ShoppingBag className="h-5 w-5 text-muted-foreground" />, change: "+2 nouveaux" },
+        { title: "Transactions Globales", value: "789", icon: <BarChart3 className="h-5 w-5 text-muted-foreground" />, change: "+12% cette semaine" },
+        { title: "Tickets Support Ouverts", value: "3", icon: <Activity className="h-5 w-5 text-muted-foreground" />, change: "Haute priorité" },
+    ];
+
     return (
         <AppLayout>
             <div className="p-4">

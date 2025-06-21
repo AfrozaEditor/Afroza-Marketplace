@@ -3,17 +3,23 @@ import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { cn } from '@/lib/utils';
-import { Category, type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
+import { type BreadcrumbItem, Category, type NavItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, Facebook, Instagram, Menu, MessageCircle, Search, ShoppingCart, Twitter, User, X } from 'lucide-react';
-import AppLogo from './app-logo';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { Separator } from './ui/separator';
-import { useState } from 'react';
-import { Input } from './ui/input';
-import { UserMenu } from '@/components/user-menu';
 import { Select } from '@radix-ui/react-select';
+import { Bell, Facebook, Instagram, Menu, MessageCircle, Search, ShoppingCart, Twitter, User, X } from 'lucide-react';
+import { useState } from 'react';
+import AppLogo from './app-logo';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from './ui/dropdown-menu';
+import { Input } from './ui/input';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
 
 const mainNavItems: NavItem[] = [
     {
@@ -66,7 +72,7 @@ interface AppHeaderProps {
     categories: Category[];
 }
 
-export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) {
+export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const [searchQuery, setSearchQuery] = useState('');
@@ -82,19 +88,44 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
         setIsMenuOpen(!isMenuOpen);
     };
 
+    // const handleSearch = (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     if (searchQuery.trim()) {
+    //         router.get(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    //         setSearchQuery('');
+    //     }
+    // };
+    const [selectedSearchCategory, setSelectedSearchCategory] = useState('');
+
+    // Modifiez la fonction handleSearch
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        const params = new URLSearchParams();
+
         if (searchQuery.trim()) {
-            router.get(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-            setSearchQuery('');
+            params.set('search', searchQuery.trim());
         }
+
+        if (selectedSearchCategory) {
+            params.set('category', selectedSearchCategory);
+        }
+
+        router.get(
+            `/products?${params.toString()}`,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+        setSearchQuery('');
     };
 
     return (
         <header className="sticky top-0 z-10">
             {/* Barre de réseaux sociaux */}
             <div className="bg-primary hidden md:block">
-                <div className="mx-auto flex h-10 items-center justify-between px-4 md:max-w-7xl">
+                <div className="container mx-auto flex h-10 items-center justify-between px-4">
                     <div>
                         <Button className="p-0">
                             <span className="mr-1 text-sm">Français</span>
@@ -123,10 +154,54 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                                 <span>Profil</span>
                             </Link>
                         )}
-                        <Link href="" className="relative flex items-center text-sm text-white transition-colors hover:text-teal-200">
-                            <Bell size={16} className="mr-1" />
-                            <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white"></span>
-                        </Link>
+                        {/*<Link href="" className="relative flex items-center text-sm text-white transition-colors hover:text-teal-200">*/}
+                        {/*    <Bell size={16} className="mr-1" />*/}
+                        {/*    <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white"></span>*/}
+                        {/*</Link>*/}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="relative p-2 text-white hover:bg-transparent hover:text-gray-200">
+                                    <Bell size={16} />
+                                    {/*{unreadCount > 0 && (*/}
+                                    {/*    <Badge*/}
+                                    {/*        variant="destructive"*/}
+                                    {/*        className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] items-center justify-center px-1.5 py-0.5 text-xs"*/}
+                                    {/*    >*/}
+                                    {/*        {unreadCount}*/}
+                                    {/*    </Badge>*/}
+                                    {/*)}*/}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            {/*<DropdownMenuContent align="end" className="w-80 border bg-white shadow-lg">*/}
+                            {/*    <DropdownMenuLabel>Notifications</DropdownMenuLabel>*/}
+                            {/*    <DropdownMenuSeparator />*/}
+                            {/*    {auth.user && auth.user.notifications.length > 0 ? (*/}
+                            {/*        auth.user.notifications.map((notification) => (*/}
+                            {/*            <DropdownMenuItem*/}
+                            {/*                key={notification.id}*/}
+                            {/*                className="flex cursor-pointer flex-col items-start p-4 hover:bg-gray-50"*/}
+                            {/*            >*/}
+                            {/*                <div className="flex w-full items-start justify-between">*/}
+                            {/*                    <div className="flex-1">*/}
+                            {/*                        <div className="flex items-center gap-2">*/}
+                            {/*                            <h4 className="text-sm font-medium">{notification.title}</h4>*/}
+                            {/*                            {notification.unread && <div className="h-2 w-2 rounded-full bg-blue-500"></div>}*/}
+                            {/*                        </div>*/}
+                            {/*                        <p className="mt-1 text-sm text-gray-600">{notification.content}</p>*/}
+                            {/*                        <span className="mt-2 text-xs text-gray-400">{notification.time}</span>*/}
+                            {/*                    </div>*/}
+                            {/*                </div>*/}
+                            {/*            </DropdownMenuItem>*/}
+                            {/*        ))*/}
+                            {/*    ) : (*/}
+                            {/*        <DropdownMenuItem className="py-4 text-center text-gray-500">Aucune notification</DropdownMenuItem>*/}
+                            {/*    )}*/}
+                            {/*    <DropdownMenuSeparator />*/}
+                            {/*    <DropdownMenuItem className="cursor-pointer py-2 text-center text-blue-600 hover:text-blue-800">*/}
+                            {/*        Voir toutes les notifications*/}
+                            {/*    </DropdownMenuItem>*/}
+                            {/*</DropdownMenuContent>*/}
+                        </DropdownMenu>
                         <Link href={route('chat.index')} className="flex items-center text-sm text-white transition-colors hover:text-teal-200">
                             <MessageCircle size={16} className="mr-1" />
                             {/*<span>chat</span>*/}
@@ -179,29 +254,24 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                     // className="mx-auto flex h-16 items-center justify-between px-4 md:max-w-7xl"
                     className="container mx-auto px-4"
                 >
-                    <div className="flex items-center justify-between py-3 gap-4">
+                    <div className="flex items-center justify-between gap-4 py-3">
                         {/* Logo */}
                         <Link href="/" className="flex items-center">
                             <AppLogo />
                         </Link>
 
                         {/* Barre de recherche - Desktop */}
-                        <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+                        <div className="mx-8 hidden max-w-2xl flex-1 md:flex">
                             <form onSubmit={handleSearch} className="w-full">
                                 <div className="relative flex">
-                                    <Select
-                                    >
-                                        <SelectTrigger 
-              className="bg-white text-gray-800 px-4 py-2 rounded-l-md rounded-r-none border-r focus:outline-none w-40"
-                                        
-                                        >
+                                    <Select onValueChange={(value) => setSelectedSearchCategory(value)}>
+                                        <SelectTrigger className="w-40 rounded-l-md rounded-r-none border-r bg-white px-4 py-2 text-gray-800 focus:outline-none">
                                             <SelectValue placeholder="Catégorie" />
                                         </SelectTrigger>
-                                        <SelectContent 
-                                            // className="bg-white text-gray-800 px-4 py-2 rounded-l-md border-r focus:outline-none w-40"
-                                        >
+                                        <SelectContent>
+                                            {/* <SelectItem value="">Toutes les catégories</SelectItem> */}
                                             {categories.map((cat) => (
-                                                <SelectItem key={cat.id} value={cat.name}>
+                                                <SelectItem key={cat.id} value={cat.id.toString()}>
                                                     {cat.name}
                                                 </SelectItem>
                                             ))}
@@ -215,12 +285,12 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                                         placeholder="Rechercher des produits, marques, vendeurs..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pr-24 py-3 w-full border-0 rounded-l-none bg-gray-50 focus:bg-white transition-colors"
+                                        className="w-full rounded-l-none border-0 bg-gray-50 py-3 pr-24 transition-colors focus:bg-white"
                                     />
                                     <Button
                                         type="submit"
                                         size="sm"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 h-8 bg-primary hover:bg-primary/80"
+                                        className="bg-primary hover:bg-primary/80 absolute top-1/2 right-2 h-8 -translate-y-1/2 transform px-4 py-1.5"
                                         disabled={!searchQuery.trim()}
                                     >
                                         <Search size={18} />
@@ -230,7 +300,7 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                         </div>
 
                         {/* Menu mobile: icône panier + burger */}
-                        <div className="md:hidden flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 md:hidden">
                             {/*<Link href="/panier" className="relative text-videdressing-primary p-2 hover:bg-gray-100 rounded-lg transition-colors">*/}
                             {/*    <ShoppingCart size={22} />*/}
                             {/*    /!*{itemCount > 0 && (*!/*/}
@@ -239,18 +309,13 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                             {/*    /!*    </Badge>*!/*/}
                             {/*    /!*)}*!/*/}
                             {/*</Link>*/}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-white hover:bg-gray-100"
-                                onClick={toggleMenu}
-                            >
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-gray-100" onClick={toggleMenu}>
                                 {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
                             </Button>
                         </div>
 
                         {/* Actions Desktop à droite */}
-                        <div className="hidden md:flex items-center space-x-4">
+                        <div className="hidden items-center space-x-4 md:flex">
                             {/*Button de connexion/inscription*/}
                             {!auth.user && (
                                 <Button
@@ -300,7 +365,7 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                                             href={item.href}
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
-                                                'bg-primary text-white text-[16px] hover:text-white/80',
+                                                'bg-primary text-[16px] text-white hover:text-white/80',
                                                 page.url === item.href,
                                             )}
                                         >
@@ -311,7 +376,6 @@ export function AppHeader({ breadcrumbs = [], categories = []}: AppHeaderProps) 
                             </NavigationMenuList>
                         </NavigationMenu>
                     </div>
-
                 </div>
             </div>
 

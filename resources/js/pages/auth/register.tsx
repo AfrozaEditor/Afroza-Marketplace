@@ -189,6 +189,8 @@ export default function Register() {
                                                     <p className="text-lg">Rôle dédié uniquement pour l'achat des produits auprès de nos vendeurs</p>
                                                 </TooltipContent>
                                             </Tooltip>
+                                            <Tooltip>
+                                            <TooltipTrigger asChild>
                                             <FormItem
                                                 className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'vendor' ? 'border-primary bg-muted/50' : ''}`}
                                                 onClick={() => field.onChange('vendor')}
@@ -200,6 +202,13 @@ export default function Register() {
                                                     className={`h-6 w-6 ${field.value === 'vendor' ? 'text-primary' : ''}`} />
                                                 <FormLabel className="font-normal text-center">Vendeur</FormLabel>
                                             </FormItem>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                    <p className="text-lg">Rôle hybride permettant l'achat et la vente des produits sur la plateforme</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
                                             <FormItem
                                                 className={`flex flex-col items-center space-y-3 rounded-md border p-4 cursor-pointer ${field.value === 'delivery' ? 'border-primary bg-muted/50' : ''}`}
                                                 onClick={() => field.onChange('delivery')}
@@ -211,6 +220,11 @@ export default function Register() {
                                                     className={`h-6 w-6 ${field.value === 'delivery' ? 'text-primary' : ''}`} />
                                                 <FormLabel className="font-normal text-center">Livreur</FormLabel>
                                             </FormItem>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p className="text-lg">Rôle dédié pour la livraison des produits</p>
+                                            </TooltipContent>
+                                            </Tooltip>
                                         </TooltipProvider>
                                     </RadioGroup>
                                 </FormControl>

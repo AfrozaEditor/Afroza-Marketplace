@@ -16,6 +16,7 @@ function CartView({cart}:Props) {
             router.post(route('cart.clear'));
         }
     };
+    
 
     if (cart.items.length === 0) {
         return (
@@ -36,7 +37,7 @@ function CartView({cart}:Props) {
             <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Votre Panier ({cart.total_quantity} articles)</CardTitle>
+                        <CardTitle className="text-2xl">Votre Panier ({cart.total_quantity} articles)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         {cart.items.map(item => (

@@ -32,13 +32,20 @@ class ProductController extends Controller
     // if ($request->has('search')) {
     //     $query->where('name', 'like', '%' . $request->search . '%');
     // }
+    // if ($request->filled('search')) {
+    // $search = $request->search;
+    // $query->where(function($q) use ($search) {
+    //     $q->where('name', 'like', '%' . $search . '%')
+    //       ->orWhere('description', 'like', '%' . $search . '%');
+    // });
+    // }
     if ($request->filled('search')) {
-    $search = $request->search;
-    $query->where(function($q) use ($search) {
-        $q->where('name', 'like', '%' . $search . '%')
-          ->orWhere('description', 'like', '%' . $search . '%');
-    });
-}
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
+              ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
+        });
+    }
 
     // Filtre par prix
     if ($request->has('min_price')) {
@@ -108,7 +115,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|numeric|min:0',
+            'stock' => 'required|numeric|min:1',
             // 'category' => 'required|exists:categories,id',
             'category' => 'required|string',
             // 'images' => 'required|array',
@@ -118,7 +125,7 @@ class ProductController extends Controller
 
         $user = Auth::user();
 
-        $product = Product::create([
+        $productData = [
             'name' => $validated['name'],
             'description' => $validated['description'],
             'price' => $validated['price'],
@@ -126,7 +133,13 @@ class ProductController extends Controller
             'category_id' => Category::where('name', $validated['category'])->first()->id,
             'user_id' => Auth::id(),
             'slug' => Str::slug("$validated[name] de $user->name"),
-        ]);
+        ];
+
+        if ($user->shop) {
+        $productData['shop_id'] = $user->shop->id;
+        }
+
+        $product = Product::create($productData);
 
         if($request->hasfile('images')){
             foreach($request->file('images') as $image){

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Head } from '@inertiajs/react';
 import { HeroSection } from '@/components/hero-section';
+import NewsLetter from '@/components/home/news-letter';
 
 
 const articles = [
@@ -121,7 +122,7 @@ function Index() {
                                     <span className="mx-2">•</span>
                                     <span>{featuredArticle.readTime} de lecture</span>
                                 </div>
-                                <button className="text-videdressing-primary font-medium hover:text-videdressing-secondary transition-colors">
+                                <button className="text-primary font-medium hover:text-secondary transition-colors">
                                     Lire l'article →
                                 </button>
                             </div>
@@ -155,7 +156,7 @@ function Index() {
                                             </div>
                                             <CardHeader className="pb-2">
                                                 <div className="flex items-center justify-between">
-                                                    <Badge className="bg-videdressing-light text-videdressing-primary">
+                                                    <Badge className="bg-light text-primary">
                                                         {article.category}
                                                     </Badge>
                                                     <span className="text-sm text-gray-500">{article.readTime} de lecture</span>
@@ -167,7 +168,7 @@ function Index() {
                                             </CardContent>
                                             <CardFooter className="flex justify-between items-center pt-0">
                                                 <span className="text-sm text-gray-500">{article.date}</span>
-                                                <Button className="text-videdressing-primary font-medium hover:text-videdressing-secondary transition-colors">
+                                                <Button variant={'link'} className="text-primary font-medium hover:text-secondary transition-colors">
                                                     Lire la suite →
                                                 </Button>
                                             </CardFooter>
@@ -201,24 +202,25 @@ function Index() {
             </section>
 
             {/* Newsletter section */}
-            <section className="py-16 bg-videdressing-primary text-white">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-2xl mx-auto text-center">
-                        <h2 className="text-3xl font-bold mb-4">Restez informé</h2>
-                        <p className="mb-8">Abonnez-vous à notre newsletter pour recevoir nos derniers articles et conseils directement dans votre boîte mail.</p>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Input
-                                type="email"
-                                placeholder="Votre adresse email"
-                                className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
-                            />
-                            <Button className="bg-white text-videdressing-primary px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
-                                S'abonner
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/*<section className="py-16 bg-primary text-white">*/}
+            {/*    <div className="container mx-auto px-4">*/}
+            {/*        <div className="max-w-2xl mx-auto text-center">*/}
+            {/*            <h2 className="text-3xl font-bold mb-4">Restez informé</h2>*/}
+            {/*            <p className="mb-8">Abonnez-vous à notre newsletter pour recevoir nos derniers articles et conseils directement dans votre boîte mail.</p>*/}
+            {/*            <div className="flex flex-col sm:flex-row gap-4">*/}
+            {/*                <Input*/}
+            {/*                    type="email"*/}
+            {/*                    placeholder="Votre adresse email"*/}
+            {/*                    className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"*/}
+            {/*                />*/}
+            {/*                <Button className="bg-white text-primary px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">*/}
+            {/*                    S'abonner*/}
+            {/*                </Button>*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*</section>*/}
+            <NewsLetter/>
         </AppLayout>
     );
 }

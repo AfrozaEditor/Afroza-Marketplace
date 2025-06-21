@@ -11,6 +11,8 @@ import ListProduct from '@/components/product/list-product';
 import { HeroSection } from '@/components/hero-section';
 import { Category, Product } from '@/types';
 import NewsLetter from '@/components/home/news-letter';
+import Feature from './feature';
+import Features from '@/components/home/features';
 
 
 const breadcrumbs = [
@@ -61,7 +63,7 @@ function Home({latestProducts, categories}: Props) {
     console.log(latestProducts);
 
     return (
-        <AppLayout categories={categories}>
+        <AppLayout>
             <Head title="Accueil" />
 
             {/*<div className="relative w-full h-96">*/}
@@ -95,7 +97,7 @@ function Home({latestProducts, categories}: Props) {
                 title="Collection d'été"
                 description="Jusqu'à 50% de réduction"
                 // image="https://images.pexels.com/photos/5868722/pexels-photo-5868722.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                className="h-96 text-white" // Ajout de la hauteur fixe
+                className="h-96 text-white w-full" // Ajout de la hauteur fixe
                 buttons={{
                     primary: {
                         text: "Acheter Maintenant",
@@ -114,7 +116,7 @@ function Home({latestProducts, categories}: Props) {
 
             {/*    /!* Ajoutez ici le reste du contenu de votre page d'accueil *!/*/}
             {/*</div>*/}
-            <div className="mx-auto w-full px-4">
+            <div className="mx-auto container px-4">
                 <h2 className="text-3xl font-bold text-center mb-6">Nos Catégories</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {categories.map((category) => (
@@ -154,6 +156,7 @@ function Home({latestProducts, categories}: Props) {
                 <h2 className="text-3xl font-bold text-center my-6">Nouveautés</h2>
                  <ListProduct products={latestProducts} className='md:grid-cols-4'/>
             </div>
+            <Features/>
             <NewsLetter/>
         </AppLayout>
     );

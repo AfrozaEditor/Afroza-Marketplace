@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { HeroSection } from '@/components/hero-section';
+import NewsLetter from '@/components/home/news-letter';
 
 function Feature() {
 
@@ -136,6 +137,7 @@ function Feature() {
                     </div>
                 </div>
             </section>
+            <NewsLetter/>
         </AppLayout>
     );
 }

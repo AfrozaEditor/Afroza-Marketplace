@@ -28,7 +28,7 @@ const productSchema = z.object({
     //     .array(z.string())
     //     .min(1, { message: 'Au moins une image est requise.' }),
     category: z.string().min(1, { message: 'Veillez sélectionner une catégorie.' }),
-    stock: z.coerce.number().int().min(0, { message: 'Le stock ne peut pas être négatif.' }),
+    stock: z.coerce.number().int().min(1, { message: 'Le stock ne peut pas être égal à 0.' }),
 });
 
 type ProductFormData = z.infer<typeof productSchema>
@@ -102,11 +102,15 @@ function Create({ categories }: Props) {
                 });
                 // Optionnel : reset le formulaire
                 // form.reset();
+                setTimeout(() => {
+                    router.visit(route('dashboard'));
+                }, 1500);
             },
             onError: () => {
                 toast.error('Une erreur est survenue lors de la création du produit.', {
                     description: 'Veuillez vérifier vos informations et réessayer.'
                 });
+                console.error('Erreur lors de la création du produit');
             }
         });
     };
