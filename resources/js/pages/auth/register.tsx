@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Eye, EyeClosed, LoaderCircle, Store, Truck, User } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
@@ -15,14 +15,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SocialIcon } from 'react-social-icons/component';
 import google from '../../../../public/google.png';
-// type RegisterForm = {
-//     name: string;
-//     email: string;
-//     password: string;
-//     password_confirmation: string;
-// };
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -42,12 +35,6 @@ const formSchema = z.object({
 type RegisterFormValues = z.infer<typeof formSchema>;
 
 export default function Register() {
-    // const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
-    //     name: '',
-    //     email: '',
-    //     password: '',
-    //     password_confirmation: '',
-    // });
     const [showPassword, setShowPassword] = useState(false);
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(formSchema),
@@ -55,7 +42,6 @@ export default function Register() {
             name: '',
             email: '',
             password: '',
-            // password_confirmation: "",
             role: 'customer'
         }
     });
@@ -66,7 +52,6 @@ export default function Register() {
                 toast.success('Compte créé avec succès!', {
                     description: 'Vous allez être redirigé vers la page d\'accueil.'
                 });
-                // Optionnel : reset le formulaire
                 form.reset();
             },
             onError: () => {
@@ -85,7 +70,6 @@ export default function Register() {
                     className="flex flex-col gap-6"
                     onSubmit={form.handleSubmit(submit)}
                 >
-                    {/* <div className="grid gap-6"> */}
                     <FormField
                         control={form.control}
                         name="name"
@@ -143,21 +127,6 @@ export default function Register() {
                         )}
                     />
 
-                    {/*<div className="grid gap-2">*/}
-                    {/*    <Label htmlFor="password_confirmation">Confirm password</Label>*/}
-                    {/*    <Input*/}
-                    {/*        id="password_confirmation"*/}
-                    {/*        type="password"*/}
-                    {/*        required*/}
-                    {/*        tabIndex={4}*/}
-                    {/*        autoComplete="new-password"*/}
-                    {/*        value={data.password_confirmation}*/}
-                    {/*        onChange={(e) => setData('password_confirmation', e.target.value)}*/}
-                    {/*        disabled={processing}*/}
-                    {/*        placeholder="Confirm password"*/}
-                    {/*    />*/}
-                    {/*    <InputError message={errors.password_confirmation} />*/}
-                    {/*</div>*/}
                     <FormField
                         control={form.control}
                         name="role"
@@ -240,21 +209,24 @@ export default function Register() {
                         ) : null}
                         Créer un compte
                     </Button>
-                    {/* </div> */}
-                    <div className="flex justify-center items-center">
+
+                   
+                </form>
+                {/* Bouton Google EN DEHORS du <form> */}
+                <div className="flex justify-center items-center mt-4">
+                    <a href="/auth/google">
                         <Button className='flex border hover:shadow-primary rounded-full p-2' variant={'outline'}>
                             <img src={google} width={20} height={20} />
+                            <span className="ml-2">Sign in with Google</span>
                         </Button>
-                    </div>
-
-
-                    <div className="text-muted-foreground text-center text-sm">
+                    </a>
+                </div>
+                 <div className="text-muted-foreground text-center text-sm mt-2" >
                         Vous avez déjà un compte?{' '}
                         <TextLink href={route('login')} tabIndex={6}>
                             Se connecter
                         </TextLink>
                     </div>
-                </form>
             </Form>
         </AuthLayout>
     );

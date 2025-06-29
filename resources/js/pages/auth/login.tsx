@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import google from '../../../../public/google.png';
 
+
 type LoginForm = {
     email: string;
     password: string;
@@ -96,20 +97,22 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         Log in
                     </Button>
                 </div>
-                <div className="flex justify-center items-center">
-                    <Button className='flex border hover:shadow-primary rounded-full p-2' variant={'outline'}>
-                        <img src={google} width={20} height={20} />
-                    </Button>
-                </div>
-
-                <div className="text-muted-foreground text-center text-sm">
-                    Don't have an account?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        Sign up
-                    </TextLink>
-                </div>
+                
             </form>
-
+                <div className="flex justify-center items-center mt-4">
+                    <a href="/auth/google">
+                        <Button className='flex border hover:shadow-primary rounded-full p-2' variant={'outline'}>
+                            <img src={google} width={20} height={20} />
+                            <span className="ml-2">Sign in with Google</span>
+                        </Button>
+                    </a>
+                </div>
+                 <div className="text-muted-foreground text-center text-sm mt-2">
+                        Vous n'avez pas de compte?{' '}
+                        <TextLink href={route('register')} tabIndex={6}>
+                            S'inscrire
+                        </TextLink>
+                    </div>
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
         </AuthLayout>
     );
