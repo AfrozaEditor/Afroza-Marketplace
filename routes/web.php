@@ -14,6 +14,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use App\Http\Controllers\GoogleController;
 
 Route::get('/', function () {
     $latestProducts = Product::with(['category', 'shop', 'user'])
@@ -114,6 +116,8 @@ Route::get('/help', function () {
 });
 
 
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 //Route::get('/available',[ProductController::class, 'index']);
 
