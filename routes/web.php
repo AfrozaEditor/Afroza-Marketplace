@@ -4,6 +4,7 @@ use App\Http\Controllers\Blog\BlogController;
 use App\Http\Controllers\Cart\CartController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Marketplace\MarketplaceController;
+use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Review\ShopReviewController;
@@ -83,8 +84,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/cart/items/{id}', [CartController::class, 'updateQuantity'])->name('cart.update-quantity');
     Route::delete('/cart/items/{id}', [CartController::class, 'removeItem'])->name('cart.remove-item');
 
+    // Order routes
+    Route::resource('order', OrderController::class);
+
     // Followed shops
     Route::post('/shops/{slug}/follow', [MarketplaceController::class, 'toggleFollow'])->name('shops.follow');
+
+    // Favorites
+    Route::post('/products/{slug}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');
+    Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorites');
 
     // Shop reviews
     Route::resource('shop_reviews', ShopReviewController::class)->only(['store']);

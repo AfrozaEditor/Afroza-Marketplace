@@ -27,7 +27,7 @@ function ProductCard({product}: Props) {
                     <div className="relative h-48 overflow-hidden group">
                         <img
                             src={product.images && product.images.length > 0
-                                ? product.images[0] : '/placeholder.svg'}
+                                ? product.images[0] : 'https://placehold.co/600x400'}
                             alt={product.name}
                             loading="lazy"
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"

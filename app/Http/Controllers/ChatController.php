@@ -194,50 +194,272 @@ $conversations = Auth::user()->conversations()
     /**
      * Envoyer un message
      */
+//    public function sendMessage(Request $request, Conversation $conversation)
+//    {
+//        // Vérifier que l'utilisateur fait partie de la conversation
+//        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+//            abort(403);
+//        }
+//
+//        $validated = $request->validate([
+//            'content' => 'required|string|max:5000',
+//        ]);
+//
+//        $message = $conversation->messages()->create([
+//            'user_id' => Auth::id(),
+//            'content' => $validated['content'],
+//            'read' => false,
+//        ]);
+//
+//        $messageData = [
+//            'id' => $message->id,
+//            'content' => $message->content,
+//            'created_at' => $message->created_at,
+//            'is_mine' => false,
+//            'user' => [
+//                'id' => Auth::id(),
+//                'name' => Auth::user()->name
+//            ]
+//        ];
+//
+//        // Émettre l'événement pour tous les participants sauf l'expéditeur
+//        broadcast(new NewMessage($messageData, $conversation->id))->toOthers();
+//        // Modification du message pour les autres utilisateurs
+////        $broadcastMessage = array_merge($messageData, ['is_mine' => false]);
+////        broadcast(new NewMessage($broadcastMessage, $conversation->id))->toOthers();
+//
+//
+//
+////         return back();
+//        return response()->json([
+//        'props' => [
+//            'message' => array_merge($messageData, ['is_mine' => true])
+//        ]
+//    ]);
+//    }
+
+//    public function sendMessage(Request $request, Conversation $conversation)
+//    {
+//        // Vérifications de base
+//        if (!Auth::check()) {
+//            return response()->json(['error' => 'Non authentifié'], 401);
+//        }
+//
+//        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+//            return response()->json(['error' => 'Non autorisé'], 403);
+//        }
+//
+//        // Validation et création
+//        $validated = $request->validate([
+//            'content' => 'required|string|max:5000',
+//        ]);
+//
+//        $message = $conversation->messages()->create([
+//            'user_id' => Auth::id(),
+//            'content' => $validated['content'],
+//            'read' => false,
+//        ]);
+//
+//        // Réponse simple sans broadcasting
+//        return response()->json([
+//            'success' => true,
+//            'message' => [
+//                'id' => $message->id,
+//                'content' => $message->content,
+//                'created_at' => $message->created_at,
+//                'is_mine' => true,
+//                'user' => [
+//                    'id' => Auth::id(),
+//                    'name' => Auth::user()->name
+//                ]
+//            ]
+//        ]);
+//    }
+//
+
+//    public function sendMessage(Request $request, Conversation $conversation)
+//    {
+//        try {
+//            // Log pour diagnostic
+//            \Log::info('Début sendMessage', [
+//                'conversation_id' => $conversation->id,
+//                'user_id' => Auth::id(),
+//                'user_authenticated' => Auth::check()
+//            ]);
+//
+//            // Vérifier l'authentification
+//            if (!Auth::check()) {
+//                \Log::error('Utilisateur non authentifié');
+//                return response()->json(['error' => 'Non authentifié'], 401);
+//            }
+//
+//            // Vérifier que l'utilisateur fait partie de la conversation
+//            if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+//                \Log::error('Utilisateur non autorisé pour cette conversation', [
+//                    'user_id' => Auth::id(),
+//                    'conversation_id' => $conversation->id
+//                ]);
+//                return response()->json(['error' => 'Non autorisé'], 403);
+//            }
+//
+//            // Validation
+//            $validated = $request->validate([
+//                'content' => 'required|string|max:5000',
+//            ]);
+//
+//            \Log::info('Validation réussie', ['content_length' => strlen($validated['content'])]);
+//
+//            // Créer le message
+//            $message = $conversation->messages()->create([
+//                'user_id' => Auth::id(),
+//                'content' => $validated['content'],
+//                'read' => false,
+//            ]);
+//
+//            \Log::info('Message créé avec succès', ['message_id' => $message->id]);
+//
+//            // Préparer les données du message
+//            $messageData = [
+//                'id' => $message->id,
+//                'content' => $message->content,
+//                'created_at' => $message->created_at->format('c'), // Format standardisé
+//                'is_mine' => false,
+//                'user' => [
+//                    'id' => Auth::id(),
+//                    'name' => Auth::user()->name
+//                ]
+//            ];
+//
+//            // AJOUTEZ CETTE LIGNE POUR DÉBOGUER
+//            \Log::info('Données de message pour broadcasting', ['data' => $messageData]);
+//            $jsonString = json_encode($messageData);
+//            $cleanData = json_decode($jsonString, true);
+//
+//            // Tentative de broadcasting avec gestion d'erreur
+//            try {
+//                \Log::info('Tentative de broadcasting');
+//                broadcast(new NewMessage($cleanData, $conversation->id))->toOthers();
+//                \Log::info('Broadcasting réussi');
+//            } catch (\Exception $broadcastError) {
+//                // Log l'erreur de broadcasting mais continue l'exécution
+//                \Log::error('Erreur de broadcasting', [
+//                    'error' => $broadcastError->getMessage(),
+//                    'trace' => $broadcastError->getTraceAsString()
+//                ]);
+//                // Ne pas faire échouer la requête à cause du broadcasting
+//            }
+//
+//            // Retourner la réponse avec is_mine = true for l'expéditeur
+//            return response()->json([
+//                'success' => true,
+//                'message' => array_merge($messageData, ['is_mine' => true])
+//            ]);
+//
+//        } catch (\Illuminate\Validation\ValidationException $e) {
+//            \Log::error('Erreur de validation', ['errors' => $e->errors()]);
+//            return response()->json([
+//                'success' => false,
+//                'errors' => $e->errors()
+//            ], 422);
+//
+//        } catch (\Exception $e) {
+//            \Log::error('Erreur générale dans sendMessage', [
+//                'error' => $e->getMessage(),
+//                'line' => $e->getLine(),
+//                'file' => $e->getFile(),
+//                'trace' => $e->getTraceAsString()
+//            ]);
+//
+//            return response()->json([
+//                'success' => false,
+//                'error' => 'Erreur lors de l\'envoi du message',
+//                'debug' => config('app.debug') ? $e->getMessage() : null
+//            ], 500);
+//        }
+//    }
+
+
     public function sendMessage(Request $request, Conversation $conversation)
     {
-        // Vérifier que l'utilisateur fait partie de la conversation
-        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
-            abort(403);
+        try {
+            // Log pour diagnostic
+            \Log::info('Début sendMessage', [
+                'conversation_id' => $conversation->id,
+                'user_id' => Auth::id(),
+                'user_authenticated' => Auth::check()
+            ]);
+
+            // Vérifier l'authentification
+            if (!Auth::check()) {
+                \Log::error('Utilisateur non authentifié');
+                return response()->json(['error' => 'Non authentifié'], 401);
+            }
+
+            // Vérifier que l'utilisateur fait partie de la conversation
+            if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+                \Log::error('Utilisateur non autorisé pour cette conversation', [
+                    'user_id' => Auth::id(),
+                    'conversation_id' => $conversation->id
+                ]);
+                return response()->json(['error' => 'Non autorisé'], 403);
+            }
+
+            // Validation
+            $validated = $request->validate([
+                'content' => 'required|string|max:5000',
+            ]);
+
+            \Log::info('Validation réussie', ['content_length' => strlen($validated['content'])]);
+
+            // Créer le message
+            $message = $conversation->messages()->create([
+                'user_id' => Auth::id(),
+                'content' => $validated['content'],
+                'read' => false,
+            ]);
+
+            \Log::info('Message créé avec succès', ['message_id' => $message->id]);
+
+            // Préparer les données du message - structure simple
+            $messageData = [
+                'id' => $message->id,
+                'content' => $message->content,
+                'created_at' => $message->created_at->format('c'), // Format ISO 8601
+                'user' => [
+                    'id' => Auth::id(),
+                    'name' => Auth::user()->name
+                ]
+            ];
+
+            \Log::info('Données de message pour broadcasting', ['data' => $messageData]);
+
+            // Tentative de broadcasting avec gestion d'erreur
+            try {
+                \Log::info('Tentative de broadcasting');
+                broadcast(new NewMessage($messageData, $conversation->id))->toOthers();
+                \Log::info('Broadcasting réussi');
+            } catch (\Exception $broadcastError) {
+                \Log::error('Erreur de broadcasting', [
+                    'error' => $broadcastError->getMessage(),
+                    'trace' => $broadcastError->getTraceAsString()
+                ]);
+            }
+
+            // Retourner la réponse au client actuel
+            return response()->json([
+                'success' => true,
+                'message' => array_merge($messageData, ['is_mine' => true])
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur globale', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json(['error' => 'Une erreur est survenue'], 500);
         }
-
-        $validated = $request->validate([
-            'content' => 'required|string|max:5000',
-        ]);
-
-        $message = $conversation->messages()->create([
-            'user_id' => Auth::id(),
-            'content' => $validated['content'],
-            'read' => false,
-        ]);
-
-        $messageData = [
-            'id' => $message->id,
-            'content' => $message->content,
-            'created_at' => $message->created_at,
-            'is_mine' => false,
-            'user' => [
-                'id' => Auth::id(),
-                'name' => Auth::user()->name
-            ]
-        ];
-
-        // Émettre l'événement pour tous les participants sauf l'expéditeur
-        broadcast(new NewMessage($messageData, $conversation->id))->toOthers();
-        // Modification du message pour les autres utilisateurs
-//        $broadcastMessage = array_merge($messageData, ['is_mine' => false]);
-//        broadcast(new NewMessage($broadcastMessage, $conversation->id))->toOthers();
-
-
-
-//         return back();
-        return response()->json([
-        'props' => [
-            'message' => array_merge($messageData, ['is_mine' => true])
-        ]
-    ]);
     }
-
     /**
      * Liste des utilisateurs pour créer une nouvelle conversation
      */

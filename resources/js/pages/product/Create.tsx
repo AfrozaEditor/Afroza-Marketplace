@@ -79,6 +79,8 @@ function Create({ categories }: Props) {
         setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
+    console.log(images);
+
 
     const handleSubmit = (data: ProductFormData) => {
         // Créer un objet FormData pour envoyer les fichiers

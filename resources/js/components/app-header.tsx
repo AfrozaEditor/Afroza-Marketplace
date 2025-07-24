@@ -309,8 +309,8 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             {/*    /!*    </Badge>*!/*/}
                             {/*    /!*)}*!/*/}
                             {/*</Link>*/}
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-gray-100" onClick={toggleMenu}>
-                                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                            <Button variant="ghost" className="flex text-white hover:bg-gray-100" onClick={toggleMenu}>
+                                {isMenuOpen ? <X size={22} /> : <Menu className='h-10 w-10'/>}
                             </Button>
                         </div>
 

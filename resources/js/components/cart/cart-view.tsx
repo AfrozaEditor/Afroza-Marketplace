@@ -16,7 +16,7 @@ function CartView({cart}:Props) {
             router.post(route('cart.clear'));
         }
     };
-    
+
 
     if (cart.items.length === 0) {
         return (
@@ -75,9 +75,11 @@ function CartView({cart}:Props) {
                         </div>
                     </CardContent>
                     <CardFooter className="flex-col space-y-2">
-                        <Button className="w-full" size="lg" onClick={() => console.log("Proceed to checkout")}>
-                            Passer la commande
-                        </Button>
+                        <Link href={route('order.create')} className="w-full">
+                            <Button size="lg" className="w-full" onClick={() => console.log("Proceed to checkout")}>
+                                Passer la commande
+                            </Button>
+                        </Link>
                         <Button variant="outline" className="w-full" asChild>
                             <Link href="/products">Continuer les achats</Link>
                         </Button>

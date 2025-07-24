@@ -122,6 +122,23 @@ const { data, setData, post, processing, reset } = useForm({
             };
 
         channel.listen('.message.new', listener);
+        //     setMessages(prevMessages => {
+        //         // Vérification plus robuste pour éviter les doublons
+        //         const isDuplicate = prevMessages.some(msg =>
+        //             msg.id === event.message.id ||
+        //             (msg.content === event.message.content &&
+        //                 Math.abs(new Date(msg.created_at).getTime() - new Date(event.message.created_at).getTime()) < 5000)
+        //         );
+        //
+        //         if (!isDuplicate) {
+        //             return [...prevMessages, event.message];
+        //         }
+        //         return prevMessages;
+        //     });
+        // };
+
+        // channel.listen('.message.new', listener);
+
 
         return () => {
             channel.stopListening('.message.new');
@@ -136,10 +153,11 @@ const { data, setData, post, processing, reset } = useForm({
     setIsSending(true);
 
     const optimisticMessage = {
-        id: Date.now(),
+        id: `temp_${Date.now()}`,
         content: content,
         created_at: new Date().toISOString(),
-        is_mine: true
+        is_mine: true,
+        conversation_id: selectedConversation.id
     };
 
     setMessages(prev => [...prev, optimisticMessage]);
@@ -257,7 +275,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
     <AppLayout>
       <Head title="Messagerie" />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto bg-white border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
           <div className="flex h-[calc(100vh-12rem)]">
             {/* Liste des conversations */}
             <div className={`w-full md:w-1/3 border-r ${showMobileChat ? 'hidden md:block' : ''}`}>
@@ -340,7 +358,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
             </div>
 
             {/* Zone de chat */}
-            <div  className={`w-full md:w-2/3 flex flex-col ${!showMobileChat ? 'hidden md:flex' : ''}`}>
+            <div  className={`w-full flex flex-col ${!showMobileChat ? 'hidden md:flex' : ''}`}>
               {selectedConversation ? (
                 <ChatArea
                   conversation={selectedConversation}

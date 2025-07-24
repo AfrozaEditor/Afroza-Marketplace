@@ -128,7 +128,7 @@ function Home({latestProducts, categories}: Props) {
                             <Card className="overflow-hidden transition-transform hover:scale-105 p-0">
                                 <div className="relative h-48 overflow-hidden w-full">
                                     <img
-                                        src={category.image}
+                                        src={category.image || 'https://placehold.co/600x400'}
                                         alt={category.name}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />

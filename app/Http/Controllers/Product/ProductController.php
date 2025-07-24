@@ -119,7 +119,7 @@ class ProductController extends Controller
             // 'category' => 'required|exists:categories,id',
             'category' => 'required|string',
             // 'images' => 'required|array',
-           'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+           'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
 
         ]);
 
@@ -143,7 +143,7 @@ class ProductController extends Controller
 
         if($request->hasfile('images')){
             foreach($request->file('images') as $image){
-                $imageName = time().'.'.$image->getClientOriginalExtension();
+                $imageName = Str::uuid().'.'.$image->getClientOriginalExtension();
                 $path = Storage::disk('s3')->putFileAs('products', $image, $imageName);
                 $product->images()->create(['url' => $path]);
             }
@@ -189,5 +189,10 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function favorites()
+    {
+        return Inertia::render('product/Favorites');
     }
 }
