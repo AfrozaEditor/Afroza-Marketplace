@@ -115,6 +115,58 @@ Vide Dressing Marketplace est une plateforme camerounaise dédiée à la vente e
 Les contributions sont les bienvenues !  
 Merci de soumettre vos PR ou d'ouvrir une issue pour toute suggestion ou bug.
 
+### Workflow GitFlow recommandé
+
+Pour faciliter la collaboration et garder le projet organisé, nous utilisons le workflow **GitFlow**. Voici les étapes à suivre :
+
+1. **Branche principale**
+   - `main` : contient le code de production.
+   - `develop` : contient le code en cours de développement.
+
+2. **Fonctionnalités**
+   - Pour chaque nouvelle fonctionnalité, crée une branche à partir de `develop` :
+     ```sh
+     git checkout develop
+     git pull
+     git checkout -b feature/nom-fonctionnalite
+     ```
+   - Une fois la fonctionnalité terminée, pousse la branche et ouvre une Pull Request vers `develop`.
+
+3. **Corrections de bugs**
+   - Pour corriger un bug, crée une branche à partir de `develop` :
+     ```sh
+     git checkout develop
+     git pull
+     git checkout -b bugfix/nom-bug
+     ```
+   - Pousse la branche et ouvre une Pull Request vers `develop`.
+
+4. **Release**
+   - Pour préparer une version, crée une branche à partir de `develop` :
+     ```sh
+     git checkout develop
+     git pull
+     git checkout -b release/x.y.z
+     ```
+   - Après validation, fusionne dans `main` et `develop`, puis tague la release.
+
+5. **Hotfix**
+   - Pour une correction urgente en production, crée une branche à partir de `main` :
+     ```sh
+     git checkout main
+     git pull
+     git checkout -b hotfix/nom-hotfix
+     ```
+   - Après correction, fusionne dans `main` et `develop`.
+
+6. **Règles**
+   - Toujours ouvrir une Pull Request pour toute modification.
+   - Demander une revue de code avant de fusionner.
+   - Utiliser des noms de branches explicites (`feature/`, `bugfix/`, `release/`, `hotfix/`).
+
+Pour plus d’informations, consulte la documentation officielle : [GitFlow](https://nvie.com/posts/a-successful-git-branching-model/)
+
+
 ## Licence
 
 Ce projet est sous licence MIT.
