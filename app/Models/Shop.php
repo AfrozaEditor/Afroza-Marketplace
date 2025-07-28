@@ -61,4 +61,10 @@ class Shop extends Model
     {
         return $this->hasMany(ShopReview::class);
     }
+
+    public function user_review(?int $userId = null): HasOne
+    {
+        $userId = $userId ?? auth()->id();
+        return $this->hasOne(ShopReview::class)->where('user_id', $userId);
+    }
 }

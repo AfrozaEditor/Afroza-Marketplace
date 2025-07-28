@@ -101,6 +101,7 @@ export interface Shop {
     cover_image: string;
     followers: User[];
     reviews: ShopReview[];
+    user_review?: ShopReview | null;
 }
 
 export interface Message {
@@ -124,11 +125,21 @@ export interface ShopReview {
     id: number;
     shop: Shop;
     user: User;
+    reviewer_name: string;
+    reviewer_email: string;
     title: string;
     rating: number;
     comment: string;
     is_approved: boolean;
     created_at: string;
     helpful: number;
-    notHelpful: number;
+    not_helpful: number;
+}
+
+export interface ShopReviewVote {
+    id: number;
+    user: User;
+    shop_review: ShopReview;
+    is_helpful: boolean;
+    created_at: string;
 }

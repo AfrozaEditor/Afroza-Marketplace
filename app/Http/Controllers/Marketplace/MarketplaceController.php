@@ -16,7 +16,7 @@ class MarketplaceController extends Controller
      */
     public function index()
     {
-        $shops = Shop::with('products','followers')->get();
+        $shops = Shop::with('products','followers','reviews')->get();
 
         // Générer les URLs temporaires pour les logos et images de couverture
         foreach ($shops as $shop) {
@@ -129,10 +129,15 @@ class MarketplaceController extends Controller
         // Charger les produits paginés
         $products = $shop->products()->with('user')->paginate(6);
 
+        $userId = auth()->id();
 
+        // Récupère l'avis de l'utilisateur connecté s'il existe
+        $userReview = $shop->reviews->where('user_id', $userId)->first();
+
+        $shop->user_review = $userReview;
         return Inertia::render('marketplace/Show', [
             'shop' => $shop,
-            'products' => $products,
+            'products' => $products
         ]);
     }
 

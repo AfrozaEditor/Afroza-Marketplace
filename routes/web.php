@@ -97,8 +97,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorites');
 
     // Shop reviews
-    Route::resource('shop_reviews', ShopReviewController::class)->only(['store']);
+    Route::resource('shop_reviews', ShopReviewController::class)->only(['store','update']);
+    Route::post('/shop-reviews/{review}/vote', [ShopReviewController::class, 'vote'])->name('shop_reviews.vote');
+    Route::post('/shop-reviews/{review}/report', [ShopReviewController::class, 'report'])->name('shop_reviews.report');
+
 });
+
+ Route::get('/shop-reviews/user/{shop}', [ShopReviewController::class, 'userReview'])->name('shop_reviews.user');
 
 
 Route::resource('marketplace', MarketplaceController::class)->only(['index', 'show']);

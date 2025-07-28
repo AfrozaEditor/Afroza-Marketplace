@@ -1,15 +1,18 @@
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Shop, ShopReview as Review } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import { Flag, MoreVertical, Star, ThumbsDown, ThumbsUp } from 'lucide-react';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar } from '@/components/ui/avatar';
-import { Shop } from '@/types';
-import { router } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Label } from '../ui/label';
 
 // interface Review {
 //     id: number;
@@ -85,53 +88,168 @@ import { Input } from '@/components/ui/input';
 // ];
 
 interface Props {
-    shop: Shop;
+    shop: Shop & {
+        user_review?: Review | null; // Ajoutez cette propriété pour l'avis de l'utilisateur
+    };
 }
 
-function ShopReview({shop}: Props) {
-
+function ShopReview({ shop }: Props) {
+    const { props } = usePage(); // Accédez aux props de la page via usePage
+    const userReview = shop?.user_review; // Accédez directement à user_review via shop
     const [sortBy, setSortBy] = useState('newest');
     const [filterRating, setFilterRating] = useState('all');
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reportDialog, setReportDialog] = useState(false);
+    const [reportData, setReportData] = useState({
+        reviewId: 0,
+        reason: '',
+        details: '',
+    });
     const [newReview, setNewReview] = useState({
         rating: 0,
         title: '',
-        comment: ''
+        comment: '',
     });
-    const [showReviewForm, setShowReviewForm] = useState(false);
+
+    // Pré-remplir le formulaire si un avis existe déjà
+    useEffect(() => {
+        if (userReview) {
+            setNewReview({
+                rating: userReview.rating,
+                title: userReview.title || '', // Assurez-vous que title peut être null
+                comment: userReview.comment,
+            });
+        } else {
+            // Réinitialiser si l'utilisateur n'a pas d'avis
+            setNewReview({
+                rating: 0,
+                title: '',
+                comment: '',
+            });
+        }
+    }, [userReview]);
+
+    console.log(userReview);
 
     const averageRating = shop.reviews.reduce((sum, review) => sum + review.rating, 0) / shop.reviews.length;
-    const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
+    const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
         rating,
-        count: shop.reviews.filter(r => r.rating === rating).length,
-        percentage: (shop.reviews.filter(r => r.rating === rating).length / shop.reviews.length) * 100
+        count: shop.reviews.filter((r) => r.rating === rating).length,
+        percentage: (shop.reviews.filter((r) => r.rating === rating).length / shop.reviews.length) * 100,
     }));
 
+    // const handleSubmitReview = () => {
+    //     if (newReview.rating === 0 || !newReview.comment.trim()) {
+    //         // toast({
+    //         //     title: "Erreur",
+    //         //     description: "Veuillez remplir tous les champs obligatoires.",
+    //         //     variant: "destructive"
+    //         // });
+    //         return;
+    //     }
+
+    //     router.post(route('shop_reviews.store'), {
+    //         shop_id: shop.id,
+    //         rating: newReview.rating,
+    //         title: newReview.title,
+    //         comment: newReview.comment,
+    //     }, {
+    //         onSuccess: () => {
+    //             // toast({
+    //             //     title: "Avis publié",
+    //             //     description: "Votre avis a été publié avec succès.",
+    //             // });
+    //         }
+    //     });
+
+    //     setNewReview({ rating: 0, title: '', comment: '' });
+    //     setShowReviewForm(false);
+    // };
     const handleSubmitReview = () => {
-        if (newReview.rating === 0 || !newReview.comment.trim()) {
-            // toast({
-            //     title: "Erreur",
-            //     description: "Veuillez remplir tous les champs obligatoires.",
-            //     variant: "destructive"
-            // });
-            return;
+        if (newReview.rating === 0 || !newReview.comment.trim()) return;
+
+        if (userReview) {
+            // Modification
+            router.put(
+                route('shop_reviews.update', userReview.id),
+                {
+                    rating: newReview.rating,
+                    title: newReview.title,
+                    comment: newReview.comment,
+                },
+                {
+                    onSuccess: () => {
+                        setShowReviewForm(false);
+                    },
+                },
+            );
+        } else {
+            // Création
+            router.post(
+                route('shop_reviews.store'),
+                {
+                    shop_id: shop.id,
+                    rating: newReview.rating,
+                    title: newReview.title,
+                    comment: newReview.comment,
+                },
+                {
+                    onSuccess: () => {
+                        setShowReviewForm(false);
+                    },
+                },
+            );
         }
-
-        // router.post(route(''))
-
-        // toast({
-        //     title: "Avis publié",
-        //     description: "Votre avis a été publié avec succès.",
-        // });
-
-        setNewReview({ rating: 0, title: '', comment: '' });
-        setShowReviewForm(false);
     };
 
-    const handleHelpfulVote = (id: number, type: 'helpful' | 'notHelpful') => {
-        // toast({
-        //     title: "Vote enregistré",
-        //     description: "Merci pour votre retour !",
-        // });
+    const [reviews, setReviews] = useState(shop.reviews);
+
+    const handleHelpfulVote = (reviewId: number, type: 'helpful' | 'not_helpful') => {
+        router.post(
+            route('shop_reviews.vote', reviewId),
+            {
+                type: type,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: (response) => {
+                    // Mettre à jour l'état local des reviews
+                    setReviews((prevReviews) =>
+                        prevReviews.map((review) => {
+                            if (review.id === reviewId) {
+                                return {
+                                    ...review,
+                                    helpful: response.props.helpful,
+                                    not_helpful: response.props.notHelpful,
+                                };
+                            }
+                            return review;
+                        }),
+                    );
+
+                    toast.success('Vote pris en compte');
+                },
+                onError: () => {
+                    toast.error('Une erreur est survenue');
+                },
+            },
+        );
+    };
+
+    const handleReport = () => {
+        router.post(route('shop_reviews.report', reportData.reviewId), {
+            reason: reportData.reason,
+            details: reportData.details
+        }, {
+            onSuccess: () => {
+                setReportDialog(false);
+                toast.success("Avis signalé avec succès");
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue");
+            }
+        });
     };
 
     // const renderStars = (rating: number, size: number = 16, interactive: boolean = false, onRatingChange?: (rating: number) => void) => {
@@ -152,64 +270,59 @@ function ShopReview({shop}: Props) {
     //         </div>
     //     );
     // };
-    const renderStars = (
-  rating: number,
-  size: number = 16,
-  interactive: boolean = false,
-  onRatingChange?: (rating: number) => void
-) => {
-  return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => {
-        // Calcul du pourcentage de remplissage pour cette étoile
-        const fillPercent = Math.max(0, Math.min(1, rating - (star - 1)));
-        if (fillPercent === 1) {
-          // Pleine étoile
-          return (
-            <Star
-              key={star}
-              size={size}
-              className={`fill-amber-400 text-amber-400 ${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
-              onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
-            />
-          );
-        }
-        if (fillPercent === 0) {
-          // Vide
-          return (
-            <Star
-              key={star}
-              size={size}
-              className={`text-gray-300 ${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
-              onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
-            />
-          );
-        }
-        // Partiellement remplie
+    const renderStars = (rating: number, size: number = 16, interactive: boolean = false, onRatingChange?: (rating: number) => void) => {
         return (
-          <svg
-            key={star}
-            width={size}
-            height={size}
-            viewBox="0 0 24 24"
-            className={`${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
-            onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
-          >
-            <defs>
-              <linearGradient id={`star-gradient-${star}`}>
-                <stop offset={`${fillPercent * 100}%`} stopColor="#FFB900" />
-                <stop offset={`${fillPercent * 100}%`} stopColor="#FFFFFF" />
-              </linearGradient>
-            </defs>
-            <Star fill={`url(#star-gradient-${star})`} stroke="#FFB900" />
-          </svg>
+            <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => {
+                    // Calcul du pourcentage de remplissage pour cette étoile
+                    const fillPercent = Math.max(0, Math.min(1, rating - (star - 1)));
+                    if (fillPercent === 1) {
+                        // Pleine étoile
+                        return (
+                            <Star
+                                key={star}
+                                size={size}
+                                className={`fill-amber-400 text-amber-400 ${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
+                                onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
+                            />
+                        );
+                    }
+                    if (fillPercent === 0) {
+                        // Vide
+                        return (
+                            <Star
+                                key={star}
+                                size={size}
+                                className={`text-gray-300 ${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
+                                onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
+                            />
+                        );
+                    }
+                    // Partiellement remplie
+                    return (
+                        <svg
+                            key={star}
+                            width={size}
+                            height={size}
+                            viewBox="0 0 24 24"
+                            className={`${interactive ? 'cursor-pointer hover:text-amber-400' : ''}`}
+                            onClick={interactive && onRatingChange ? () => onRatingChange(star) : undefined}
+                        >
+                            <defs>
+                                <linearGradient id={`star-gradient-${star}`}>
+                                    <stop offset={`${fillPercent * 100}%`} stopColor="#FFB900" />
+                                    <stop offset={`${fillPercent * 100}%`} stopColor="#FFFFFF" />
+                                </linearGradient>
+                            </defs>
+                            <Star fill={`url(#star-gradient-${star})`} stroke="#FFB900" />
+                        </svg>
+                    );
+                })}
+            </div>
         );
-      })}
-    </div>
-  );
-};
+    };
 
-    const filteredReviews = shop.reviews.filter(review => {
+    const filteredReviews = shop.reviews.filter((review) => {
         if (filterRating === 'all') return true;
         return review.rating === parseInt(filterRating);
     });
@@ -231,7 +344,6 @@ function ShopReview({shop}: Props) {
         }
     });
 
-
     return (
         <div className="space-y-6">
             {/* Résumé des évaluations */}
@@ -240,15 +352,13 @@ function ShopReview({shop}: Props) {
                     <CardTitle>Évaluations des clients</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
                                 <div className="text-4xl font-bold">{averageRating.toFixed(1)}</div>
                                 <div>
-                                    {renderStars((averageRating), 20)}
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Basé sur {shop.reviews.length} avis
-                                    </p>
+                                    {renderStars(averageRating, 20)}
+                                    <p className="mt-1 text-sm text-gray-600">Basé sur {shop.reviews.length} avis</p>
                                 </div>
                             </div>
                         </div>
@@ -256,15 +366,12 @@ function ShopReview({shop}: Props) {
                         <div className="space-y-2">
                             {ratingDistribution.map(({ rating, count, percentage }) => (
                                 <div key={rating} className="flex items-center gap-2">
-                                    <span className="text-sm w-8">{rating}</span>
+                                    <span className="w-8 text-sm">{rating}</span>
                                     <Star size={14} className="fill-amber-400 text-amber-400" />
-                                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-amber-400 h-2 rounded-full"
-                                            style={{ width: `${percentage}%` }}
-                                        ></div>
+                                    <div className="h-2 flex-1 rounded-full bg-gray-200">
+                                        <div className="h-2 rounded-full bg-amber-400" style={{ width: `${percentage}%` }}></div>
                                     </div>
-                                    <span className="text-sm w-8 text-gray-600">{count}</span>
+                                    <span className="w-8 text-sm text-gray-600">{count}</span>
                                 </div>
                             ))}
                         </div>
@@ -273,7 +380,7 @@ function ShopReview({shop}: Props) {
             </Card>
 
             {/* Filtres et tri */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div className="grid grid-cols-2 gap-2">
                     <Select value={filterRating} onValueChange={setFilterRating}>
                         <SelectTrigger className="truncate">
@@ -302,49 +409,55 @@ function ShopReview({shop}: Props) {
                         </SelectContent>
                     </Select>
                 </div>
-
-                <Button onClick={() => setShowReviewForm(true)}>
-                    Laisser un avis
-                </Button>
+                {props.auth.user && ( // Afficher le bouton seulement si l'utilisateur est connecté
+                    <Button onClick={() => setShowReviewForm(true)}>{userReview ? 'Modifier votre avis' : 'Laisser un avis'}</Button>
+                )}
             </div>
 
             {/* Formulaire d'avis */}
             {showReviewForm && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Laisser un avis sur {shop.name}</CardTitle>
+                        <CardTitle>
+                            {userReview ? 'Modifier votre avis sur' : 'Laisser un avis sur'} {shop.name}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Note *</label>
+                            <label className="mb-2 block text-sm font-medium">Note *</label>
                             {renderStars(newReview.rating, 24, true, (rating) =>
-                                setNewReview(prev => ({ ...prev, rating }))
+                                setNewReview((prev) => ({
+                                    ...prev,
+                                    rating,
+                                })),
                             )}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-2">Titre (optionnel)</label>
+                            <label className="mb-2 block text-sm font-medium">Titre (optionnel)</label>
                             <Input
                                 type="text"
                                 placeholder="Résumez votre expérience..."
                                 value={newReview.title}
-                                onChange={(e) => setNewReview(prev => ({ ...prev, title: e.target.value }))}
-                                className="w-full p-2 border border-gray-300 rounded-md"
+                                onChange={(e) => setNewReview((prev) => ({ ...prev, title: e.target.value }))}
+                                className="w-full rounded-md border border-gray-300 p-2"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-2">Commentaire <span>*</span></label>
+                            <label className="mb-2 block text-sm font-medium">
+                                Commentaire <span>*</span>
+                            </label>
                             <Textarea
                                 placeholder="Partagez votre expérience avec cette boutique..."
                                 value={newReview.comment}
-                                onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+                                onChange={(e) => setNewReview((prev) => ({ ...prev, comment: e.target.value }))}
                                 className="min-h-[100px]"
                             />
                         </div>
 
                         <div className="flex gap-2">
-                            <Button onClick={handleSubmitReview}>Publier l'avis</Button>
+                            <Button onClick={handleSubmitReview}>{userReview ? "Mettre à jour l'avis" : "Publier l'avis"}</Button>
                             <Button variant="outline" onClick={() => setShowReviewForm(false)}>
                                 Annuler
                             </Button>
@@ -358,25 +471,24 @@ function ShopReview({shop}: Props) {
                 {sortedReviews.map((review) => (
                     <Card key={review.id}>
                         <CardContent className="pt-6">
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="mb-4 flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <Avatar className="w-10 h-10">
-                                        <img src={review.user.avatar} alt={review.user.name} className="w-full h-full object-cover" />
+                                    <Avatar className="h-10 w-10">
+                                        {/* <img src={review.user.avatar} alt={review.user.name} className="w-full h-full object-cover" /> */}
+                                        <img src="https://placeholder.co/100" className="h-full w-full object-cover" />
                                     </Avatar>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-medium">{review.user.name}</h4>
+                                            <h4 className="font-medium">{review.reviewer_name}</h4>
                                             {review.is_approved && (
                                                 <Badge variant="secondary" className="text-xs">
                                                     Vérifié
                                                 </Badge>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2 mt-1">
+                                        <div className="mt-1 flex items-center gap-2">
                                             {renderStars(review.rating)}
-                                            <span className="text-sm text-gray-500">
-                        {new Date(review.created_at).toLocaleDateString('fr-FR')}
-                      </span>
+                                            <span className="text-sm text-gray-500">{new Date(review.created_at).toLocaleDateString('fr-FR')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -388,19 +500,75 @@ function ShopReview({shop}: Props) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => {
+                                                setReportData({ reviewId: review.id, reason: '', details: '' });
+                                                setReportDialog(true);
+                                            }}
+                                        >
                                             <Flag size={16} className="mr-2" />
                                             Signaler
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+
+                                <Dialog open={reportDialog} onOpenChange={setReportDialog}>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Signaler cet avis</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <Label>Motif du signalement</Label>
+                                                <Select
+                                                    value={reportData.reason}
+                                                    onValueChange={(value) =>
+                                                        setReportData((prev) => ({
+                                                            ...prev,
+                                                            reason: value,
+                                                        }))
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionner un motif" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="inappropriate">Contenu inapproprié</SelectItem>
+                                                        <SelectItem value="spam">Spam</SelectItem>
+                                                        <SelectItem value="fake">Avis frauduleux</SelectItem>
+                                                        <SelectItem value="other">Autre</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label>Détails</Label>
+                                                <Textarea
+                                                    placeholder="Décrivez la raison de votre signalement..."
+                                                    value={reportData.details}
+                                                    onChange={(e) =>
+                                                        setReportData((prev) => ({
+                                                            ...prev,
+                                                            details: e.target.value,
+                                                        }))
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setReportDialog(false)}>
+                                                Annuler
+                                            </Button>
+                                            <Button
+                                            onClick={handleReport}
+                                            >Envoyer le signalement</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
 
-                            {review.title && (
-                                <h5 className="font-medium mb-2">{review.title}</h5>
-                            )}
+                            {review.title && <h5 className="mb-2 font-medium">{review.title}</h5>}
 
-                            <p className="text-gray-700 mb-4">{review.comment}</p>
+                            <p className="mb-4 text-gray-700">{review.comment}</p>
 
                             <div className="flex items-center gap-4">
                                 <button
@@ -411,11 +579,11 @@ function ShopReview({shop}: Props) {
                                     Utile ({review.helpful})
                                 </button>
                                 <button
-                                    onClick={() => handleHelpfulVote(review.id, 'notHelpful')}
+                                    onClick={() => handleHelpfulVote(review.id, 'not_helpful')}
                                     className="flex items-center gap-1 text-sm text-gray-600 hover:text-red-600"
                                 >
                                     <ThumbsDown size={16} />
-                                    Pas utile ({review.notHelpful})
+                                    Pas utile ({review.not_helpful})
                                 </button>
                             </div>
                         </CardContent>
@@ -424,14 +592,13 @@ function ShopReview({shop}: Props) {
             </div>
 
             {filteredReviews.length === 0 && (
-                <div className="text-center py-12">
+                <div className="py-12 text-center">
                     <Star className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-lg font-medium text-gray-900">Aucun avis trouvé</h3>
                     <p className="mt-1 text-gray-500">
                         {filterRating !== 'all'
                             ? 'Aucun avis ne correspond à votre filtre.'
-                            : 'Soyez le premier à laisser un avis sur cette boutique.'
-                        }
+                            : 'Soyez le premier à laisser un avis sur cette boutique.'}
                     </p>
                 </div>
             )}

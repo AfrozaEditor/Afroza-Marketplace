@@ -4,7 +4,7 @@ import { Input } from '../ui/input';
 
 function NewsLetter() {
     return (
-        <section className="py-12 md:py-16 bg-primary">
+        <section className="py-12 md:py-16 bg-primary/70">
             <div className="container mx-auto px-4 md:px-8">
                 <div className="max-w-3xl mx-auto text-center">
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Inscrivez-vous à notre newsletter</h2>

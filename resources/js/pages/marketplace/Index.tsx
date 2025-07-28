@@ -26,6 +26,7 @@ function Index({shops,categories}: Props) {
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
+  
 
   // Format price in FCFA
   const formatPrice = (price: number) => {
@@ -179,7 +180,7 @@ function Index({shops,categories}: Props) {
                                 <div className="flex items-center gap-1 text-amber-500">
                                     <Star size={16} fill="currentColor" />
                                     {/*<span>{seller.rating}/5</span>*/}
-                                    <span>5/5</span>
+                                    <span>{shop.reviews.length > 0 ? shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length : 0}/5</span>
                                 </div>
                             </CardHeader>
                             <CardContent className="pb-2">

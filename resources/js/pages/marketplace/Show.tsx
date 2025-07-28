@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ListProduct from '@/components/product/list-product';
 import ShopReview from '@/components/review/shop-review';
+import { ShopReview as Review } from '@/types';
 
 interface Props {
     shop: Shop & {
@@ -34,7 +35,7 @@ interface Props {
 
 function Show({ shop, products }: Props) {
     const [isFollowing, setIsFollowing] = useState(shop.is_followed || false);
-
+    const averageRating = shop.reviews.length > 0 ? shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length : 0;
 
     const handleFollow = () => {
     router.post(route('shops.follow', { slug: shop.slug }), {}, {
@@ -124,7 +125,7 @@ function Show({ shop, products }: Props) {
                                             <Star size={18} fill="currentColor" />
                                             <span>
                                                 {/*{seller.rating}/5 ({seller.reviews} avis)*/}
-                                                5/5 (100 avis)
+                                                {averageRating}/5 ({shop.reviews.length} avis)
                                             </span>
                                         </div>
                                         <span className="text-gray-500">|</span>
@@ -231,7 +232,7 @@ function Show({ shop, products }: Props) {
                             <div className="flex justify-between items-center mb-6">
                                 <TabsList className="grid w-full max-w-md grid-cols-3">
                                     <TabsTrigger value="products">Produits ({shop.products.length})</TabsTrigger>
-                                    <TabsTrigger value="reviews">Avis (0)</TabsTrigger>
+                                    <TabsTrigger value="reviews">Avis ({shop.reviews.length})</TabsTrigger>
                                     <TabsTrigger value="about">À propos</TabsTrigger>
                                 </TabsList>
 
