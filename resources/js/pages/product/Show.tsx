@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { router } from '@inertiajs/react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Product } from '@/types';
 import icon from '../../../../public/apple-touch-icon.png';
+import ProductReview from '@/components/review/product-review';
 
 interface Props {
     product: Product;
@@ -16,8 +17,11 @@ interface Props {
 }
 
 function Show({product, images}:Props) {
-    const [mainImage, setMainImage] = useState(images[0]);
+    // const [mainImage, setMainImage] = useState(images[0]);
     const [quantity, setQuantity] = useState(1);
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
 
     const handleQuantityChange = (amount: number) => {
         const newQuantity = quantity + amount;
@@ -44,6 +48,27 @@ function Show({product, images}:Props) {
         Autoplay({delay: 5000, stopOnInteraction: true})
     )
 
+    // Initialiser l'API du carousel
+    useEffect(() => {
+        if (!api) {
+            return;
+        }
+
+        setCount(api.scrollSnapList().length);
+        setCurrent(api.selectedScrollSnap() + 1);
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap() + 1);
+        });
+    }, [api]);
+
+    // Fonction pour naviguer vers une image spécifique
+    const goToSlide = useCallback((index: number) => {
+        if (api) {
+            api.scrollTo(index);
+        }
+    }, [api]);
+
     // const handleContactSeller {
     //
     // }
@@ -69,8 +94,8 @@ function Show({product, images}:Props) {
                             {images.map((image, index) => (
                                 <div
                                     key={index}
-                                    className={`aspect-square rounded-md overflow-hidden cursor-pointer ${mainImage === image ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100'}`}
-                                    onClick={() => setMainImage(image)}
+                                    className={`aspect-square rounded-md overflow-hidden cursor-pointer ${current - 1 === index ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100'}`}
+                                    onClick={() => goToSlide(index)}
                                 >
                                     <img
                                         src={image}
@@ -83,6 +108,7 @@ function Show({product, images}:Props) {
                         <div className='flex-1'>
                             <Carousel
                         // className="w-full"
+                                setApi={setApi}
                         plugins={[plugin.current]}
                             opts={{
                                 align: "start",
@@ -202,9 +228,10 @@ function Show({product, images}:Props) {
                     </CardFooter>
                 </Card>
                 <section>
-
                 </section>
             </div>
+            <ProductReview/>
+
         </AppLayout>
     );
 }

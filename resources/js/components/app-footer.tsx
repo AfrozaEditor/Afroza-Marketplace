@@ -113,7 +113,7 @@ function AppFooter() {
 
                     <div>
                         <h3 className="text-lg text-white font-semibold mb-4">Liens Rapides</h3>
-                        <NavigationMenu>
+                        <NavigationMenu className="max-w-max ">
                             <NavigationMenuList className="grid grid-cols-1">
                                 {mainNavItems.map((item) => (
                                     <NavigationMenuItem key={item.title}>
@@ -134,7 +134,7 @@ function AppFooter() {
                     </div>
                     <div >
                     <h3 className="text-lg text-white font-semibold mb-4">Aide</h3>
-                    <NavigationMenu>
+                    <NavigationMenu className="max-w-max ">
                         <NavigationMenuList className="grid grid-cols-1">
                             {helpNavItems.map((item) => (
                                 <NavigationMenuItem key={item.title}>
@@ -155,7 +155,7 @@ function AppFooter() {
                 </div>
                     <div className="">
                     <h3 className="text-lg text-white font-semibold mb-4">Légal</h3>
-                    <NavigationMenu>
+                    <NavigationMenu className="max-w-max ">
                         <NavigationMenuList className="grid grid-cols-1">
                             {legalNavItems.map((item) => (
                                 <NavigationMenuItem key={item.title}>

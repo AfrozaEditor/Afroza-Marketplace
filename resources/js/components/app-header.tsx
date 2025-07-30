@@ -300,7 +300,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         </div>
 
                         {/* Menu mobile: icône panier + burger */}
-                        <div className="flex items-center space-x-3 md:hidden">
+                        <div className="flex items-center md:hidden">
                             {/*<Link href="/panier" className="relative text-videdressing-primary p-2 hover:bg-gray-100 rounded-lg transition-colors">*/}
                             {/*    <ShoppingCart size={22} />*/}
                             {/*    /!*{itemCount > 0 && (*!/*/}
@@ -309,9 +309,9 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             {/*    /!*    </Badge>*!/*/}
                             {/*    /!*)}*!/*/}
                             {/*</Link>*/}
-                            <Button variant="ghost" className="flex text-white hover:bg-gray-100" onClick={toggleMenu}>
-                                {isMenuOpen ? <X size={22} /> : <Menu className='h-10 w-10'/>}
-                            </Button>
+                            <button className="py-0 px-0 flex text-white hover:text-black" onClick={toggleMenu}>
+                                {isMenuOpen ? <X size={25} /> : <Menu size={25} className="w-full "/>}
+                            </button>
                         </div>
 
                         {/* Actions Desktop à droite */}
@@ -353,7 +353,47 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             )}
                         </div>
                     </div>
-                    <Separator />
+                    <Separator className="hidden md:block"/>
+
+                    {/* Barre de recherche mobile */}
+                    <div className="md:hidden pb-4">
+                        <form onSubmit={handleSearch}>
+                            <div className="relative flex">
+                                <Select onValueChange={(value) => setSelectedSearchCategory(value)}>
+                                    <SelectTrigger className="w-40 rounded-l-md rounded-r-none border-r bg-white px-4 py-2 text-gray-800 focus:outline-none">
+                                        <SelectValue placeholder="Catégorie" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {/* <SelectItem value="">Toutes les catégories</SelectItem> */}
+                                        {categories.map((cat) => (
+                                            <SelectItem key={cat.id} value={cat.id.toString()}>
+                                                {cat.name}
+                                            </SelectItem>
+                                        ))}
+                                        {/* <SelectItem key={1} value='essai'>
+                                                Essai
+                                            </SelectItem> */}
+                                    </SelectContent>
+                                </Select>
+                                {/*<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />*/}
+                                <Input
+                                    type="text"
+                                    placeholder="Rechercher..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pr-16 py-3 w-full border-0 rounded-l-none border-gray-200 focus:border-primary bg-gray-50 focus:bg-white transition-colors"
+                                />
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1.5 h-8 text-xs bg-primary hover:bg-primary/80"
+                                    disabled={!searchQuery.trim()}
+                                >
+                                    <Search size={18} />
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
 
                     {/* Navigation principale - Desktop */}
                     <div className="hidden items-center justify-center space-x-8 py-1 md:flex">
@@ -378,6 +418,90 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                     </div>
                 </div>
             </div>
+
+            {/* Navigation mobile */}
+            {isMenuOpen && (
+                <>
+                    {/* Overlay sombre */}
+                    <div
+                        className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                        onClick={() => setIsMenuOpen(false)}
+                    />
+                    <div className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 md:hidden animate-slide-in-left">
+                        <div className="flex">
+                            <h2 className="flex-1 text-xl text-white font-bold text-center py-4 bg-primary">Menu</h2>
+                        </div>
+                        <div className="overflow-y-auto px-4">
+                            <div className="flex items-center justify-between py-2 w-full">
+                                <NavigationMenu className="">
+                                    <NavigationMenuList className="flex flex-col items-center justify-center gap-4 py-4 w-full">
+                                        {mainNavItems.map((item) => (
+                                            <NavigationMenuItem key={item.title}>
+                                                <Link
+                                                    href={item.href}
+                                                    className={cn(
+                                                        navigationMenuTriggerStyle(),
+                                                        'text-[16px] text-primary hover:text-primary/80',
+                                                        page.url === item.href,
+                                                    )}
+                                                >
+                                                    {item.title}
+                                                </Link>
+                                            </NavigationMenuItem>
+                                        ))}
+                                    </NavigationMenuList>
+                                </NavigationMenu>
+                            </div>
+                            {/* Actions mobile */}
+                            <div className="flex flex-col items-center justify-center gap-4 py-4">
+                                {/*{auth.user && (*/}
+                                {/*    <DropdownMenu>*/}
+                                {/*        <DropdownMenuTrigger asChild>*/}
+                                {/*            <Button variant="ghost" className="flex items-center gap-2 text-primary">*/}
+                                {/*                <User className="h-5 w-5" />*/}
+                                {/*                <span>{auth.user.name}</span>*/}
+                                {/*            </Button>*/}
+                                {/*        </DropdownMenuTrigger>*/}
+                                {/*        <DropdownMenuContent align="end" className="w-56">*/}
+                                {/*            <UserMenuContent user={auth.user} />*/}
+                                {/*        </DropdownMenuContent>*/}
+                                {/*    </DropdownMenu>*/}
+                                {/*)}*/}
+                                {!auth.user && (
+                                    <Button
+                                        className="bg-primary text-white  w-full"
+                                        // disabled={!!auth.user}
+                                    >
+                                        <Link href={route('register')}>
+                                            <span>S'inscrire</span>
+                                        </Link>
+                                    </Button>
+                                )}
+                                {isVendor && (
+                                    <Button
+                                        className="bg-primary text-white  w-full"
+                                        // disabled={!isVendor}
+                                    >
+                                        <Link href={route('products.create')}>
+                                            <span>Vends tes articles</span>
+                                        </Link>
+                                    </Button>
+                                )}
+                                {isCustomer && (
+                                    <Button
+                                        className="bg-primary text-white  w-full"
+                                        // disabled={!isVendor}
+                                    >
+                                        <Link href={route('products.index')}>
+                                            <span>Achète des articles</span>
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (

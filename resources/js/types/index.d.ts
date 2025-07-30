@@ -73,7 +73,7 @@ export interface Product {
     price: number;
     quantity: number;
     images: string[];
-
+    reviews: ProductReview[];
 }
 
 export interface Image {
@@ -142,4 +142,17 @@ export interface ShopReviewVote {
     shop_review: ShopReview;
     is_helpful: boolean;
     created_at: string;
+}
+
+export interface ProductReview {
+    id: number;
+    product: Product;
+    user: User;
+    title: string;
+    rating: number;
+    comment: string;
+    is_approved: boolean;
+    created_at: string;
+    // helpful: number;
+    // notHelpful: number;
 }
