@@ -46,9 +46,9 @@ function ProductCard({product}: Props) {
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div className="flex items-center text-white">
                                 <Star className="text-yellow-400" size={16} />
-                                <span className="ml-1">0</span>
+                                <span className="ml-1">{product.reviews.length > 0 ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length : 0}</span>
                                 <span className="mx-1">•</span>
-                                <span>0 Avis</span>
+                                <span>{product.reviews.length} Avis</span>
                             </div>
                         </div>
                     </div>

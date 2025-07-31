@@ -21,7 +21,7 @@ class ProductController extends Controller
         // $products = Product::with(['category', 'shop', 'user'])
         // ->orderBy('created_at', 'desc')
         // ->paginate(9);
-        $query = Product::with(['category', 'shop', 'user']);
+        $query = Product::with(['category', 'shop', 'user', 'reviews']);
 
     // Filtre par catégorie
     if ($request->filled('category')&& $request->category !== '0') {
@@ -81,6 +81,8 @@ class ProductController extends Controller
         return $product;
     });
 
+
+
     $categories = Category::all();
 
         return Inertia::render('product/Index', [
@@ -90,7 +92,7 @@ class ProductController extends Controller
             'category' => $request->get('category', '0'),
             'search' => $request->get('search', ''),
             'min_price' => $request->get('min_price', '0'),
-            'max_price' => $request->get('max_price', '60000'),
+            'max_price' => $request->get('max_price', '2000000'),
             'sort' => $sort
         ]
         ]);
@@ -155,12 +157,20 @@ class ProductController extends Controller
      */
     public function show(string $slug)
     {
-        $product = Product::where('slug', $slug)->with(['category', 'shop', 'user'])->firstOrFail();
+        $product = Product::where('slug', $slug)->with(['category', 'shop', 'user', 'reviews'])->firstOrFail();
         $images = $product->images()->get();
         $imagesUrls =[];
         foreach($images as $image){
             $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30));
         }
+
+        $userId = auth()->id();
+
+        // Récupère l'avis de l'utilisateur connecté s'il existe
+        $userReview = $product->reviews->where('user_id', $userId)->first();
+
+        $product->user_review = $userReview;
+
         return Inertia::render('product/Show',[
             'product' => $product,
             'images' => $imagesUrls,
