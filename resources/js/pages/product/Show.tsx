@@ -230,7 +230,9 @@ function Show({product, images}:Props) {
                 <section>
                 </section>
             </div>
-            <ProductReview/>
+            <div className="container mx-auto px-4 py-6">
+                <ProductReview product={product} />
+            </div>
 
         </AppLayout>
     );

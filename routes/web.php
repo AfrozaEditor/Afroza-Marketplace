@@ -7,6 +7,7 @@ use App\Http\Controllers\Marketplace\MarketplaceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Promotion\PromotionController;
+use App\Http\Controllers\Review\ProductReviewController;
 use App\Http\Controllers\Review\ShopReviewController;
 use App\Models\Category;
 use App\Models\Product;
@@ -18,7 +19,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\GoogleController;
 
 Route::get('/', function () {
-    $latestProducts = Product::with(['category', 'shop', 'user'])
+    $latestProducts = Product::with(['category', 'shop', 'user','reviews'])
         ->orderBy('created_at', 'desc')
         ->take(4)
         ->get();
@@ -101,9 +102,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/shop-reviews/{review}/vote', [ShopReviewController::class, 'vote'])->name('shop_reviews.vote');
     Route::post('/shop-reviews/{review}/report', [ShopReviewController::class, 'report'])->name('shop_reviews.report');
 
+
+    // Product reviews
+    Route::resource('product_reviews', ProductReviewController::class)->only(['store','update']);
+    Route::post('/product-reviews/{review}/vote', [ProductReviewController::class, 'vote'])->name('product_reviews.vote');
+    Route::post('/product-reviews/{review}/report', [ProductReviewController::class, 'report'])->name('product_reviews.report');
 });
 
  Route::get('/shop-reviews/user/{shop}', [ShopReviewController::class, 'userReview'])->name('shop_reviews.user');
+ Route::get('/product-reviews/user/{product}', [ProductReviewController::class, 'userReview'])->name('product_reviews.user');
 
 
 Route::resource('marketplace', MarketplaceController::class)->only(['index', 'show']);

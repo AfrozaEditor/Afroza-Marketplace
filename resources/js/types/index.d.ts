@@ -74,6 +74,8 @@ export interface Product {
     quantity: number;
     images: string[];
     reviews: ProductReview[];
+    user_review?: ProductReview | null;
+
 }
 
 export interface Image {
@@ -148,11 +150,13 @@ export interface ProductReview {
     id: number;
     product: Product;
     user: User;
+    reviewer_name: string;
+    reviewer_email: string;
     title: string;
     rating: number;
     comment: string;
     is_approved: boolean;
     created_at: string;
-    // helpful: number;
-    // notHelpful: number;
+    helpful: number;
+    not_helpful: number;
 }
