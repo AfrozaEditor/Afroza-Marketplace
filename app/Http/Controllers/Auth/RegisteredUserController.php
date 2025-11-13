@@ -47,13 +47,14 @@ class RegisteredUserController extends Controller
         $user->assignSingleRole($request->role);
 
 //        dd($user->getRole());
-        $role = $user->getRole();
-        if($role->name == 'delivery')
-            return to_route('delivery');
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        $role = $user->getRole();
+        if($role->name == 'delivery')
+            return to_route('delivery');
 
 
 //         if($user->getRole()=='seller')

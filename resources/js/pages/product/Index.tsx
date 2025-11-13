@@ -47,7 +47,7 @@ function Index({products, categories, filters}: Props) {
     );
     const [priceRange, setPriceRange] = useState<number[]>([
         filters?.min_price ? parseInt(filters.min_price) : 0,
-        filters?.max_price ? parseInt(filters.max_price) : 60000
+        filters?.max_price ? parseInt(filters.max_price) : 2000000
     ]);
     const [sortBy, setSortBy] = useState(filters?.sort || 'newest');
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
@@ -74,7 +74,7 @@ function Index({products, categories, filters}: Props) {
         // category: '0',
         sort: 'newest',
         min_price: '0',
-        max_price: '60000'
+        max_price: '2000000'
     }, {
         preserveState: false,
         preserveScroll: false,

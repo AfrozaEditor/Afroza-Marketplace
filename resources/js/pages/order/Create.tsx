@@ -11,8 +11,15 @@ import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, CreditCard, Shield, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Cart } from '@/types';
 
-function Create() {
+
+interface Props {
+    cart: Cart;
+}
+
+
+function Create({cart}: Props) {
     const [isLoading, setIsLoading] = useState(false);
 
     // Formulaire de livraison
@@ -24,7 +31,7 @@ function Create() {
         address: '',
         city: '',
         postalCode: '',
-        country: 'CI'
+        country: 'CE'
     });
 
     // Formulaire de facturation
@@ -34,14 +41,14 @@ function Create() {
         address: '',
         city: '',
         postalCode: '',
-        country: 'CI'
+        country: 'CE'
     });
 
     const [sameAsShipping, setSameAsShipping] = useState(true);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [shippingMethod, setShippingMethod] = useState('standard');
 
-    const subTotal = 100;
+    const subTotal = Math.ceil(cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0));
     const shippingCost = shippingMethod === 'express' ? 2000 : 0;
     const total = subTotal + shippingCost;
 
@@ -57,18 +64,68 @@ function Create() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulation d'un traitement de paiement
-        try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+        // // Simulation d'un traitement de paiement
+        // try {
+        //     await new Promise(resolve => setTimeout(resolve, 2000));
+        //
+        //     // Simulation réussie
+        //     toast.success('Commande validée avec succès !');
+        //     router.post('/commandes');
+        // } catch (error) {
+        //     toast.error('Erreur lors du traitement du paiement');
+        // } finally {
+        //     setIsLoading(false);
+        // }
+        // Préparer les données à envoyer
+        const paymentData = {
+            firstName: shippingForm.firstName,
+            lastName: shippingForm.lastName,
+            email: shippingForm.email,
+            phone: shippingForm.phone,
+            address: shippingForm.address,
+            city: shippingForm.city,
+            postalCode: shippingForm.postalCode,
+            country: shippingForm.country,
+            shippingMethod: shippingMethod,
+            paymentMethod: paymentMethod,
+            total: total,
+        };
 
-            // Simulation réussie
-            toast.success('Commande validée avec succès !');
-            router.post('/commandes');
-        } catch (error) {
-            toast.error('Erreur lors du traitement du paiement');
-        } finally {
-            setIsLoading(false);
-        }
+        // try {
+        //     // Envoyer la requête au backend pour initialiser le paiement
+        //     // Le backend redirigera vers la page de paiement CinetPay
+        //     router.post('/payment/initiate', paymentData);
+        // } catch (error) {
+        //     toast.error('Erreur lors de l\'initialisation du paiement');
+        //     setIsLoading(false);
+        // }
+
+        router.post(route("payment.initiate"), paymentData, {
+            // onSuccess: (page) => {
+            //     console.log("Réponse:", page);
+            //     if (page.props.payment_url) {
+            //         window.location.href = page.props.payment_url as string; // redirige vers CinetPay
+            //         console.log("reussi")
+            //     }
+            //     else {
+            //         console.error("URL de paiement non trouvée dans la réponse");
+            //         toast.error('Erreur: URL de paiement non disponible');
+            //         setIsLoading(false);
+            //     }
+            //
+            // },
+            onError: (errors) => {
+                toast.error('Erreur lors de l\'initialisation du paiement');
+                setIsLoading(false);
+            },
+            onFinish: () => {
+                // Si la requête est terminée mais qu'il n'y a pas de redirection
+                // Cela garantit que le bouton revient à son état normal
+                setIsLoading(false);
+            }
+        });
+
+
     };
 
     // if (cartItems.length === 0) {
@@ -310,10 +367,10 @@ function Create() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="CI">Centre</SelectItem>
-                                                            <SelectItem value="SN">Littoral</SelectItem>
-                                                            <SelectItem value="ML">Ouest</SelectItem>
-                                                            <SelectItem value="BF">Est</SelectItem>
+                                                            <SelectItem value="CE">Centre</SelectItem>
+                                                            <SelectItem value="LT">Littoral</SelectItem>
+                                                            <SelectItem value="OE">Ouest</SelectItem>
+                                                            <SelectItem value="ES">Est</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -324,43 +381,43 @@ function Create() {
                             </Card>
 
                             {/* Méthode de paiement */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <CreditCard size={20} />
-                                        Méthode de paiement
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                                        <div className="flex items-center space-x-2 rounded-lg border p-3">
-                                            <RadioGroupItem value="card" id="card" />
-                                            <Label htmlFor="card" className="flex-1 cursor-pointer">
-                                                <div className="flex items-center gap-2">
-                                                    <CreditCard size={16} />
-                                                    <span>Carte bancaire</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2 rounded-lg border p-3">
-                                            <RadioGroupItem value="mobile" id="mobile" />
-                                            <Label htmlFor="mobile" className="flex-1 cursor-pointer">
-                                                <div className="flex items-center gap-2">
-                                                    <span>Paiement mobile (Orange Money, MTN Money)</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                        {/*<div className="flex items-center space-x-2 rounded-lg border p-3">*/}
-                                        {/*    <RadioGroupItem value="cash" id="cash" />*/}
-                                        {/*    <Label htmlFor="cash" className="flex-1 cursor-pointer">*/}
-                                        {/*        <div className="flex items-center gap-2">*/}
-                                        {/*            <span>Paiement à la livraison</span>*/}
-                                        {/*        </div>*/}
-                                        {/*    </Label>*/}
-                                        {/*</div>*/}
-                                    </RadioGroup>
-                                </CardContent>
-                            </Card>
+                            {/*<Card>*/}
+                            {/*    <CardHeader>*/}
+                            {/*        <CardTitle className="flex items-center gap-2">*/}
+                            {/*            <CreditCard size={20} />*/}
+                            {/*            Méthode de paiement*/}
+                            {/*        </CardTitle>*/}
+                            {/*    </CardHeader>*/}
+                            {/*    <CardContent>*/}
+                            {/*        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>*/}
+                            {/*            <div className="flex items-center space-x-2 rounded-lg border p-3">*/}
+                            {/*                <RadioGroupItem value="card" id="card" />*/}
+                            {/*                <Label htmlFor="card" className="flex-1 cursor-pointer">*/}
+                            {/*                    <div className="flex items-center gap-2">*/}
+                            {/*                        <CreditCard size={16} />*/}
+                            {/*                        <span>Carte bancaire</span>*/}
+                            {/*                    </div>*/}
+                            {/*                </Label>*/}
+                            {/*            </div>*/}
+                            {/*            <div className="flex items-center space-x-2 rounded-lg border p-3">*/}
+                            {/*                <RadioGroupItem value="mobile" id="mobile" />*/}
+                            {/*                <Label htmlFor="mobile" className="flex-1 cursor-pointer">*/}
+                            {/*                    <div className="flex items-center gap-2">*/}
+                            {/*                        <span>Paiement mobile (Orange Money, MTN Money)</span>*/}
+                            {/*                    </div>*/}
+                            {/*                </Label>*/}
+                            {/*            </div>*/}
+                            {/*            /!*<div className="flex items-center space-x-2 rounded-lg border p-3">*!/*/}
+                            {/*            /!*    <RadioGroupItem value="cash" id="cash" />*!/*/}
+                            {/*            /!*    <Label htmlFor="cash" className="flex-1 cursor-pointer">*!/*/}
+                            {/*            /!*        <div className="flex items-center gap-2">*!/*/}
+                            {/*            /!*            <span>Paiement à la livraison</span>*!/*/}
+                            {/*            /!*        </div>*!/*/}
+                            {/*            /!*    </Label>*!/*/}
+                            {/*            /!*</div>*!/*/}
+                            {/*        </RadioGroup>*/}
+                            {/*    </CardContent>*/}
+                            {/*</Card>*/}
                         </div>
 
                         {/* Résumé de la commande */}

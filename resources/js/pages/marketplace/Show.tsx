@@ -59,6 +59,7 @@ function Show({ shop, products }: Props) {
         }
     });
 };
+console.log(products.data);
     // const handleFollow = () => {
     //     // if (!auth.user) {
     //     //     toast.error("Vous devez être connecté pour suivre une boutique");

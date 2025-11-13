@@ -127,7 +127,7 @@ class MarketplaceController extends Controller
 
         // $shop->products()->paginate(6);
         // Charger les produits paginés
-        $products = $shop->products()->with('user')->paginate(6);
+        $products = $shop->products()->with(['user','reviews'])->paginate(6);
 
         $userId = auth()->id();
 
