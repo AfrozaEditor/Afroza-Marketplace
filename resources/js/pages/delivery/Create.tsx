@@ -4,13 +4,15 @@ import AppLayout from '@/layouts/app-layout';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle, MapPin, Package, User } from 'lucide-react';
+import { CheckCircle, MapPin, Package, User, Image } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import DeliveryMap from '@/components/map/delivery-map';
+import DeliveryZoneMap from '@/components/map/delivery-zone-map';
 
 // Form validation schema
 const deliveryRegistrationSchema = z.object({
@@ -50,6 +52,10 @@ function Create() {
     // const locationParams = useLocation();
     // const queryParams = new URLSearchParams(locationParams.search);
     // const emailFromParams = queryParams.get('email') || '';
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [logo, setLogo] = useState<File>();
+    const [cover, setCover] = useState<File>();
 
     const form = useForm<DeliveryRegistrationFormValues>({
         resolver: zodResolver(deliveryRegistrationSchema),
@@ -76,6 +82,11 @@ function Create() {
             experience: "",
         },
     });
+
+    const handleZoneSelect = (geojson: any) => {
+        console.log("Zone sélectionnée :", geojson);
+        // Tu peux sauvegarder ça dans ton state ou envoyer au backend
+    };
 
     const handleMapLocationSelect = (selectedLocation: { lat: number; lng: number; address: string }) => {
         setLocation(selectedLocation);
@@ -140,6 +151,30 @@ function Create() {
         toast.success("Votre inscription en tant que livreur a été soumise avec succès!");
         // navigate('/');
     };
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setLogoPreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
+            setLogo(file);
+        };
+    
+        const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setCoverPreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
+            setCover(file);
+        };
 
     return (
         <AppLayout>
@@ -339,7 +374,8 @@ function Create() {
                                         <TabsContent value="zone" className="space-y-4">
                                             <div className="space-y-4">
                                                 <h4 className="font-medium">Sélectionnez votre zone de livraison sur la carte</h4>
-                                                {/*<DeliveryMap onLocationSelect={handleMapLocationSelect} />*/}
+                                                {/*<DeliveryZoneMap onLocationSelect={handleMapLocationSelect} />*/}
+                                                <DeliveryZoneMap onZoneSelect={handleZoneSelect} />
                                             </div>
 
                                             <FormField
@@ -397,6 +433,88 @@ function Create() {
                                                     </FormItem>
                                                 )}
                                             />
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                                    <div>
+                                                                                        <FormLabel>Logo de la boutique</FormLabel>
+                                                                                        <div className="mt-2">
+                                                                                            <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
+                                                                                                {logoPreview ? (
+                                                                                                    <img src={logoPreview} alt="Preview" className="h-full w-full object-contain" />
+                                                                                                ) : (
+                                                                                                    <div className="text-center p-4">
+                                                                                                        <Image className="mx-auto h-12 w-12 text-gray-400" />
+                                                                                                        <div className="mt-2 text-sm text-gray-500">
+                                                                                                            <label htmlFor="logo-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
+                                                                                                                <span>Cliquez pour ajouter un logo</span>
+                                                                                                                <Input
+                                                                                                                    id="logo-upload"
+                                                                                                                    name="logo"
+                                                                                                                    type="file"
+                                                                                                                    accept="image/*"
+                                                                                                                    className="sr-only"
+                                                                                                                    onChange={handleLogoChange}
+                                                                                                                />
+                                                                                                            </label>
+                                                                                                        </div>
+                                                                                                        <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 1MB</p>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            {logoPreview && (
+                                                                                                <Button
+                                                                                                    type="button"
+                                                                                                    variant="outline"
+                                                                                                    size="sm"
+                                                                                                    className="mt-2"
+                                                                                                    onClick={() => setLogoPreview(null)}
+                                                                                                >
+                                                                                                    Supprimer l'image
+                                                                                                </Button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                            
+                                                                                    <div>
+                                                                                        <FormLabel>Image de couverture</FormLabel>
+                                                                                        <div className="mt-2">
+                                                                                            <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
+                                                                                                {coverPreview ? (
+                                                                                                    <img src={coverPreview} alt="Preview" className="h-full w-full object-cover" />
+                                                                                                ) : (
+                                                                                                    <div className="text-center p-4">
+                                                                                                        <Image className="mx-auto h-12 w-12 text-gray-400" />
+                                                                                                        <div className="mt-2 text-sm text-gray-500">
+                                                                                                            <label htmlFor="cover-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
+                                                                                                                <span>Cliquez pour ajouter une image de couverture</span>
+                                                                                                                <Input
+                                                                                                                    id="cover-upload"
+                                                                                                                    name="cover_image"
+                                                                                                                    type="file"
+                                                                                                                    accept="image/*"
+                                                                                                                    className="sr-only"
+                                                                                                                    onChange={handleCoverChange}
+                                                                                                                />
+                                                                                                            </label>
+                                                                                                        </div>
+                                                                                                        <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 3MB</p>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            {coverPreview && (
+                                                                                                <Button
+                                                                                                    type="button"
+                                                                                                    variant="outline"
+                                                                                                    size="sm"
+                                                                                                    className="mt-2"
+                                                                                                    onClick={() => setCoverPreview(null)}
+                                                                                                >
+                                                                                                    Supprimer l'image
+                                                                                                </Button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
 
                                             <FormField
                                                 control={form.control}
