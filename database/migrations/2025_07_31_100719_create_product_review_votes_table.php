@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('review_id')->constrained('product_reviews')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('type', ['helpful', 'not_helpful']);
             $table->timestamps();
 
             // Un utilisateur ne peut voter qu'une fois par avis

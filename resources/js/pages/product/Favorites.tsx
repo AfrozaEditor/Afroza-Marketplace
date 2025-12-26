@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Heading from '@/components/heading';
-import type { BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, Product } from '@/types';
+import { router } from '@inertiajs/react';
 
 // Mock data pour les favoris
 const mockFavorites = [
@@ -31,7 +32,11 @@ const mockFavorites = [
     },
 ];
 
-function Favorites() {
+interface Props {
+    favorites: Product[];
+}
+
+function Favorites({favorites}:Props) {
 
     const handleAddToCart = (product: any) => {
         console.log("Yo ça marche")
@@ -49,16 +54,20 @@ function Favorites() {
         },
     ];
 
+    console.log(favorites)
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout 
+            // breadcrumbs={breadcrumbs}
+        >
             <div className="container mx-auto p-4">
                     <div className="mb-8">
                         <Heading title="Mes Favoris" description="Retrouvez ici tous les articles que vous avez ajoutés à vos favoris."/>
                     </div>
 
-                    {mockFavorites.length > 0 ? (
+                    {favorites.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {mockFavorites.map((product) => (
+                            {favorites.map((product) => (
                                 <Card key={product.id} className="border border-gray-200 hover:shadow-md transition-shadow">
                                     <CardHeader className="pb-4">
                                         <CardTitle className="text-lg font-semibold">{product.name}</CardTitle>
@@ -66,13 +75,14 @@ function Favorites() {
                                     <CardContent>
                                         <div className="relative">
                                             <img
-                                                src={product.image}
+                                                src={product.images && product.images.length > 0
+                                ? product.images[0] : 'https://placehold.co/600x400'}
                                                 alt={product.name}
                                                 className="w-full h-48 object-cover rounded-md mb-4"
                                             />
                                         </div>
                                         <div className="mb-2">
-                                            <p className="text-sm text-gray-500">{product.brand}</p>
+                                            {/* <p className="text-sm text-gray-500">{product.brand}</p> */}
                                             <p className="text-gray-600 font-semibold">{product.price} FCFA</p>
                                         </div>
                                         <div className="flex items-center justify-between space-x-2">
@@ -103,7 +113,12 @@ function Favorites() {
                             <Heart size={64} className="mx-auto text-gray-400 mb-4" />
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun favori</h3>
                             <p className="text-gray-600 mb-6">Vous n'avez pas encore ajouté d'articles à vos favoris.</p>
-                            <Button className="bg-primary hover:bg-secondary">
+                            <Button 
+                                className="bg-primary hover:bg-secondary"
+                                onClick={() => {
+                                    router.get(route('products.index'));
+                                }}
+                            >
                                 Découvrir nos produits
                             </Button>
                         </div>

@@ -14,9 +14,17 @@ class MarketplaceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $shops = Shop::with('products','followers','reviews')->get();
+
+        if($request->filled('search')){
+            $search = $request->search;
+            $shops->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
+                ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
+        }
 
         // Générer les URLs temporaires pour les logos et images de couverture
         foreach ($shops as $shop) {
@@ -31,6 +39,9 @@ class MarketplaceController extends Controller
 
         return Inertia::render('marketplace/Index',[
             'shops' => $shops,
+            'filters' => [
+                'search' => $request->get('search', ''),
+            ]
         ]);
     }
 
@@ -127,7 +138,7 @@ class MarketplaceController extends Controller
 
         // $shop->products()->paginate(6);
         // Charger les produits paginés
-        $products = $shop->products()->with('user')->paginate(6);
+        $products = $shop->products()->with(['user','reviews'])->paginate(6);
 
         $userId = auth()->id();
 

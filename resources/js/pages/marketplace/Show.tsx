@@ -43,11 +43,13 @@ function Show({ shop, products }: Props) {
         preserveScroll: true,
         onSuccess: (page) => {
             // Récupérer isFollowing depuis les props flash
-            const flash = page.props.flash;
+            const flash = page.props.shop;
             // const isFollowing = page.props.isFollowing;
+            console.log(flash)
             if (flash) {
-                setIsFollowing(flash.isFollowing);
-                toast[flash.isFollowing ? 'success' : 'info'](flash.message);
+                // setIsFollowing(flash.isFollowing);
+                flash.is_followed ? toast.success("Boutique suivie") : toast.info("Boutique plus suivie");
+                
             }
             // setIsFollowing(true);
 
@@ -59,6 +61,7 @@ function Show({ shop, products }: Props) {
         }
     });
 };
+console.log(products.data);
     // const handleFollow = () => {
     //     // if (!auth.user) {
     //     //     toast.error("Vous devez être connecté pour suivre une boutique");

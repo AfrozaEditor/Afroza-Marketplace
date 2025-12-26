@@ -117,7 +117,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 function Index() {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout 
+        // breadcrumbs={breadcrumbs}
+        >
             <div className="container mx-auto p-4">
                     <div className="mb-8">
                         <Heading title="Mes commandes" description="Suivez l'état de vos commandes et consultez votre historique d'achats"/>

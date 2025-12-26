@@ -63,5 +63,11 @@ return [
         'redirect' => env('APPLE_REDIRECT_URI'),
     ],
 
+    'lygos' => [
+        'api_key' => env('LYGOS_API_KEY'),
+        'base_url' => env('LYGOS_BASE_URL'),
+    ],
+
+
 
 ];

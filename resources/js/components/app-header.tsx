@@ -122,7 +122,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     };
 
     return (
-        <header className="sticky top-0 z-10">
+        <header className="sticky top-0 z-50">
             {/* Barre de réseaux sociaux */}
             <div className="bg-primary hidden md:block">
                 <div className="container mx-auto flex h-10 items-center justify-between px-4">
@@ -256,7 +256,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                 >
                     <div className="flex items-center justify-between gap-4 py-3">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center">
+                        <Link href="/" className="flex items-center pt-2">
                             <AppLogo />
                         </Link>
 
@@ -505,11 +505,14 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
 
             {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (
-                <div className="border-b border-gray-200 bg-white">
-                    <div className="mx-auto flex h-12 items-center px-4 md:max-w-7xl">
+                <>
+                <div className="bg-white container mx-auto">
+                    <div className="flex h-12 items-center px-4 md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>
+                <Separator />
+                </>
             )}
         </header>
     );

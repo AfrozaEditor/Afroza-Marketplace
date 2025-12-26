@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { HeroSection } from '@/components/hero-section';
 import { Button } from '@/components/ui/button';
 import { Category, Shop } from '@/types';
@@ -15,11 +15,14 @@ interface Props {
         cover_image_url?: string;
     })[];
     categories: Category[];
+    filters?: {
+      search?: string;
+    }
 }
 
 
-function Index({shops,categories}: Props) {
-  const [searchTerm, setSearchTerm] = useState('');
+function Index({shops,categories,filters}: Props) {
+  const [searchTerm, setSearchTerm] = useState(filters?.search || '');
   const [priceRange, setPriceRange] = useState<number[]>([0, 400000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [productsRange, setProductsRange] = useState<number[]>([0, 200]);
@@ -55,6 +58,22 @@ function Index({shops,categories}: Props) {
     if (selectedCategories.length > 0) count++;
     return count;
   };
+
+  useEffect(() => {
+      // Mettre à jour l'URL avec les paramètres de filtrage
+      const params = new URLSearchParams(window.location.search);
+      if (searchTerm) {
+          params.set('search', searchTerm);
+      }
+      // params.set('min_price', priceRange[0].toString());
+      // params.set('max_price', priceRange[1].toString());
+      // params.set('sort', sortBy);
+  
+      router.get(`/marketplace?${params.toString()}`, {}, {
+          preserveState: true,
+          preserveScroll: true
+      });
+  }, [searchTerm]);
 
   // Filter and search functionality
   const filteredSellers = shops

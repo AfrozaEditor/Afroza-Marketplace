@@ -78,6 +78,7 @@ class ProductController extends Controller
             $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
         }
         $product->images = $imagesUrls;
+        $product->is_favorite = $product->favorites->contains(auth()->id());
         return $product;
     });
 
@@ -158,6 +159,7 @@ class ProductController extends Controller
     public function show(string $slug)
     {
         $product = Product::where('slug', $slug)->with(['category', 'shop', 'user', 'reviews'])->firstOrFail();
+        $product->is_favorite = $product->favorites->contains(auth()->id());
         $images = $product->images()->get();
         $imagesUrls =[];
         foreach($images as $image){
@@ -174,6 +176,24 @@ class ProductController extends Controller
         return Inertia::render('product/Show',[
             'product' => $product,
             'images' => $imagesUrls,
+        ]);
+    }
+
+    public function toggleFavorite(Request $request, string $slug)
+    {
+        $product = Product::where('slug', $slug)->firstOrFail();
+        $user = auth()->user(); // Ou auth()->user();
+
+        // La méthode toggle() ajoute le lien si inexistant, ou le supprime si existant.
+        // Elle retourne un tableau avec 'attached' et 'detached' (les IDs).
+        $syncResult = $product->favorites()->toggle($user->id);
+        $isFavorite = !empty($syncResult['attached']);
+
+        return back()->with([
+        'isFavorite' => $isFavorite,
+        'success' => $isFavorite
+            ? 'Produit ajouté à vos favoris.'
+            : 'Produit retiré de vos favoris.'
         ]);
     }
 

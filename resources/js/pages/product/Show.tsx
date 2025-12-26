@@ -10,9 +10,12 @@ import Autoplay from 'embla-carousel-autoplay';
 import { Product } from '@/types';
 import icon from '../../../../public/apple-touch-icon.png';
 import ProductReview from '@/components/review/product-review';
+import { toast } from 'sonner';
 
 interface Props {
-    product: Product;
+    product: Product & {
+        is_favorite?: boolean;
+    };
     images: string[];
 }
 
@@ -22,6 +25,8 @@ function Show({product, images}:Props) {
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
+    const [isFavorite, setIsFavorite] = useState(product.is_favorite || false);
+
 
     const handleQuantityChange = (amount: number) => {
         const newQuantity = quantity + amount;
@@ -38,11 +43,36 @@ function Show({product, images}:Props) {
     };
 
     const handleAddToCart = () => {
-    router.post(route('cart.store'), {
-        product_id: product.id,
-        quantity: quantity
-    });
-};
+        router.post(route('cart.store'), {
+            product_id: product.id,
+            quantity: quantity
+        });
+    };
+
+    const handleFavorite = () => {
+        router.post(route('products.favorite', { slug: product.slug }), {}, {
+            preserveState: false,
+            preserveScroll: true,
+            onSuccess: (page) => {
+                // Récupérer isFollowing depuis les props flash
+                const flash = page.props.flash;
+                // const isFollowing = page.props.isFollowing;
+                if (flash) {
+                    setIsFavorite(flash.isFavorite);
+                    flash.isFavorite ? toast.success(flash.message) : toast.info(flash.message);
+                }
+                // setIsFollowing(true);
+    
+                // Afficher le message de succès
+                // toast[isFollowing ? 'success' : 'info'](page.props.success);
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue");
+            }
+        });
+    };
+
+    console.log(isFavorite);
 
     const plugin = React.useRef(
         Autoplay({delay: 5000, stopOnInteraction: true})
@@ -211,8 +241,13 @@ function Show({product, images}:Props) {
                             >
                                 <ShoppingCart className="mr-2 h-4 w-4" /> Ajouter au panier
                             </Button>
-                            <Button variant="outline" className="flex-1">
-                                <Heart className="mr-2 h-4 w-4" /> Ajouter aux favoris
+                            <Button 
+                                onClick={handleFavorite}
+                                variant={isFavorite ? 'default' : 'outline'}
+                                className={isFavorite ? 'bg-primary flex-1' : 'flex-1'}
+                            >
+                                <Heart className="mr-2 h-4 w-4" fill={isFavorite ? 'white' : 'none'}/>
+                                    {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                             </Button>
                         </div>
                         <Button

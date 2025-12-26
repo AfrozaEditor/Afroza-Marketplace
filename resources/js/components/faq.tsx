@@ -13,12 +13,12 @@ function Faq() {
 
                 <div className="border rounded-lg p-4">
                     <h3 className="font-semibold text-lg mb-2">Quelles sont les commissions ?</h3>
-                    <p className="text-gray-600">Nous appliquons une commission de 10% sur chaque vente. Les frais de livraison sont à la charge de l'acheteur, sauf si vous proposez la livraison gratuite.</p>
+                    <p className="text-gray-600">Nous appliquons une commission de 5% sur chaque vente. Les frais de livraison sont à la charge de l'acheteur, sauf si vous proposez la livraison gratuite.</p>
                 </div>
 
                 <div className="border rounded-lg p-4">
                     <h3 className="font-semibold text-lg mb-2">Comment sont gérés les retours ?</h3>
-                    <p className="text-gray-600">Les acheteurs ont 14 jours pour demander un retour si l'article ne correspond pas à la description. Les frais de retour sont à la charge de l'acheteur, sauf si l'article est défectueux.</p>
+                    <p className="text-gray-600">Les acheteurs ont 24 heures pour demander un retour si l'article ne correspond pas à la description. Les frais de retour sont à la charge de l'acheteur, sauf si l'article est défectueux.</p>
                 </div>
             </div>
         </div>

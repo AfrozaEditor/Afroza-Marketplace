@@ -10,7 +10,7 @@ function Show({cart}: Props) {
     console.log(cart);
     return (
         <AppLayout>
-            <div className="bg-white/20 px-4">
+            <div className="bg-white/20 px-4 container mx-auto">
                 <CartView cart={cart} />
             </div>
         </AppLayout>

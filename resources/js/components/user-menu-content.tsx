@@ -59,14 +59,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     </>
                 )}
                 <DropdownMenuItem asChild>
-                    <Link className="block w-full" href={route('favorites')} as="button" prefetch onClick={cleanup}>
+                    <Link className="block w-full" href={route('favorites')} as="button" onClick={cleanup}>
                         <Heart className="mr-2" />
                         Favoris
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link className="block w-full" href={route('order.index')} as="button" prefetch onClick={cleanup}>
+                    <Link className="block w-full" href={route('order.index')} as="button" onClick={cleanup}>
                         <ListOrdered className="mr-2" />
                         Commandes
                     </Link>
