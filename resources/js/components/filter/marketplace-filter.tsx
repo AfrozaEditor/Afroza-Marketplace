@@ -66,6 +66,8 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
     setSelectedCategories(selectedCategories.filter(c => c !== category));
   };
 
+  console.log(searchTerm)
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
       {/* Header with filter count and reset */}

@@ -8,9 +8,11 @@ use App\Http\Controllers\Marketplace\MarketplaceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Favorite\FavoriteController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Review\ProductReviewController;
 use App\Http\Controllers\Review\ShopReviewController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -46,7 +48,7 @@ Route::get('features', function () {
 Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();
-        $products = Product::with('user')->where('user_id', $user->id)->get();
+        $products = Product::with(['user','category'])->where('user_id', $user->id)->get();
         return Inertia::render('vendor/dashboard', [
             'products' => $products,
         ]);
@@ -69,6 +71,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
             'users' => User::all(),
         ]);
     })->name('admin');
+    Route::get('/admin/users', [RegisteredUserController::class, 'index']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -95,7 +98,7 @@ Route::middleware('auth')->group(function () {
 
     // Favorites
     Route::post('/products/{slug}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');
-    Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorites');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
 
     // Shop reviews
     Route::resource('shop_reviews', ShopReviewController::class)->only(['store', 'update']);
@@ -109,9 +112,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/product-reviews/{review}/report', [ProductReviewController::class, 'report'])->name('product_reviews.report');
 
     // Payment routes
-    Route::post('/payment/initiate', [PaymentController::class, 'initiatePaiement'])->name('payment.initiate');
-    Route::post('/payment/notify', [PaymentController::class, 'handleNotification'])->name('payment.notify');
-    Route::get('/payment/return', [PaymentController::class, 'handleReturn'])->name('payment.return');
+    // Route::post('/payment/initiate', [PaymentController::class, 'initiatePaiement'])->name('payment.initiate');
+    // Route::post('/payment/notify', [PaymentController::class, 'handleNotification'])->name('payment.notify');
+    // Route::get('/payment/return', [PaymentController::class, 'handleReturn'])->name('payment.return');
+    Route::post('/lygos/pay', [PaymentController::class, 'createPayment']);
 
 
 });

@@ -63,4 +63,18 @@ class RegisteredUserController extends Controller
         return to_route('home');
 
     }
+
+    public function index()
+    {
+        $users = User::all();
+
+        return Inertia::render('admin/users/index',[
+            'users' => $users,
+        ]);
+    }
+
+    public function destroy(string $id)
+    {
+        //
+    }
 }

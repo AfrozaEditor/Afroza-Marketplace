@@ -12,6 +12,8 @@ import { ArrowLeft, CreditCard, Shield, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Cart } from '@/types';
+import axios from "axios";
+
 
 
 interface Props {
@@ -60,85 +62,72 @@ function Create({cart}: Props) {
         setBillingForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setIsLoading(true);
 
-        // // Simulation d'un traitement de paiement
-        // try {
-        //     await new Promise(resolve => setTimeout(resolve, 2000));
-        //
-        //     // Simulation réussie
-        //     toast.success('Commande validée avec succès !');
-        //     router.post('/commandes');
-        // } catch (error) {
-        //     toast.error('Erreur lors du traitement du paiement');
-        // } finally {
-        //     setIsLoading(false);
-        // }
-        // Préparer les données à envoyer
-        const paymentData = {
-            firstName: shippingForm.firstName,
-            lastName: shippingForm.lastName,
-            email: shippingForm.email,
-            phone: shippingForm.phone,
-            address: shippingForm.address,
-            city: shippingForm.city,
-            postalCode: shippingForm.postalCode,
-            country: shippingForm.country,
-            shippingMethod: shippingMethod,
-            paymentMethod: paymentMethod,
-            total: total,
-        };
+    //     // // Simulation d'un traitement de paiement
+    //     // try {
+    //     //     await new Promise(resolve => setTimeout(resolve, 2000));
+    //     //
+    //     //     // Simulation réussie
+    //     //     toast.success('Commande validée avec succès !');
+    //     //     router.post('/commandes');
+    //     // } catch (error) {
+    //     //     toast.error('Erreur lors du traitement du paiement');
+    //     // } finally {
+    //     //     setIsLoading(false);
+    //     // }
+    //     // Préparer les données à envoyer
+    //     const paymentData = {
+    //         // firstName: shippingForm.firstName,
+    //         // lastName: shippingForm.lastName,
+    //         // email: shippingForm.email,
+    //         // phone: shippingForm.phone,
+    //         // address: shippingForm.address,
+    //         // city: shippingForm.city,
+    //         // postalCode: shippingForm.postalCode,
+    //         // country: shippingForm.country,
+    //         // shippingMethod: shippingMethod,
+    //         // paymentMethod: paymentMethod,
+    //         total: total,
+    //     };
 
-        // try {
-        //     // Envoyer la requête au backend pour initialiser le paiement
-        //     // Le backend redirigera vers la page de paiement CinetPay
-        //     router.post('/payment/initiate', paymentData);
-        // } catch (error) {
-        //     toast.error('Erreur lors de l\'initialisation du paiement');
-        //     setIsLoading(false);
-        // }
+    //     router.post(route("payment.initiate"), paymentData, {
+    //         onError: (errors) => {
+    //             toast.error('Erreur lors de l\'initialisation du paiement');
+    //             setIsLoading(false);
+    //         },
+    //         onFinish: () => {
+    //             // Si la requête est terminée mais qu'il n'y a pas de redirection
+    //             // Cela garantit que le bouton revient à son état normal
+    //             setIsLoading(false);
+    //         }
+    //     });
 
-        router.post(route("payment.initiate"), paymentData, {
-            // onSuccess: (page) => {
-            //     console.log("Réponse:", page);
-            //     if (page.props.payment_url) {
-            //         window.location.href = page.props.payment_url as string; // redirige vers CinetPay
-            //         console.log("reussi")
-            //     }
-            //     else {
-            //         console.error("URL de paiement non trouvée dans la réponse");
-            //         toast.error('Erreur: URL de paiement non disponible');
-            //         setIsLoading(false);
-            //     }
-            //
-            // },
-            onError: (errors) => {
-                toast.error('Erreur lors de l\'initialisation du paiement');
-                setIsLoading(false);
-            },
-            onFinish: () => {
-                // Si la requête est terminée mais qu'il n'y a pas de redirection
-                // Cela garantit que le bouton revient à son état normal
-                setIsLoading(false);
-            }
+
+    // };
+
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+        const { data } = await axios.post("/lygos/pay", {
+            // shipping: shippingForm,
+            // billing: sameAsShipping ? shippingForm : billingForm,
+            // shippingMethod,
+            total,
         });
 
+        window.location.href = data.payment_url; // 🔥 LYGOS
+    } catch (error) {
+        toast.error("Erreur lors du paiement");
+        console.log(error);
+        setIsLoading(false);
+    }
+};
 
-    };
-
-    // if (cartItems.length === 0) {
-    //     return (
-    //         <div className="text-center py-12">
-    //             <h2 className="text-2xl font-semibold mb-4">Votre panier est vide</h2>
-    //             <p className="text-gray-600 mb-6">Ajoutez des articles à votre panier pour procéder au paiement.</p>
-    //             <Button asChild>
-    //                 <Link href="/products">Continuer les achats</Link>
-    //             </Button>
-    //         </div>
-    //     );
-    // }
 
 
 
@@ -471,7 +460,7 @@ function Create({cart}: Props) {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                                    <Button type="submit" className="w-full" size="lg" disabled={isLoading} onClick={handleSubmit}>
                                         {isLoading ? 'Traitement...' : `Payer ${total} FCFA`}
                                     </Button>
                                 </CardFooter>
