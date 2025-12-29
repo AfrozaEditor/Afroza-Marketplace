@@ -85,6 +85,6 @@ class Product extends Model
     public function user_review(?int $userId = null): HasOne
     {
         $userId = $userId ?? auth()->id();
-        return $this->hasOne(ShopReview::class)->where('user_id', $userId);
+        return $this->hasOne(ProductReview::class)->where('user_id', $userId);
     }
 }
