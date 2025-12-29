@@ -4,9 +4,9 @@ import { Input } from '../ui/input';
 
 function NewsLetter() {
     return (
-        <section className="py-12 md:py-16 bg-primary/70">
-            <div className="container mx-auto px-4 md:px-8">
-                <div className="max-w-3xl mx-auto text-center">
+        <section className="py-6">
+            <div className="container mx-auto px-4">
+                <div className="text-center bg-gradient-to-l from-primary to-chart-3 rounded-xl py-12 px-4">
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Inscrivez-vous à notre newsletter</h2>
                     <p className="text-gray-100 mb-8 text-lg">Recevez nos dernières offres et nouvelles tendances directement dans votre boîte mail</p>
 

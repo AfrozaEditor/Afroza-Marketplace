@@ -269,12 +269,12 @@ export default function Dashboard({products}: Props) {
     };
 
     const columns = [
-        {
-            title: 'Id',
-            accessor: 'id' as const,
-            sortable: true,
-            className: 'w-[130px]',
-        },
+        // {
+        //     title: 'Id',
+        //     accessor: 'id' as const,
+        //     sortable: true,
+        //     className: 'w-[130px]',
+        // },
         {
             title: 'Nom',
             accessor: (user: Product) => (

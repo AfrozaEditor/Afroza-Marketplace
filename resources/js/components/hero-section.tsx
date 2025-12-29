@@ -37,7 +37,8 @@ export function HeroSection({
                 style={style}
             >
                 {/* Superposition semi-transparente */}
-                {/*<div className="absolute inset-0 bg-black/50" />*/}
+                {/* <div className="absolute inset-0 bg-black/50" /> */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/60" />
             </div>
 
             {/* Contenu */}
@@ -63,7 +64,7 @@ export function HeroSection({
                         )}
 
                         {buttons.secondary && (
-                            <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-primary border-white">
+                            <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white">
                                 <Link href={buttons.secondary.href}>
                                     {buttons.secondary.text}
                                 </Link>

@@ -197,7 +197,7 @@ const handlePageChange = (url: string) => {
                     </div>
                 </div>
             </div>
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 py-2">
                 <div className='flex flex-col md:flex-row gap-8'>
                     {/* Sidebar */}
                 <div className="w-full md:w-64 md:shrink-0">

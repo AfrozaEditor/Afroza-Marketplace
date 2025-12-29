@@ -88,6 +88,7 @@ export interface Category {
     name: string;
     slug: string;
     parent: Category;
+    image: '/apple-touch-icon.png'
 }
 
 export interface Shop {

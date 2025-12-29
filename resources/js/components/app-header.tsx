@@ -320,6 +320,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             {!auth.user && (
                                 <Button
                                     className="bg-white text-teal-600 hover:bg-white/80"
+                                    // className="bg-gradient-to-l from-primary to-chart-3"
                                     // disabled={!!auth.user}
                                 >
                                     <Link href={route('register')}>

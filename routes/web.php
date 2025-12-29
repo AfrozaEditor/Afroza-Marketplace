@@ -13,6 +13,7 @@ use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Review\ProductReviewController;
 use App\Http\Controllers\Review\ShopReviewController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Delivery\DeliveryController;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -48,7 +49,16 @@ Route::get('features', function () {
 Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();
-        $products = Product::with(['user','category'])->where('user_id', $user->id)->get();
+        $products = Product::with(['user','category'])->orderBy('created_at', 'desc')->where('user_id', $user->id)->get();
+        $products->transform(function ($product) {
+            $images = $product->images()->get();
+            $imagesUrls = [];
+            foreach ($images as $image) {
+                $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
+            }
+            $product->images = $imagesUrls;
+            return $product;
+        });
         return Inertia::render('vendor/dashboard', [
             'products' => $products,
         ]);
@@ -60,9 +70,14 @@ Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:delivery'])->group(function () {
-    Route::get('delivery', function () {
-        return Inertia::render('delivery/Create');
-    })->name('delivery');
+    Route::get('delivery/profile', [DeliveryController::class, 'show'])->name('delivery.profile');
+    Route::get('delivery-dashboard', function () {
+        return Inertia::render('delivery/Dashboard');
+    })->name('delivery-dashboard');
+    Route::get('/delivery/available-orders', [DeliveryController::class, 'availableOrders'])->name('delivery.available-orders');
+    Route::get('/delivery/assigned-orders', [DeliveryController::class, 'assignedOrders'])->name('delivery.assigned-orders');
+    Route::post('/delivery/accept-order/{orderId}', [DeliveryController::class, 'acceptOrder'])->name('delivery.accept-order');
+    Route::patch('/delivery/update-order-status/{orderId}', [DeliveryController::class, 'updateOrderStatus'])->name('delivery.update-order-status');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -75,6 +90,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    // Delivery profile routes (for users trying to become delivery drivers)
+    Route::get('delivery/register', function () {
+        return Inertia::render('delivery/Create');
+    })->name('delivery.register');
+    Route::post('delivery', [DeliveryController::class, 'store'])->name('delivery.store');
+    Route::get('delivery/{id}/edit', [DeliveryController::class, 'edit'])->name('delivery.edit');
+    Route::patch('delivery/{id}', [DeliveryController::class, 'update'])->name('delivery.update');
+
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/users', [ChatController::class, 'users'])->name('chat.users');

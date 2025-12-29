@@ -38,13 +38,20 @@ function Index({shops,categories,filters}: Props) {
 
   // Reset all filters
   const resetFilters = () => {
-    setSearchTerm('');
-    setPriceRange([0, 400000]);
-    setRatingFilter(0);
-    setProductsRange([0, 200]);
-    setFeaturedOnly(false);
-    setSelectedCategories([]);
-    setSortBy('rating');
+    // setSearchTerm('');
+    // setPriceRange([0, 400000]);
+    // setRatingFilter(0);
+    // setProductsRange([0, 200]);
+    // setFeaturedOnly(false);
+    // setSelectedCategories([]);
+    // setSortBy('rating');
+    router.get('/marketplace', {
+            // category: '0',
+        }, {
+            preserveState: false,
+            preserveScroll: false,
+            replace: true // Ajouter replace pour s'assurer que l'historique est mis à jour
+        });
   };
 
   // Count active filters
@@ -127,6 +134,8 @@ function Index({shops,categories,filters}: Props) {
       }
     });
 
+    console.log(filteredSellers)
+
 
 
 
@@ -134,7 +143,7 @@ function Index({shops,categories,filters}: Props) {
         <AppLayout>
             <Head title="Marketplace"/>
             <HeroSection
-                className="bg-gradient-to-r from-primary to-white text-black max-h-3xl"
+                className="bg-gradient-to-l from-primary to-chart-3 text-white max-h-3xl"
                 title="Marketplace"
                 description="Découvrez les meilleures boutiques de seconde main et connectez-vous directement avec les vendeurs."
                 buttons={{
@@ -162,8 +171,8 @@ function Index({shops,categories,filters}: Props) {
                   setProductsRange={setProductsRange}
                   featuredOnly={featuredOnly}
                   setFeaturedOnly={setFeaturedOnly}
-                  selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
+                //   selectedCategories={selectedCategories}
+                //   setSelectedCategories={setSelectedCategories}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
                   resetFilters={resetFilters}
@@ -180,7 +189,7 @@ function Index({shops,categories,filters}: Props) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {shops.map(shop => (
+                    {filteredSellers.map(shop => (
                         <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-all">
                             <div className="relative h-48 overflow-hidden">
                                 <img
@@ -196,11 +205,13 @@ function Index({shops,categories,filters}: Props) {
                             </div>
                             <CardHeader className="pb-2">
                                 <CardTitle>{shop.name}</CardTitle>
-                                <div className="flex items-center gap-1 text-amber-500">
-                                    <Star size={16} fill="currentColor" />
-                                    {/*<span>{seller.rating}/5</span>*/}
-                                    <span>{shop.reviews.length > 0 ? shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length : 0}/5</span>
-                                </div>
+                                {shop.reviews.length > 0 && (
+                                    <div className="flex items-center gap-1 text-amber-500">
+                                        
+                                        <Star size={16} fill="currentColor" />
+                                        <span>{shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length }/5</span>
+                                    </div>
+                                )}
                             </CardHeader>
                             <CardContent className="pb-2">
                                 <p className="text-sm text-gray-600 line-clamp-2 truncate">{shop.description}</p>
@@ -231,11 +242,11 @@ function Index({shops,categories,filters}: Props) {
                 </div>
                 </div>
 
-            <div className="bg-primary/50 rounded-xl p-6 md:p-8 my-12 w-full mx-0">
+            <div className="bg-gradient-to-l from-primary to-chart-3 text-white rounded-xl p-6 md:p-8 my-12 w-full mx-0">
                 <div className="flex flex-col md:flex-row items-center">
                     <div className="mb-6 md:mb-0 md:pr-8">
                         <h2 className="text-2xl md:text-3xl font-bold mb-3">Vendez sur notre marketplace</h2>
-                        <p className="text-gray-700 mb-6">Rejoignez des milliers de vendeurs et donnez une seconde vie à vos vêtements et accessoires. C'est simple, rapide et écologique.</p>
+                        <p className=" mb-6">Rejoignez des milliers de vendeurs et donnez une seconde vie à vos vêtements et accessoires. C'est simple, rapide et écologique.</p>
                         <div className="flex flex-wrap gap-3">
                             <Link href={route('marketplace.create')}>
                                 <Button className="bg-primary hover:bg-accent/50">

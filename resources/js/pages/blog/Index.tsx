@@ -94,7 +94,7 @@ function Index() {
         <AppLayout>
             <Head title="Blog"/>
             <HeroSection
-                className="bg-gradient-to-r from-primary to-white text-black max-h-3xl"
+                className="bg-gradient-to-l from-primary to-chart-3 mx-auto text-white max-h-3xl"
                 title="Actualités, conseils et tendances"
                 description="Découvrez nos derniers articles sur la mode éthique, les conseils pour vendre efficacement, et les tendances du moment."
             />

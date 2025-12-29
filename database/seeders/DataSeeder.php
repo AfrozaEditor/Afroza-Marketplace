@@ -5,6 +5,9 @@ namespace Database\Seeders;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Category;
+use App\Models\Delivery;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
@@ -186,5 +189,295 @@ class DataSeeder extends Seeder
 //                'total_price' => $totalPrice,
 //            ]);
 //        }
+    // ======================================
+        // CRÉATION DES LIVREURS APPROUVÉS
+        // ======================================
+        $deliveryZones = [
+            [
+                'name' => 'Jean Dupont',
+                'email' => 'jean.dupont@delivery.cm',
+                'phone' => '+237670000001',
+                'address' => '123 Rue de la Paix, Yaoundé',
+                'city' => 'Yaoundé',
+                'postal_code' => '1000',
+                'vehicle_type' => 'voiture',
+                'vehicle_model' => 'Renault Clio',
+                'vehicle_plate' => 'CM-1001-AB',
+                'latitude' => 3.8667,
+                'longitude' => 11.5167,
+                'radius_km' => 8,
+                'area' => 'Yaoundé Centre',
+            ],
+            [
+                'name' => 'Marie Kouam',
+                'email' => 'marie.kouam@delivery.cm',
+                'phone' => '+237670000002',
+                'address' => '456 Avenue Clemenceau, Yaoundé',
+                'city' => 'Yaoundé',
+                'postal_code' => '1002',
+                'vehicle_type' => 'moto',
+                'vehicle_model' => 'Honda CB500',
+                'vehicle_plate' => 'CM-1002-AB',
+                'latitude' => 3.8700,
+                'longitude' => 11.5100,
+                'radius_km' => 5,
+                'area' => 'Yaoundé Mvog-Mbi',
+            ],
+            [
+                'name' => 'Paul Tangang',
+                'email' => 'paul.tangang@delivery.cm',
+                'phone' => '+237670000003',
+                'address' => '789 Rue Kennedy, Douala',
+                'city' => 'Douala',
+                'postal_code' => '2000',
+                'vehicle_type' => 'voiture',
+                'vehicle_model' => 'Toyota Avanza',
+                'vehicle_plate' => 'CM-2001-CD',
+                'latitude' => 4.0511,
+                'longitude' => 9.7679,
+                'radius_km' => 10,
+                'area' => 'Douala Centre',
+            ],
+            [
+                'name' => 'Sylvie Ngnong',
+                'email' => 'sylvie.ngnong@delivery.cm',
+                'phone' => '+237670000004',
+                'address' => '321 Boulevard de la Liberté, Douala',
+                'city' => 'Douala',
+                'postal_code' => '2001',
+                'vehicle_type' => 'moto',
+                'vehicle_model' => 'Yamaha YZF',
+                'vehicle_plate' => 'CM-2002-CD',
+                'latitude' => 4.0500,
+                'longitude' => 9.7700,
+                'radius_km' => 6,
+                'area' => 'Douala Bonanjo',
+            ],
+            [
+                'name' => 'Alexandre Lebot',
+                'email' => 'alex.lebot@delivery.cm',
+                'phone' => '+237670000005',
+                'address' => '555 Rue Guimard, Yaoundé',
+                'city' => 'Yaoundé',
+                'postal_code' => '1003',
+                'vehicle_type' => 'voiture',
+                'vehicle_model' => 'Nissan Altima',
+                'vehicle_plate' => 'CM-1003-AB',
+                'latitude' => 3.8750,
+                'longitude' => 11.5250,
+                'radius_km' => 12,
+                'area' => 'Yaoundé Bastos',
+            ],
+        ];
+
+        $deliveries = [];
+        foreach ($deliveryZones as $zone) {
+            $deliveryUser = User::create([
+                'name' => $zone['name'],
+                'email' => $zone['email'],
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]);
+            $deliveryUser->assignSingleRole('delivery');
+
+            $delivery = Delivery::create([
+                'user_id' => $deliveryUser->id,
+                'name' => $zone['name'],
+                'email' => $zone['email'],
+                'phone' => $zone['phone'],
+                'address' => $zone['address'],
+                'city' => $zone['city'],
+                'postal_code' => $zone['postal_code'],
+                'delivery_latitude' => $zone['latitude'],
+                'delivery_longitude' => $zone['longitude'],
+                'delivery_radius_km' => $zone['radius_km'],
+                'delivery_area' => $zone['area'],
+                'availability' => 'Lun-Ven 7h-18h, Sam 8h-14h',
+                'vehicle_type' => $zone['vehicle_type'],
+                'vehicle_model' => $zone['vehicle_model'],
+                'vehicle_plate' => $zone['vehicle_plate'],
+                'id_card' => 'ID-' . strtoupper(Str::random(8)),
+                'id_driver_license' => 'LIC-' . strtoupper(Str::random(8)),
+                'insurance_certificate' => 'INS-' . strtoupper(Str::random(8)),
+                'delivery_experience' => rand(1, 10) . ' ans d\'expérience',
+                'statut' => 'approuvé', // Statut approuvé pour les tests
+            ]);
+
+            $deliveries[] = $delivery;
+        }
+
+        // ======================================
+        // CRÉATION DES COMMANDES DE TEST
+        // ======================================
+        $products = Product::all();
+
+        // Zone 1 - Yaoundé Centre (Jean Dupont - 3.8667, 11.5167, rayon 8km)
+        $yaoundeOrders = [
+            [
+                'lat' => 3.8700,
+                'lng' => 11.5200,
+                'address' => '100 Rue Foch, Yaoundé',
+                'status' => 'pending',
+                'total' => 15000,
+            ],
+            [
+                'lat' => 3.8650,
+                'lng' => 11.5100,
+                'address' => '200 Av. Clemenceau, Yaoundé',
+                'status' => 'pending',
+                'total' => 25000,
+            ],
+            [
+                'lat' => 3.8680,
+                'lng' => 11.5220,
+                'address' => '300 Rue Kennedy, Yaoundé',
+                'status' => 'pending',
+                'total' => 18500,
+            ],
+            [
+                'lat' => 3.8720,
+                'lng' => 11.5180,
+                'address' => '400 Boulevard de la République, Yaoundé',
+                'status' => 'pending',
+                'total' => 32000,
+            ],
+            [
+                'lat' => 3.8600,
+                'lng' => 11.5300,
+                'address' => '500 Rue Bastos, Yaoundé',
+                'status' => 'delivered',
+                'total' => 12500,
+            ],
+        ];
+
+        // Zone 2 - Douala Centre (Paul Tangang - 4.0511, 9.7679, rayon 10km)
+        $doualaOrders = [
+            [
+                'lat' => 4.0550,
+                'lng' => 9.7700,
+                'address' => '150 Boulevard de la Liberté, Douala',
+                'status' => 'pending',
+                'total' => 20000,
+            ],
+            [
+                'lat' => 4.0480,
+                'lng' => 9.7600,
+                'address' => '250 Rue Joss, Douala',
+                'status' => 'pending',
+                'total' => 28000,
+            ],
+            [
+                'lat' => 4.0530,
+                'lng' => 9.7750,
+                'address' => '350 Avenue du Wouri, Douala',
+                'status' => 'pending',
+                'total' => 22000,
+            ],
+        ];
+
+        // Créer les commandes pour Yaoundé
+        foreach ($yaoundeOrders as $orderData) {
+            $customer = $customers->random();
+            $randomProducts = Product::inRandomOrder()
+                ->where('active', true)
+                ->take(rand(1, 3))
+                ->get();
+
+            $order = Order::create([
+                'user_id' => $customer->id,
+                'delivery_id' => $deliveries[0]->id, // Jean Dupont
+                'delivery_address' => $orderData['address'],
+                'delivery_address_latitude' => $orderData['lat'],
+                'delivery_address_longitude' => $orderData['lng'],
+                'status' => $orderData['status'],
+                'total' => $orderData['total'],
+            ]);
+
+            // Ajouter les produits à la commande
+            foreach ($randomProducts as $product) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => rand(1, 3),
+                ]);
+            }
+        }
+
+        // Créer les commandes pour Douala
+        foreach ($doualaOrders as $orderData) {
+            $customer = $customers->random();
+            $randomProducts = Product::inRandomOrder()
+                ->where('active', true)
+                ->take(rand(1, 3))
+                ->get();
+
+            $order = Order::create([
+                'user_id' => $customer->id,
+                'delivery_id' => $deliveries[2]->id, // Paul Tangang
+                'delivery_address' => $orderData['address'],
+                'delivery_address_latitude' => $orderData['lat'],
+                'delivery_address_longitude' => $orderData['lng'],
+                'status' => $orderData['status'],
+                'total' => $orderData['total'],
+            ]);
+
+            // Ajouter les produits à la commande
+            foreach ($randomProducts as $product) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => rand(1, 3),
+                ]);
+            }
+        }
+
+        // Créer quelques commandes sans livreur assigné (à disposition)
+        $availableOrders = [
+            [
+                'lat' => 3.8710,
+                'lng' => 11.5140,
+                'address' => '999 Rue Messina, Yaoundé',
+                'total' => 16000,
+            ],
+            [
+                'lat' => 3.8690,
+                'lng' => 11.5240,
+                'address' => '888 Rue Ngoumou, Yaoundé',
+                'total' => 19000,
+            ],
+            [
+                'lat' => 4.0510,
+                'lng' => 9.7680,
+                'address' => '777 Boulevard King, Douala',
+                'total' => 24000,
+            ],
+        ];
+
+        foreach ($availableOrders as $orderData) {
+            $customer = $customers->random();
+            $randomProducts = Product::inRandomOrder()
+                ->where('active', true)
+                ->take(rand(1, 3))
+                ->get();
+
+            $order = Order::create([
+                'user_id' => $customer->id,
+                'delivery_address' => $orderData['address'],
+                'delivery_address_latitude' => $orderData['lat'],
+                'delivery_address_longitude' => $orderData['lng'],
+                'status' => 'pending',
+                'total' => $orderData['total'],
+            ]);
+
+            // Ajouter les produits à la commande
+            foreach ($randomProducts as $product) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => rand(1, 3),
+                    // 'price' => $product->price,
+                ]);
+            }
+        }
     }
 }

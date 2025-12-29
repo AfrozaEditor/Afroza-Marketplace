@@ -20,8 +20,8 @@ interface MarketplaceFiltersProps {
   setProductsRange: (range: number[]) => void;
   featuredOnly: boolean;
   setFeaturedOnly: (featured: boolean) => void;
-  selectedCategories: string[];
-  setSelectedCategories: (categories: string[]) => void;
+  // selectedCategories: string[];
+  // setSelectedCategories: (categories: string[]) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
   resetFilters: () => void;
@@ -42,8 +42,8 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
   setProductsRange,
   featuredOnly,
   setFeaturedOnly,
-  selectedCategories,
-  setSelectedCategories,
+  // selectedCategories,
+  // setSelectedCategories,
   sortBy,
   setSortBy,
   resetFilters,
@@ -54,17 +54,17 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
     return new Intl.NumberFormat('fr-FR').format(price);
   };
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(
-      selectedCategories.includes(category)
-        ? selectedCategories.filter(c => c !== category)
-        : [...selectedCategories, category]
-    );
-  };
+  // const toggleCategory = (category: string) => {
+  //   setSelectedCategories(
+  //     selectedCategories.includes(category)
+  //       ? selectedCategories.filter(c => c !== category)
+  //       : [...selectedCategories, category]
+  //   );
+  // };
 
-  const removeCategory = (category: string) => {
-    setSelectedCategories(selectedCategories.filter(c => c !== category));
-  };
+  // const removeCategory = (category: string) => {
+  //   setSelectedCategories(selectedCategories.filter(c => c !== category));
+  // };
 
   console.log(searchTerm)
 
@@ -118,7 +118,7 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
       </div>
 
       {/* Active categories display */}
-      {selectedCategories.length > 0 && (
+      {/* {selectedCategories.length > 0 && (
         <div>
           <Label className="block text-sm font-medium mb-2">Catégories sélectionnées</Label>
           <div className="flex flex-wrap gap-2">
@@ -135,7 +135,7 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Advanced Filters */}
       <Collapsible>
@@ -198,7 +198,7 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
           </div>
 
           {/* Categories filter */}
-          <div>
+          {/* <div>
             <Label className="block text-sm font-medium mb-2">Catégories</Label>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {categories.map((category) => (
@@ -214,7 +214,7 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Featured only filter */}
           {/* <div className="flex items-center">

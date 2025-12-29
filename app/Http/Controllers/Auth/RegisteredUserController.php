@@ -54,7 +54,7 @@ class RegisteredUserController extends Controller
 
         $role = $user->getRole();
         if($role->name == 'delivery')
-            return to_route('delivery');
+            return to_route('delivery.register');
 
 
 //         if($user->getRole()=='seller')

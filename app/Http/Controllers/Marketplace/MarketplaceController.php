@@ -138,7 +138,18 @@ class MarketplaceController extends Controller
 
         // $shop->products()->paginate(6);
         // Charger les produits paginés
-        $products = $shop->products()->with(['user','reviews'])->paginate(6);
+        $products = $shop->products()->with(['user','reviews'])->orderBy('created_at', 'desc')->paginate(6);
+
+        $products->transform(function ($product) {
+            $images = $product->images()->get();
+            $imagesUrls = [];
+            foreach ($images as $image) {
+                $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
+            }
+            $product->images = $imagesUrls;
+            $product->is_favorite = $product->favorites->contains(auth()->id());
+            return $product;
+        });
 
         $userId = auth()->id();
 

@@ -80,11 +80,11 @@ function ProductCard({product}: Props) {
                         </div>
                     </div>
                     <CardHeader>
-                        <CardTitle>{product.name}</CardTitle>
+                        <CardTitle className='text-xl'>{product.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex justify-between">
                         <div className="flex flex-col">
-                            <span className="font-bold text-teal-600">{product.price} FCFA</span>
+                            <span className="font-bold text-teal-600 text-xl">{product.price} FCFA</span>
                             <span className="text-xs text-gray-500">
                                 {/* {Math.round(12 * 0.8).toLocaleString()} XAF with code */}
                                 PAR {product.user.name.toUpperCase()}

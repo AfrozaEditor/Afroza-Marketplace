@@ -13,6 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import DeliveryMap from '@/components/map/delivery-map';
 import DeliveryZoneMap from '@/components/map/delivery-zone-map';
+import MapZone from '@/components/MapZone';
+import { usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 
 // Form validation schema
 const deliveryRegistrationSchema = z.object({
@@ -46,23 +49,29 @@ type DeliveryRegistrationFormValues = z.infer<typeof deliveryRegistrationSchema>
 
 
 function Create() {
-
+    const page = usePage<SharedData>();
+        const { auth } = page.props;
     const [activeStep, setActiveStep] = useState<string>("personal");
     const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
     // const locationParams = useLocation();
     // const queryParams = new URLSearchParams(locationParams.search);
     // const emailFromParams = queryParams.get('email') || '';
-    const [logoPreview, setLogoPreview] = useState<string | null>(null);
-    const [coverPreview, setCoverPreview] = useState<string | null>(null);
-    const [logo, setLogo] = useState<File>();
-    const [cover, setCover] = useState<File>();
+    const [idCardPreview, setIdCardPreview] = useState<string | null>(null);
+    const [drivingLicensePreview, setDrivingLicensePreview] = useState<string | null>(null);
+    const [idCard, setIdCard] = useState<File>();
+    const [drivingLicense, setDrivingLicense] = useState<File>();
+    const [zoneData, setZoneData] = useState({
+        latitude: 3.8667,
+        longitude: 11.5167,
+        radius_km: 5,
+    });
 
     const form = useForm<DeliveryRegistrationFormValues>({
         resolver: zodResolver(deliveryRegistrationSchema),
         defaultValues: {
             fullName: "",
             // email: emailFromParams,
-            email: "",
+            email: auth.user.email,
             phone: "",
             address: "",
             city: "",
@@ -147,33 +156,37 @@ function Create() {
     };
 
     const onSubmit = (values: DeliveryRegistrationFormValues) => {
+        const formData = new FormData();
+
+
+
         console.log("Form submission values:", values);
         toast.success("Votre inscription en tant que livreur a été soumise avec succès!");
         // navigate('/');
     };
 
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleIdCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setLogoPreview(reader.result as string);
+                    setIdCardPreview(reader.result as string);
                 };
                 reader.readAsDataURL(file);
             }
-            setLogo(file);
+            setIdCard(file);
         };
     
-        const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const handleDrivingLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setCoverPreview(reader.result as string);
+                    setDrivingLicensePreview(reader.result as string);
                 };
                 reader.readAsDataURL(file);
             }
-            setCover(file);
+            setDrivingLicense(file);
         };
 
     return (
@@ -374,8 +387,10 @@ function Create() {
                                         <TabsContent value="zone" className="space-y-4">
                                             <div className="space-y-4">
                                                 <h4 className="font-medium">Sélectionnez votre zone de livraison sur la carte</h4>
-                                                {/*<DeliveryZoneMap onLocationSelect={handleMapLocationSelect} />*/}
-                                                <DeliveryZoneMap onZoneSelect={handleZoneSelect} />
+                                                <MapZone 
+                                                    onZoneChange={setZoneData}
+                                                    initialData={zoneData}
+                                                />
                                             </div>
 
                                             <FormField
@@ -434,87 +449,45 @@ function Create() {
                                                 )}
                                             />
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                                                    <div>
-                                                                                        <FormLabel>Logo de la boutique</FormLabel>
-                                                                                        <div className="mt-2">
-                                                                                            <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
-                                                                                                {logoPreview ? (
-                                                                                                    <img src={logoPreview} alt="Preview" className="h-full w-full object-contain" />
-                                                                                                ) : (
-                                                                                                    <div className="text-center p-4">
-                                                                                                        <Image className="mx-auto h-12 w-12 text-gray-400" />
-                                                                                                        <div className="mt-2 text-sm text-gray-500">
-                                                                                                            <label htmlFor="logo-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
-                                                                                                                <span>Cliquez pour ajouter un logo</span>
-                                                                                                                <Input
-                                                                                                                    id="logo-upload"
-                                                                                                                    name="logo"
-                                                                                                                    type="file"
-                                                                                                                    accept="image/*"
-                                                                                                                    className="sr-only"
-                                                                                                                    onChange={handleLogoChange}
-                                                                                                                />
-                                                                                                            </label>
-                                                                                                        </div>
-                                                                                                        <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 1MB</p>
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </div>
-                                                                                            {logoPreview && (
-                                                                                                <Button
-                                                                                                    type="button"
-                                                                                                    variant="outline"
-                                                                                                    size="sm"
-                                                                                                    className="mt-2"
-                                                                                                    onClick={() => setLogoPreview(null)}
-                                                                                                >
-                                                                                                    Supprimer l'image
-                                                                                                </Button>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </div>
-                                            
-                                                                                    <div>
-                                                                                        <FormLabel>Image de couverture</FormLabel>
-                                                                                        <div className="mt-2">
-                                                                                            <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
-                                                                                                {coverPreview ? (
-                                                                                                    <img src={coverPreview} alt="Preview" className="h-full w-full object-cover" />
-                                                                                                ) : (
-                                                                                                    <div className="text-center p-4">
-                                                                                                        <Image className="mx-auto h-12 w-12 text-gray-400" />
-                                                                                                        <div className="mt-2 text-sm text-gray-500">
-                                                                                                            <label htmlFor="cover-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
-                                                                                                                <span>Cliquez pour ajouter une image de couverture</span>
-                                                                                                                <Input
-                                                                                                                    id="cover-upload"
-                                                                                                                    name="cover_image"
-                                                                                                                    type="file"
-                                                                                                                    accept="image/*"
-                                                                                                                    className="sr-only"
-                                                                                                                    onChange={handleCoverChange}
-                                                                                                                />
-                                                                                                            </label>
-                                                                                                        </div>
-                                                                                                        <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 3MB</p>
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </div>
-                                                                                            {coverPreview && (
-                                                                                                <Button
-                                                                                                    type="button"
-                                                                                                    variant="outline"
-                                                                                                    size="sm"
-                                                                                                    className="mt-2"
-                                                                                                    onClick={() => setCoverPreview(null)}
-                                                                                                >
-                                                                                                    Supprimer l'image
-                                                                                                </Button>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
+                                                <div>
+                                                    <FormLabel>Photo de la carte d'identité</FormLabel>
+                                                    <div className="mt-2">
+                                                        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
+                                                            {idCardPreview ? (
+                                                                <img src={idCardPreview} alt="Preview" className="h-full w-full object-contain" />
+                                                            ) : (
+                                                                <div className="text-center p-4">
+                                                                    <Image className="mx-auto h-12 w-12 text-gray-400" />
+                                                                    <div className="mt-2 text-sm text-gray-500">
+                                                                        <label htmlFor="id-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
+                                                                            <span>Cliquez pour ajouter un image</span>
+                                                                            <Input
+                                                                                id="id-upload"
+                                                                                name="id"
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="sr-only"
+                                                                                onChange={handleIdCardChange}
+                                                                            />
+                                                                        </label>
+                                                                    </div>
+                                                                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 1MB</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {idCardPreview && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="mt-2"
+                                                                onClick={() => setIdCardPreview(null)}
+                                                            >
+                                                                Supprimer l'image
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
 
                                             <FormField
                                                 control={form.control}
@@ -529,6 +502,46 @@ function Create() {
                                                     </FormItem>
                                                 )}
                                             />
+
+                                            <div>
+                                                <FormLabel>Photo du permis de conduire</FormLabel>
+                                                <div className="mt-2">
+                                                    <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-48 w-full overflow-hidden relative bg-gray-50">
+                                                        {drivingLicensePreview ? (
+                                                            <img src={drivingLicensePreview} alt="Preview" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <div className="text-center p-4">
+                                                                <Image className="mx-auto h-12 w-12 text-gray-400" />
+                                                                <div className="mt-2 text-sm text-gray-500">
+                                                                    <label htmlFor="driving-upload" className="relative cursor-pointer rounded-md font-medium text-videdressing-primary">
+                                                                        <span>Cliquez pour ajouter une image</span>
+                                                                        <Input
+                                                                            id="driving-upload"
+                                                                            name="driving_image"
+                                                                            type="file"
+                                                                            accept="image/*"
+                                                                            className="sr-only"
+                                                                            onChange={handleDrivingLicenseChange}
+                                                                        />
+                                                                    </label>
+                                                                </div>
+                                                                <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 1MB</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {drivingLicensePreview && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="mt-2"
+                                                            onClick={() => setDrivingLicensePreview(null)}
+                                                        >
+                                                            Supprimer l'image
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
 
                                             <FormField
                                                 control={form.control}
