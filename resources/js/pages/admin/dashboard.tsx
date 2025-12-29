@@ -20,9 +20,18 @@ function Dashboard({users}: Props) {
         { title: "Tickets Support Ouverts", value: "3", icon: <Activity className="h-5 w-5 text-muted-foreground" />, change: "Haute priorité" },
     ];
 
+
+    const adminOptions = [
+        { title: "Gestion des Utilisateurs", description: "Visualiser, modifier ou suspendre des comptes utilisateurs.", action: <Link href="/admin/users">Gérer les utilisateurs</Link> },
+        { title: "Paramètres de la Plateforme", description: "Configurer les options globales de l'application.", action: <Link href="">Accéder aux paramètres</Link>},
+        { title: "Gestion des Blogs", description: "Visualiser, modifier ou suspendre des comptes utilisateurs.", action: <Link href="">Gérer les blog</Link> },
+        { title: "Rapports et Analyses", description: "Consulter les statistiques détaillées de la plateforme.", action: <Link href="">Voir les rapports</Link>},
+        { title: "Modération de Contenu", description: "Gérer les signalements et le contenu publié.", action: <Link href="">Modérer le contenu</Link>},
+    ];
+
     return (
         <AppLayout>
-            <div className="p-4">
+            <div className="p-4 container mx-auto">
             <div className="mb-8">
                 {/*<h1 className="text-3xl font-bold text-gray-900">Tableau de bord Administrateur</h1>*/}
                 {/*<p className="text-gray-600">Vue d'ensemble et gestion globale de la plateforme.</p>*/}
@@ -45,14 +54,27 @@ function Dashboard({users}: Props) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
+                {adminOptions.map((option, index) => (
+                    <Card key={index}>
+                        <CardHeader>
+                            <CardTitle>{option.title}</CardTitle>
+                            <CardDescription>{option.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button asChild>
+                                {option.action}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))}
+                {/* <Card>
                     <CardHeader>
                         <CardTitle>Gestion des Utilisateurs</CardTitle>
                         <CardDescription>Visualiser, modifier ou suspendre des comptes utilisateurs.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button asChild>
-                            <Link href="">Gérer les utilisateurs</Link>
+                            <Link href="/admin/users">Gérer les utilisateurs</Link>
                         </Button>
                     </CardContent>
                 </Card>
@@ -88,7 +110,7 @@ function Dashboard({users}: Props) {
                             <Link href="">Voir les rapports</Link>
                         </Button>
                     </CardContent>
-                </Card>
+                </Card> */}
             </div>
             </div>
         </AppLayout>

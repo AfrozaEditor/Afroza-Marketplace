@@ -56,7 +56,7 @@ function About() {
         <AppLayout>
             <HeroSection
                 // className="bg-gradient-to-r from-primary to-white"
-                className="bg-[#E0F5F4]"
+                className="bg-gradient-to-l from-primary to-chart-3 text-white"
                 title={(`A propos de Vide Dressing`)}
                 description={"Nous sommes la première plateforme camerounaise dédiée à la vente et à l'achat de vêtements de seconde main. Notre mission est de démocratiser la mode durable tout en créant une communauté de passionnés de style au Cameroun."}
             />
@@ -105,10 +105,10 @@ function About() {
 
                 {/* Notre Mission */}
                 <div className="mb-16 text-center">
-                    <div className="bg-[#E0F5F4] rounded-2xl p-8 md:p-12">
+                    <div className="bg-gradient-to-l from-primary to-chart-3 text-white rounded-2xl p-8 md:p-12">
                         <Target className="text-primary mx-auto mb-6 h-16 w-16" />
-                        <h2 className="mb-6 text-3xl font-bold text-gray-900">Notre Mission</h2>
-                        <p className="mx-auto max-w-3xl text-lg text-gray-700">
+                        <h2 className="mb-6 text-3xl font-bold ">Notre Mission</h2>
+                        <p className="mx-auto max-w-3xl text-lg ">
                             Rendre la mode accessible à tous les Camerounais en créant la plus grande communauté de mode circulaire du pays. Nous
                             voulons que chaque vêtement trouve sa seconde chance et que chaque personne puisse exprimer son style unique sans
                             compromettre son budget.
@@ -117,13 +117,13 @@ function About() {
                 </div>
 
                 {/* Nos Valeurs */}
-                <div className="mb-16">
+                <div className="mb-16 ">
                     <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nos Valeurs</h2>
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                         {values.map((value, index) => (
                             <Card key={index} className="p-6 text-center transition-shadow hover:shadow-lg">
                                 <CardHeader>
-                                    <value.icon className="text-primary mx-auto mb-4 h-12 w-12" />
+                                    <value.icon className="text-primary  mx-auto mb-4 h-12 w-12" />
                                     <CardTitle className="text-xl font-semibold">{value.title}</CardTitle>
                                 </CardHeader>
                                 <CardContent>

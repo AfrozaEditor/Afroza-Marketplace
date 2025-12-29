@@ -1,18 +1,46 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Product } from '@/types';
+import { toast } from 'sonner';
 
 interface Props {
-    product: Product;
+    product: Product & {
+        is_favorite?: boolean;
+    };
 }
 
 function ProductCard({product}: Props) {
+    const [isFavorite, setIsFavorite] = useState(product.is_favorite || false);
+    
     const handleAddToCart = () => {
 
     }
+
+    const handleFavorite = () => {
+        router.post(route('products.favorite', { slug: product.slug }), {}, {
+            preserveState: false,
+            preserveScroll: true,
+            onSuccess: (page) => {
+                // Récupérer isFollowing depuis les props flash
+                const flash = page.props.flash;
+                // const isFollowing = page.props.isFollowing;
+                if (flash) {
+                    setIsFavorite(flash.isFavorite);
+                    toast[flash.isFavorite ? 'success' : 'info'](flash.message);
+                }
+                // setIsFollowing(true);
+    
+                // Afficher le message de succès
+                // toast[isFollowing ? 'success' : 'info'](page.props.success);
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue");
+            }
+        });
+    };
 
 
     return (
@@ -34,11 +62,10 @@ function ProductCard({product}: Props) {
                         />
                         <div className="absolute top-0 right-0 m-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
-                                className="bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    // Add to wishlist logic
-                                }}
+                                // className="bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md"
+                                onClick={handleFavorite}
+                                className={isFavorite ? 'bg-primary p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md' : 'bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md'}
+
                             >
                                 <Heart size={20} />
                             </Button>
@@ -46,21 +73,21 @@ function ProductCard({product}: Props) {
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div className="flex items-center text-white">
                                 <Star className="text-yellow-400" size={16} />
-                                <span className="ml-1">0</span>
+                                <span className="ml-1">{product.reviews.length > 0 ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length : 0}</span>
                                 <span className="mx-1">•</span>
-                                <span>0 Avis</span>
+                                <span>{product.reviews.length} Avis</span>
                             </div>
                         </div>
                     </div>
                     <CardHeader>
-                        <CardTitle>{product.name}</CardTitle>
+                        <CardTitle className='text-xl'>{product.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex justify-between">
                         <div className="flex flex-col">
-                            <span className="font-bold text-teal-600">{product.price} FCFA</span>
+                            <span className="font-bold text-teal-600 text-xl">{product.price} FCFA</span>
                             <span className="text-xs text-gray-500">
                                 {/* {Math.round(12 * 0.8).toLocaleString()} XAF with code */}
-                                PAR {product.user.name}
+                                PAR {product.user.name.toUpperCase()}
                             </span>
                         </div>
                         <Button

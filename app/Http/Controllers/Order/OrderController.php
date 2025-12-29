@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -21,7 +22,16 @@ class OrderController extends Controller
      */
     public function create()
     {
-        return Inertia::render('order/Create');
+        $user = auth()->user();
+        $cart = Cart::with('items')->where('user_id',$user->id)->first();
+        if(!$cart){
+            return 'Pas de panier';
+        }
+        return Inertia::render('order/Create',[
+            'cart' => $cart->load([
+                'items.product'
+            ]),
+        ]);
     }
 
     /**

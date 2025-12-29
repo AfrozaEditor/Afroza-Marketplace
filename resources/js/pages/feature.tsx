@@ -51,7 +51,7 @@ function Feature() {
 
     return (
         <AppLayout>
-            <HeroSection className="bg-gradient-to-r from-primary to-white mx-auto text-red mb-10"
+            <HeroSection className="bg-gradient-to-l from-primary to-chart-3 mx-auto text-white mb-10"
                          title="Des outils puissants pour vendre vos vêtements"
                          description="Découvrez comment notre plateforme rend la vente et l'achat de vêtements simples, sécurisés et amusants."
             />

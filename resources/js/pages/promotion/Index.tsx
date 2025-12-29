@@ -94,7 +94,7 @@ function Index() {
         <AppLayout>
             <Head title="Promotions"/>
             <HeroSection
-                className="bg-gradient-to-r from-primary to-white text-black max-h-3xl"
+                className="bg-gradient-to-l from-primary to-chart-3 text-white max-h-3xl"
                 title="Offres spéciales et réductions"
                 description="Découvrez nos meilleures offres du moment et économisez sur vos achats de vêtements d'occasion."
             />
@@ -277,11 +277,11 @@ function Index() {
             </section>
 
             {/* Newsletter */}
-            <section className="py-16 bg-gray-100">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-2xl mx-auto text-center">
+            <section className="py-16 bg-gradient-to-l from-primary to-chart-3 container mx-auto rounded-xl">
+                <div className="px-4">
+                    <div className="max-w-2xl mx-auto text-center text-white">
                         <h2 className="text-3xl font-bold mb-4">Ne manquez aucune promotion</h2>
-                        <p className="text-gray-600 mb-8">
+                        <p className=" mb-8">
                             Inscrivez-vous à notre newsletter pour recevoir en avant-première nos offres exclusives et codes promo.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">

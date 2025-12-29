@@ -73,6 +73,8 @@ export interface Product {
     price: number;
     quantity: number;
     images: string[];
+    reviews: ProductReview[];
+    user_review?: ProductReview | null;
 
 }
 
@@ -86,6 +88,7 @@ export interface Category {
     name: string;
     slug: string;
     parent: Category;
+    image: '/apple-touch-icon.png'
 }
 
 export interface Shop {
@@ -142,4 +145,19 @@ export interface ShopReviewVote {
     shop_review: ShopReview;
     is_helpful: boolean;
     created_at: string;
+}
+
+export interface ProductReview {
+    id: number;
+    product: Product;
+    user: User;
+    reviewer_name: string;
+    reviewer_email: string;
+    title: string;
+    rating: number;
+    comment: string;
+    is_approved: boolean;
+    created_at: string;
+    helpful: number;
+    not_helpful: number;
 }

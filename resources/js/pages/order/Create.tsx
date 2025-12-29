@@ -11,8 +11,17 @@ import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, CreditCard, Shield, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Cart } from '@/types';
+import axios from "axios";
 
-function Create() {
+
+
+interface Props {
+    cart: Cart;
+}
+
+
+function Create({cart}: Props) {
     const [isLoading, setIsLoading] = useState(false);
 
     // Formulaire de livraison
@@ -24,7 +33,7 @@ function Create() {
         address: '',
         city: '',
         postalCode: '',
-        country: 'CI'
+        country: 'CE'
     });
 
     // Formulaire de facturation
@@ -34,14 +43,14 @@ function Create() {
         address: '',
         city: '',
         postalCode: '',
-        country: 'CI'
+        country: 'CE'
     });
 
     const [sameAsShipping, setSameAsShipping] = useState(true);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [shippingMethod, setShippingMethod] = useState('standard');
 
-    const subTotal = 100;
+    const subTotal = Math.ceil(cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0));
     const shippingCost = shippingMethod === 'express' ? 2000 : 0;
     const total = subTotal + shippingCost;
 
@@ -53,35 +62,72 @@ function Create() {
         setBillingForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setIsLoading(true);
 
-        // Simulation d'un traitement de paiement
-        try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+    //     // // Simulation d'un traitement de paiement
+    //     // try {
+    //     //     await new Promise(resolve => setTimeout(resolve, 2000));
+    //     //
+    //     //     // Simulation réussie
+    //     //     toast.success('Commande validée avec succès !');
+    //     //     router.post('/commandes');
+    //     // } catch (error) {
+    //     //     toast.error('Erreur lors du traitement du paiement');
+    //     // } finally {
+    //     //     setIsLoading(false);
+    //     // }
+    //     // Préparer les données à envoyer
+    //     const paymentData = {
+    //         // firstName: shippingForm.firstName,
+    //         // lastName: shippingForm.lastName,
+    //         // email: shippingForm.email,
+    //         // phone: shippingForm.phone,
+    //         // address: shippingForm.address,
+    //         // city: shippingForm.city,
+    //         // postalCode: shippingForm.postalCode,
+    //         // country: shippingForm.country,
+    //         // shippingMethod: shippingMethod,
+    //         // paymentMethod: paymentMethod,
+    //         total: total,
+    //     };
 
-            // Simulation réussie
-            toast.success('Commande validée avec succès !');
-            router.post('/commandes');
-        } catch (error) {
-            toast.error('Erreur lors du traitement du paiement');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    //     router.post(route("payment.initiate"), paymentData, {
+    //         onError: (errors) => {
+    //             toast.error('Erreur lors de l\'initialisation du paiement');
+    //             setIsLoading(false);
+    //         },
+    //         onFinish: () => {
+    //             // Si la requête est terminée mais qu'il n'y a pas de redirection
+    //             // Cela garantit que le bouton revient à son état normal
+    //             setIsLoading(false);
+    //         }
+    //     });
 
-    // if (cartItems.length === 0) {
-    //     return (
-    //         <div className="text-center py-12">
-    //             <h2 className="text-2xl font-semibold mb-4">Votre panier est vide</h2>
-    //             <p className="text-gray-600 mb-6">Ajoutez des articles à votre panier pour procéder au paiement.</p>
-    //             <Button asChild>
-    //                 <Link href="/products">Continuer les achats</Link>
-    //             </Button>
-    //         </div>
-    //     );
-    // }
+
+    // };
+
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+        const { data } = await axios.post("/lygos/pay", {
+            // shipping: shippingForm,
+            // billing: sameAsShipping ? shippingForm : billingForm,
+            // shippingMethod,
+            total,
+        });
+
+        window.location.href = data.payment_url; // 🔥 LYGOS
+    } catch (error) {
+        toast.error("Erreur lors du paiement");
+        console.log(error);
+        setIsLoading(false);
+    }
+};
+
 
 
 
@@ -310,10 +356,10 @@ function Create() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="CI">Centre</SelectItem>
-                                                            <SelectItem value="SN">Littoral</SelectItem>
-                                                            <SelectItem value="ML">Ouest</SelectItem>
-                                                            <SelectItem value="BF">Est</SelectItem>
+                                                            <SelectItem value="CE">Centre</SelectItem>
+                                                            <SelectItem value="LT">Littoral</SelectItem>
+                                                            <SelectItem value="OE">Ouest</SelectItem>
+                                                            <SelectItem value="ES">Est</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -324,43 +370,43 @@ function Create() {
                             </Card>
 
                             {/* Méthode de paiement */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <CreditCard size={20} />
-                                        Méthode de paiement
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                                        <div className="flex items-center space-x-2 rounded-lg border p-3">
-                                            <RadioGroupItem value="card" id="card" />
-                                            <Label htmlFor="card" className="flex-1 cursor-pointer">
-                                                <div className="flex items-center gap-2">
-                                                    <CreditCard size={16} />
-                                                    <span>Carte bancaire</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2 rounded-lg border p-3">
-                                            <RadioGroupItem value="mobile" id="mobile" />
-                                            <Label htmlFor="mobile" className="flex-1 cursor-pointer">
-                                                <div className="flex items-center gap-2">
-                                                    <span>Paiement mobile (Orange Money, MTN Money)</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                        {/*<div className="flex items-center space-x-2 rounded-lg border p-3">*/}
-                                        {/*    <RadioGroupItem value="cash" id="cash" />*/}
-                                        {/*    <Label htmlFor="cash" className="flex-1 cursor-pointer">*/}
-                                        {/*        <div className="flex items-center gap-2">*/}
-                                        {/*            <span>Paiement à la livraison</span>*/}
-                                        {/*        </div>*/}
-                                        {/*    </Label>*/}
-                                        {/*</div>*/}
-                                    </RadioGroup>
-                                </CardContent>
-                            </Card>
+                            {/*<Card>*/}
+                            {/*    <CardHeader>*/}
+                            {/*        <CardTitle className="flex items-center gap-2">*/}
+                            {/*            <CreditCard size={20} />*/}
+                            {/*            Méthode de paiement*/}
+                            {/*        </CardTitle>*/}
+                            {/*    </CardHeader>*/}
+                            {/*    <CardContent>*/}
+                            {/*        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>*/}
+                            {/*            <div className="flex items-center space-x-2 rounded-lg border p-3">*/}
+                            {/*                <RadioGroupItem value="card" id="card" />*/}
+                            {/*                <Label htmlFor="card" className="flex-1 cursor-pointer">*/}
+                            {/*                    <div className="flex items-center gap-2">*/}
+                            {/*                        <CreditCard size={16} />*/}
+                            {/*                        <span>Carte bancaire</span>*/}
+                            {/*                    </div>*/}
+                            {/*                </Label>*/}
+                            {/*            </div>*/}
+                            {/*            <div className="flex items-center space-x-2 rounded-lg border p-3">*/}
+                            {/*                <RadioGroupItem value="mobile" id="mobile" />*/}
+                            {/*                <Label htmlFor="mobile" className="flex-1 cursor-pointer">*/}
+                            {/*                    <div className="flex items-center gap-2">*/}
+                            {/*                        <span>Paiement mobile (Orange Money, MTN Money)</span>*/}
+                            {/*                    </div>*/}
+                            {/*                </Label>*/}
+                            {/*            </div>*/}
+                            {/*            /!*<div className="flex items-center space-x-2 rounded-lg border p-3">*!/*/}
+                            {/*            /!*    <RadioGroupItem value="cash" id="cash" />*!/*/}
+                            {/*            /!*    <Label htmlFor="cash" className="flex-1 cursor-pointer">*!/*/}
+                            {/*            /!*        <div className="flex items-center gap-2">*!/*/}
+                            {/*            /!*            <span>Paiement à la livraison</span>*!/*/}
+                            {/*            /!*        </div>*!/*/}
+                            {/*            /!*    </Label>*!/*/}
+                            {/*            /!*</div>*!/*/}
+                            {/*        </RadioGroup>*/}
+                            {/*    </CardContent>*/}
+                            {/*</Card>*/}
                         </div>
 
                         {/* Résumé de la commande */}
@@ -414,7 +460,7 @@ function Create() {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                                    <Button type="submit" className="w-full" size="lg" disabled={isLoading} onClick={handleSubmit}>
                                         {isLoading ? 'Traitement...' : `Payer ${total} FCFA`}
                                     </Button>
                                 </CardFooter>

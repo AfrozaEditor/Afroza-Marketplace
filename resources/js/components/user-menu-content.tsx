@@ -24,6 +24,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
 
     const isVendor = user.role === 'vendor';
     const isAdmin = user.role === 'admin';
+    const isDelivery = user.role === 'delivery';
 
     return (
         <>
@@ -46,6 +47,18 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         <DropdownMenuSeparator />
                     </>
                 )}
+                {isDelivery && (
+                    <>
+                        <DropdownMenuItem asChild>
+                            <Link className="block w-full" href={route('delivery-dashboard')} as="button" prefetch
+                                  onClick={cleanup}>
+                                <LayoutDashboard className="mr-2" />
+                                Dashboard
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                    </>
+                )}
                 {isAdmin && (
                     <>
                         <DropdownMenuItem asChild>
@@ -59,14 +72,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     </>
                 )}
                 <DropdownMenuItem asChild>
-                    <Link className="block w-full" href={route('favorites')} as="button" prefetch onClick={cleanup}>
+                    <Link className="block w-full" href={route('favorites')} as="button" onClick={cleanup}>
                         <Heart className="mr-2" />
                         Favoris
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link className="block w-full" href={route('order.index')} as="button" prefetch onClick={cleanup}>
+                    <Link className="block w-full" href={route('order.index')} as="button" onClick={cleanup}>
                         <ListOrdered className="mr-2" />
                         Commandes
                     </Link>

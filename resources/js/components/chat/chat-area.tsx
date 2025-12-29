@@ -7,6 +7,7 @@ import { fr } from 'date-fns/locale';
 import { Message } from '@/types';
 import debounce from 'lodash/debounce';
 import EmojiPicker from 'emoji-picker-react';
+import { toast } from 'sonner';
 
 interface ChatAreaProps {
   conversation: {
@@ -105,12 +106,15 @@ export default function ChatArea({
 
     try {
       await onSendMessage(content);
+      toast.success("Message envoyé avec succès");
       messageInputRef.current?.focus();
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);
       setMessage(content); // Restaurer le message en cas d'erreur
     }
   };
+
+  conversation.online=true;
 
   return (
     <>

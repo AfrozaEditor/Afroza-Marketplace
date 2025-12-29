@@ -83,7 +83,7 @@ function Help() {
             questions: [
                 {
                     question: 'Quels moyens de paiement acceptez-vous ?',
-                    answer: 'Nous acceptons les cartes bancaires, Orange Money, Wave et les virements bancaires.'
+                    answer: 'Nous acceptons les cartes bancaires, Orange Money, Mobile Money et Wave.'
                 },
                 {
                     question: 'Le paiement est-il sécurisé ?',
@@ -121,7 +121,7 @@ function Help() {
             questions: [
                 {
                     question: 'Puis-je retourner un article ?',
-                    answer: 'Oui, vous avez 14 jours pour retourner un article s\'il ne correspond pas à la description.'
+                    answer: 'Oui, vous avez 24 heures pour retourner un article s\'il ne correspond pas à la description.'
                 },
                 {
                     question: 'Comment demander un remboursement ?',

@@ -1,3 +1,4 @@
+import DataTable from '@/components/dt-table';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -5,21 +6,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/utils';
 import { Product, type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     BarChart2,
     Bell,
     DollarSign,
     MessagesSquare,
     Package,
+    Pencil,
     PlusCircle,
     Settings,
     ShoppingBag,
     ShoppingCart,
+    Trash,
     Users
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 const stats = [
     {
@@ -114,6 +119,8 @@ const orders = [
     },
 ];
 
+
+
 const notifications = [
     {
         id: 1,
@@ -163,12 +170,189 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({products}: Props) {
     const [activeTab, setActiveTab] = useState<string>('overview');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isAddArticleDialogOpen, setIsAddArticleDialogOpen] = useState(false);
+    const [filterOpen, setFilterOpen] = useState(false);
+        const [view, setView] = useState<'kanban' | 'list'>('list');
+        const [sortField, setSortField] = useState<keyof Product | null>(null);
+        const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+        const [filters, setFilters] = useState({
+            status: '',
+            priority: '',
+            entity: '',
+            assigned_to: '',
+        });
+
+    const [visibleColumns, setVisibleColumns] = useState({
+            Id: true,
+            Nom: true,
+            Catégorie: true,
+            Quantité: true,
+            // Priorité: true,
+            'Date de création': true,
+            // 'Date de mise à jour': true,
+        });
+
+
     console.log(products);
+
+    const filteredTickets = useMemo(() => {
+        let result = [...products];
+
+        result = result.filter((ticket) => {
+            const matchesSearch =
+                ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) 
+                // || String(ticket.code).toLowerCase().includes(searchQuery.toLowerCase());
+
+            // const matchesStatus = !filters.status || (ticket.status && ticket.status.name === filters.status);
+
+            // const matchesPriority = !filters.priority || (ticket.priority && ticket.priority.name === filters.priority);
+
+            // const matchesEntity = !filters.entity || (ticket.entity && ticket.entity.name === filters.entity);
+
+            // const matchesAssignedTo =
+            //     !filters.assigned_to ||
+            //     (ticket.assigned_to &&
+            //         ticket.assigned_to.first_name &&
+            //         ticket.assigned_to.first_name.toLowerCase().includes(filters.assigned_to.toLowerCase()));
+
+            return matchesSearch
+            //  && matchesStatus && matchesPriority && matchesEntity && matchesAssignedTo;
+        });
+
+        if (sortField) {
+            result.sort((a, b) => {
+                const aValue = a[sortField];
+                const bValue = b[sortField];
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                }
+
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+                }
+
+                return 0;
+            });
+        }
+
+        return result;
+    }, [products, searchQuery, filters, sortField, sortDirection]);
+
+    const handleResetFilters = () => {
+        setFilters({
+            status: '',
+            priority: '',
+            entity: '',
+            assigned_to: '',
+        });
+    };
+
+    const handleSort = (field: keyof Product) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    const handleDelete = (id: number) => {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet Utilisateur ?')) {
+            router.delete(route('users.destroy', id), {
+                onError: () => {
+                    toast.error("Une erreur est survenue lors de la suppression de l'utilisateur");
+                },
+            });
+        }
+    };
+
+    const columns = [
+        // {
+        //     title: 'Id',
+        //     accessor: 'id' as const,
+        //     sortable: true,
+        //     className: 'w-[130px]',
+        // },
+        {
+            title: 'Nom',
+            accessor: (user: Product) => (
+                <Link href="" className="hover:text-primary truncate hover:underline">
+                    {user.name}
+                </Link>
+            ),
+            sortable: true,
+            className: 'max-w-[340px] w-full]',
+        },
+        {
+            title: 'Catégorie',
+            accessor: (user: Product) => (
+                <Link href="" className="hover:text-primary truncate hover:underline">
+                    {user.category.name}
+                </Link>
+            ),
+            sortable: true,
+            // className: 'w-[130px]',
+        },
+        {
+            title: 'Quantité',
+            accessor: 'quantity' as const,
+            sortable: true,
+            // className: 'w-[130px]',
+        },
+        // {
+        //     title: 'Priorité',
+        //     accessor: (ticket: Tickets) => getPriorityBadge(ticket.priority),
+        //     sortable: true,
+        // },
+        {
+            title: 'Date de création',
+            accessor: (user: Product) => formatDate(user.created_at),
+            sortable: true,
+            className: 'w-[190px]',
+        },
+        // {
+        //     title: 'Date de mise à jour',
+        //     accessor: (user: Product) => formatDate(user.updated_at),
+        //     sortable: true,
+        //     className: 'w-[190px]',
+        // },
+
+        // {
+        //     title: 'Assigné à',
+        //     accessor: (ticket: Tickets) =>
+        //         ticket.assigned_to?.email || ticket.group ? (
+        //             <span>{ticket.assigned_to?.email || ticket.group?.name}</span>
+        //         ) : (
+        //             <span className="text-muted-foreground italic">Non assigné</span>
+        //         ),
+        //     sortable: true,
+        // },
+    ];
+
+    const renderActions = (ticket: Product) => {
+        return (
+            <div className="flex gap-2">
+                <Button variant="destructive" size="icon" className="h-7 w-7 p-0" onClick={() => handleDelete(ticket.id)}>
+                    <Trash className="h-4 w-4" />
+                </Button>
+                <Link href="">
+                    <Button variant="outline" size="icon" className="h-7 w-7 p-0">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </Link>
+            </div>
+        );
+    };
+
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout 
+            // breadcrumbs={breadcrumbs}
+        >
             <Head title="Dashboard" />
-                <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+                <div className="container mx-auto flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                     <div className="flex justify-between mb-8">
                         <Heading title="Tableau de bord vendeur" description="Gérez vos articles, commandes et performances" />
                         <div className="flex gap-2 items-center">
@@ -322,41 +506,13 @@ export default function Dashboard({products}: Props) {
                             </div>
 
                             {/* ... keep existing code (products list card) */}
-                            <Card>
-                                <CardContent className="p-0">
-                                    <div className="rounded-md border">
-                                        <div className="grid grid-cols-12 bg-gray-50 p-4 text-sm font-medium text-gray-500">
-                                            <div className="col-span-5">Article</div>
-                                            <div className="col-span-2 text-center">Prix</div>
-                                            <div className="col-span-2 text-center">En stock</div>
-                                            {/* <div className="col-span-2 text-center">Statut</div> */}
-                                            <div className="col-span-1 text-right">Actions</div>
-                                        </div>
-
-                                        {products.map((product) => (
-                                            <div key={product.id} className="grid grid-cols-12 items-center border-t p-4 text-sm">
-                                                <div className="col-span-5 flex items-center gap-4">
-                                                    <img src={product.image} alt={product.name} className="h-12 w-12 rounded-md object-cover" />
-                                                    <span>{product.name}</span>
-                                                </div>
-                                                <div className="col-span-2 text-center font-medium">{product.price}</div>
-                                                <div className="col-span-2 text-center">{product.quantity}</div>
-                                                {/* <div className="col-span-2 text-center">
-                                                    <Badge className={getStatusBadgeColor(product.)}>
-                                                        {product.status === 'active' ? 'En vente' : 'Vendu'}
-                                                    </Badge>
-                                                </div> */}
-                                                <div className="col-span-1 text-right">
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                        <Settings className="h-4 w-4" />
-                                                        <span className="sr-only">Modifier</span>
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <DataTable
+                                filteredTickets={filteredTickets}
+                                columns={columns}
+                                handleSort={handleSort}
+                                visibleColumns={visibleColumns}
+                                renderActions={renderActions}
+                            />
                         </TabsContent>
 
                         {/* ... keep existing code (TabsContent for orders, chat, settings) */}

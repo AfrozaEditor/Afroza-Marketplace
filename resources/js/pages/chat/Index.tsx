@@ -276,7 +276,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
       <Head title="Messagerie" />
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-          <div className="flex h-[calc(100vh-12rem)]">
+          <div className="flex h-[calc(100vh-20rem)]">
             {/* Liste des conversations */}
             <div className={`w-full md:w-1/3 border-r ${showMobileChat ? 'hidden md:block' : ''}`}>
               <div className="p-4 border-b">
@@ -292,7 +292,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                 </div>
               </div>
 
-              <div className="overflow-y-auto h-[calc(100vh-16rem)]">
+              <div className="overflow-y-auto h-[calc(100vh-24rem)]">
                 {filteredConversations.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     Aucune conversation trouvée

@@ -47,13 +47,14 @@ class RegisteredUserController extends Controller
         $user->assignSingleRole($request->role);
 
 //        dd($user->getRole());
-        $role = $user->getRole();
-        if($role->name == 'delivery')
-            return to_route('delivery');
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        $role = $user->getRole();
+        if($role->name == 'delivery')
+            return to_route('delivery.register');
 
 
 //         if($user->getRole()=='seller')
@@ -61,5 +62,19 @@ class RegisteredUserController extends Controller
 //         else
         return to_route('home');
 
+    }
+
+    public function index()
+    {
+        $users = User::all();
+
+        return Inertia::render('admin/users/index',[
+            'users' => $users,
+        ]);
+    }
+
+    public function destroy(string $id)
+    {
+        //
     }
 }

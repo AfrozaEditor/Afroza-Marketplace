@@ -64,10 +64,10 @@ function CartView({cart}:Props) {
                             <span>Sous-total</span>
                             <span>{cart.total_price} FCFA</span>
                         </div>
-                        <div className="flex justify-between">
+                        {/* <div className="flex justify-between">
                             <span>Livraison</span>
                             <span>Gratuite</span> {/* Ou calculer les frais de livraison */}
-                        </div>
+                        {/* </div> */}
                         <hr />
                         <div className="flex justify-between font-bold text-lg">
                             <span>Total</span>
