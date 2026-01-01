@@ -70,7 +70,7 @@ class AdminBlogController extends Controller
         // Handle image upload
         if ($request->hasFile('featured_image')) {
             $imagePath = $request->file('featured_image')->storePublicly('blogs', 's3');
-            $validated['featured_image'] = Storage::disk('s3')->url($imagePath);
+            $validated['featured_image'] = $imagePath;
         }
 
         // Generate slug if not provided
@@ -129,7 +129,7 @@ class AdminBlogController extends Controller
             }
             
             $imagePath = $request->file('featured_image')->storePublicly('blogs', 's3');
-            $validated['featured_image'] = Storage::disk('s3')->url($imagePath);
+            $validated['featured_image'] = $imagePath;
         }
 
         // Generate slug if not provided

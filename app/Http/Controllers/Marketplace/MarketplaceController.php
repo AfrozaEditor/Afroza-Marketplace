@@ -16,23 +16,27 @@ class MarketplaceController extends Controller
      */
     public function index(Request $request)
     {
-        $shops = Shop::with('products','followers','reviews')->get();
+        $query = Shop::with('products','followers','reviews');
 
         if($request->filled('search')){
             $search = $request->search;
-            $shops->where(function($q) use ($search) {
+            $query->where(function($q) use ($search) {
                 $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
                 ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
             });
         }
 
+        $shops = $query->paginate(6)->withQueryString();
+
         // Générer les URLs temporaires pour les logos et images de couverture
         foreach ($shops as $shop) {
             if ($shop->logo) {
-                $shop->logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(5));
+                $logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(5));
+                $shop->logo = $logo_url;
             }
             if ($shop->cover_image) {
-                $shop->cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(5));
+                $cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(5));
+                $shop->cover_image = $cover_image_url;
             }
         }
 

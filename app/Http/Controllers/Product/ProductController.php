@@ -218,7 +218,16 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $product = Product::findOrFail($id);
+        // Supprimer les images associées du stockage S3
+        foreach ($product->images as $image) {
+            $imagePath = parse_url($image->url, PHP_URL_PATH);
+            Storage::disk('s3')->delete(ltrim($imagePath, '/'));
+    }
+
+        $product->delete();
+
+        return back()->with('success', 'Produit supprimé avec succès.');
     }
 
     public function favorites()
