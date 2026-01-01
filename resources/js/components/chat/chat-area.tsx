@@ -8,6 +8,7 @@ import { Message } from '@/types';
 import debounce from 'lodash/debounce';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 interface ChatAreaProps {
   conversation: {
@@ -21,6 +22,11 @@ interface ChatAreaProps {
   setShowMobileChat: (content: boolean) => void;
 }
 
+interface PresenceUser {
+  id: number;
+  name: string;
+}
+
 export default function ChatArea({
   conversation,
   messages = [],
@@ -29,10 +35,14 @@ export default function ChatArea({
 }: ChatAreaProps) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
+  const [isOnline, setIsOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Optimisation du défilement
   const scrollToBottom = useCallback(() => {
@@ -49,9 +59,6 @@ export default function ChatArea({
       }
     }
   }, []);
-//   const scrollToBottom = useCallback(() => {
-//   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-// }, []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -65,26 +72,85 @@ export default function ChatArea({
         };
     }, []);
 
+  // Écouter les événements typing via presence channel
+  useEffect(() => {
+    if (!conversation.id || !window.Echo) return;
+
+    const channel = window.Echo.join(`chat.${conversation.id}`);
+
+    // Quand quelqu'un rejoint le channel (online)
+    channel.here((users: PresenceUser[]) => {
+      const userIds = users.map((u: PresenceUser) => u.id);
+      setOnlineUsers(userIds);
+      // Vérifier si l'autre participant est en ligne
+      setIsOnline(userIds.length > 1);
+    });
+
+    channel.joining((user: PresenceUser) => {
+      setOnlineUsers(prev => [...prev, user.id]);
+      setIsOnline(true);
+    });
+
+    channel.leaving((user: PresenceUser) => {
+      setOnlineUsers(prev => prev.filter(id => id !== user.id));
+      setIsOnline(onlineUsers.length > 2);
+    });
+
+    // Écouter les événements de typing
+    channel.listen('.user.typing', (data: { user_id: number; user_name: string; is_typing: boolean }) => {
+      if (data.is_typing) {
+        setTypingUsers(prev => {
+          if (!prev.includes(data.user_name)) {
+            return [...prev, data.user_name];
+          }
+          return prev;
+        });
+      } else {
+        setTypingUsers(prev => prev.filter(name => name !== data.user_name));
+      }
+    });
+
+    return () => {
+      window.Echo.leave(`chat.${conversation.id}`);
+    };
+  }, [conversation.id]);
 
     // Défilement automatique lors de nouveaux messages
     useEffect(() => {
-        const timeoutId = setTimeout(scrollToBottom, 100); // Ajouter un petit délai
+        const timeoutId = setTimeout(scrollToBottom, 100);
         return () => clearTimeout(timeoutId);
     }, [messages, scrollToBottom]);
 
-    // Optimisation de la saisie avec debounce
-  const debouncedTypingStatus = useCallback(
-    debounce((isTyping: boolean) => {
-      // Ici, vous pourriez émettre un événement de frappe
-      // window.Echo.private(`chat.${conversation.id}`).whisper('typing', { isTyping });
-    }, 500),
+  // Envoyer le statut typing au serveur
+  const sendTypingStatus = useCallback(
+    debounce(async (typing: boolean) => {
+      try {
+        await axios.post(`/chat/${conversation.id}/typing`, { is_typing: typing });
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi du statut typing:', error);
+      }
+    }, 300),
     [conversation.id]
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
-    setIsTyping(true);
-    debouncedTypingStatus(true);
+
+    // Envoyer le statut "typing"
+    if (!isTyping) {
+      setIsTyping(true);
+      sendTypingStatus(true);
+    }
+
+    // Reset le timeout pour arrêter le typing après 2 secondes d'inactivité
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      sendTypingStatus(false);
+    }, 2000);
   };
 
     const handleEmojiClick = (emojiData: { emoji: string }) => {
@@ -98,8 +164,12 @@ export default function ChatArea({
     e.preventDefault();
     if (!message.trim()) return;
 
+    // Arrêter le typing
     setIsTyping(false);
-    debouncedTypingStatus(false);
+    sendTypingStatus(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     const content = message.trim();
     setMessage('');
@@ -114,11 +184,18 @@ export default function ChatArea({
     }
   };
 
-  conversation.online=true;
+  // Nettoyage du timeout au démontage
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 border-b dark:border-neutral-700 flex items-center justify-between">
         <div className="flex items-center">
           <Button
             variant="outline"
@@ -127,16 +204,30 @@ export default function ChatArea({
           >
             <ArrowLeft size={24} />
           </Button>
-          <img
-            src={conversation.avatar || '/default-avatar.png'}
-            alt={conversation.name}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <div className="relative">
+            <img
+              src={conversation.avatar || '/default-avatar.png'}
+              alt={conversation.name}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            {/* Indicateur en ligne */}
+            <span
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                isOnline ? 'bg-green-500' : 'bg-gray-400'
+              }`}
+            />
+          </div>
           <div className="ml-3">
-            <h3 className="font-medium">{conversation.name}</h3>
-            <span className="text-sm text-gray-500">
-              {conversation.online ? 'En ligne' : 'Hors ligne'}
-            </span>
+            <h3 className="font-medium dark:text-white">{conversation.name}</h3>
+            {typingUsers.length > 0 ? (
+              <span className="text-sm text-primary animate-pulse">
+                {typingUsers.join(', ')} est en train d'écrire...
+              </span>
+            ) : (
+              <span className={`text-sm ${isOnline ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isOnline ? 'En ligne' : 'Hors ligne'}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -146,7 +237,7 @@ export default function ChatArea({
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-gray-500 dark:text-gray-400">
             Démarrez la conversation !
           </div>
         ) : (
@@ -157,12 +248,12 @@ export default function ChatArea({
             >
               <div
                 className={`max-w-[70%] rounded-lg p-3 ${
-                  msg.is_mine ? 'bg-primary text-white' : 'bg-gray-100'
+                  msg.is_mine ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-neutral-700 dark:text-white'
                 }`}
               >
                 <p>{msg.content}</p>
                 <span className={`text-xs ${
-                  msg.is_mine ? 'text-primary-foreground/80' : 'text-gray-500'
+                  msg.is_mine ? 'text-primary-foreground/80' : 'text-gray-500 dark:text-gray-400'
                 } block mt-1`}>
                   {formatDistanceToNow(new Date(msg.created_at), {
                     addSuffix: true,
@@ -176,7 +267,7 @@ export default function ChatArea({
         {/* <div ref={messagesEndRef} /> */}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t dark:border-neutral-700">
         <form onSubmit={handleSubmit} className="flex items-center space-x-2">
             <div className="relative flex-1">
             <Input

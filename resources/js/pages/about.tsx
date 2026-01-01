@@ -76,8 +76,8 @@ function About() {
                 <div className="mb-16">
                     <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
                         <div>
-                            <h2 className="mb-6 text-3xl font-bold text-gray-900">Notre Histoire</h2>
-                            <div className="space-y-4 text-gray-600">
+                            <h2 className="mb-6 text-3xl font-bold text-gray-900 dark:text-white">Notre Histoire</h2>
+                            <div className="space-y-4 text-gray-600 dark:text-gray-400">
                                 <p>
                                     Fondée en 2024 au Cameroun, Vide Dressing est née d'un constat simple : les Camerounais ont besoin d'une plateforme
                                     locale pour acheter et vendre des vêtements de qualité à prix abordables.
@@ -118,7 +118,7 @@ function About() {
 
                 {/* Nos Valeurs */}
                 <div className="mb-16 ">
-                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nos Valeurs</h2>
+                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white">Nos Valeurs</h2>
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                         {values.map((value, index) => (
                             <Card key={index} className="p-6 text-center transition-shadow hover:shadow-lg">
@@ -127,7 +127,7 @@ function About() {
                                     <CardTitle className="text-xl font-semibold">{value.title}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-gray-600">{value.description}</p>
+                                    <p className="text-gray-600 dark:text-gray-400">{value.description}</p>
                                 </CardContent>
                             </Card>
                         ))}
@@ -136,15 +136,15 @@ function About() {
 
                 {/* Notre Équipe */}
                 <div className="mb-16">
-                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Notre Équipe</h2>
+                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white">Notre Équipe</h2>
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                         {team.map((member, index) => (
                             <Card key={index} className="overflow-hidden text-center transition-shadow hover:shadow-lg">
                                 <div className="p-6">
                                     <img src={member.image} alt={member.name} className="mx-auto mb-4 h-32 w-32 rounded-full object-cover" />
-                                    <h3 className="mb-2 text-xl font-semibold text-gray-900">{member.name}</h3>
+                                    <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">{member.name}</h3>
                                     <p className="text-primary mb-4 font-medium">{member.role}</p>
-                                    <p className="text-sm text-gray-600">{member.description}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{member.description}</p>
                                 </div>
                             </Card>
                         ))}

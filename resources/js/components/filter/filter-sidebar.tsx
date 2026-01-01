@@ -44,9 +44,9 @@ export const FilterSidebar = ({
   categories
 }: FilterSidebarProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg">Filtres</h3>
+        <h3 className="font-semibold text-lg dark:text-white">Filtres</h3>
         <Button variant="ghost" size="sm" onClick={resetFilters} className="text-sm h-8 px-2 hover:text-primary">
           Réinitialiser
         </Button>

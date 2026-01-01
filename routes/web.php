@@ -14,6 +14,8 @@ use App\Http\Controllers\Review\ProductReviewController;
 use App\Http\Controllers\Review\ShopReviewController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Delivery\DeliveryController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\NotificationController;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -24,7 +26,7 @@ use Inertia\Inertia;
 Route::get('/', function () {
     $latestProducts = Product::with(['category', 'shop', 'user', 'reviews'])
         ->orderBy('created_at', 'desc')
-        ->take(4)
+        ->take(3)
         ->get();
     // Générer les URLs temporaires pour chaque produit
     $latestProducts->transform(function ($product) {
@@ -47,22 +49,9 @@ Route::get('features', function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
-    Route::get('dashboard', function () {
-        $user = auth()->user();
-        $products = Product::with(['user','category'])->orderBy('created_at', 'desc')->where('user_id', $user->id)->get();
-        $products->transform(function ($product) {
-            $images = $product->images()->get();
-            $imagesUrls = [];
-            foreach ($images as $image) {
-                $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
-            }
-            $product->images = $imagesUrls;
-            return $product;
-        });
-        return Inertia::render('vendor/dashboard', [
-            'products' => $products,
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\Vendor\VendorDashboardController::class, 'index'])->name('dashboard');
+    Route::post('vendor/shop', [App\Http\Controllers\Vendor\VendorDashboardController::class, 'createShop'])->name('vendor.shop.create');
+    Route::put('vendor/shop', [App\Http\Controllers\Vendor\VendorDashboardController::class, 'updateShop'])->name('vendor.shop.update');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::resource('products', ProductController::class);
     Route::resource('marketplace', MarketplaceController::class);
@@ -86,7 +75,72 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
             'users' => User::all(),
         ]);
     })->name('admin');
-    Route::get('/admin/users', [RegisteredUserController::class, 'index']);
+    
+    // User management routes
+    Route::get('/admin/users', [App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::post('/admin/users', [App\Http\Controllers\Admin\AdminUserController::class, 'store'])->name('admin.users.store');
+    Route::put('/admin/users/{user}', [App\Http\Controllers\Admin\AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::patch('/admin/users/{user}/role', [App\Http\Controllers\Admin\AdminUserController::class, 'updateRole'])->name('admin.users.update-role');
+    Route::post('/admin/users/{user}/block', [App\Http\Controllers\Admin\AdminUserController::class, 'block'])->name('admin.users.block');
+    Route::post('/admin/users/{user}/unblock', [App\Http\Controllers\Admin\AdminUserController::class, 'unblock'])->name('admin.users.unblock');
+    Route::delete('/admin/users/{user}', [App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+
+    // Delivery management routes
+    Route::get('/admin/deliveries', [App\Http\Controllers\Admin\AdminDeliveryController::class, 'index'])->name('admin.deliveries.index');
+    Route::get('/admin/deliveries/{delivery}', [App\Http\Controllers\Admin\AdminDeliveryController::class, 'show'])->name('admin.deliveries.show');
+    Route::post('/admin/deliveries/{delivery}/approve', [App\Http\Controllers\Admin\AdminDeliveryController::class, 'approve'])->name('admin.deliveries.approve');
+    Route::post('/admin/deliveries/{delivery}/reject', [App\Http\Controllers\Admin\AdminDeliveryController::class, 'reject'])->name('admin.deliveries.reject');
+    Route::post('/admin/deliveries/{delivery}/suspend', [App\Http\Controllers\Admin\AdminDeliveryController::class, 'suspend'])->name('admin.deliveries.suspend');
+
+    // Blog management routes
+    Route::get('/admin/blogs', [App\Http\Controllers\Admin\AdminBlogController::class, 'index'])->name('admin.blogs.index');
+    Route::get('/admin/blogs/create', [App\Http\Controllers\Admin\AdminBlogController::class, 'create'])->name('admin.blogs.create');
+    Route::post('/admin/blogs', [App\Http\Controllers\Admin\AdminBlogController::class, 'store'])->name('admin.blogs.store');
+    Route::get('/admin/blogs/{blog}/edit', [App\Http\Controllers\Admin\AdminBlogController::class, 'edit'])->name('admin.blogs.edit');
+    Route::put('/admin/blogs/{blog}', [App\Http\Controllers\Admin\AdminBlogController::class, 'update'])->name('admin.blogs.update');
+    Route::delete('/admin/blogs/{blog}', [App\Http\Controllers\Admin\AdminBlogController::class, 'destroy'])->name('admin.blogs.destroy');
+    Route::post('/admin/blogs/{blog}/publish', [App\Http\Controllers\Admin\AdminBlogController::class, 'publish'])->name('admin.blogs.publish');
+    Route::post('/admin/blogs/{blog}/archive', [App\Http\Controllers\Admin\AdminBlogController::class, 'archive'])->name('admin.blogs.archive');
+    Route::post('/admin/blogs/{blog}/toggle-featured', [App\Http\Controllers\Admin\AdminBlogController::class, 'toggleFeatured'])->name('admin.blogs.toggle-featured');
+    Route::post('/admin/blogs/upload-image', [App\Http\Controllers\Admin\AdminBlogController::class, 'uploadImage'])->name('admin.blogs.upload-image');
+
+    // Newsletter management routes
+    Route::get('/admin/newsletters', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'index'])->name('admin.newsletters.index');
+    Route::get('/admin/newsletters/create', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'create'])->name('admin.newsletters.create');
+    Route::post('/admin/newsletters', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'store'])->name('admin.newsletters.store');
+    Route::get('/admin/newsletters/subscribers', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'subscribers'])->name('admin.newsletters.subscribers');
+    Route::get('/admin/newsletters/subscribers/export', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'exportSubscribers'])->name('admin.newsletters.subscribers.export');
+    Route::patch('/admin/newsletters/subscribers/{subscriber}', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'updateSubscriber'])->name('admin.newsletters.subscribers.update');
+    Route::delete('/admin/newsletters/subscribers/{subscriber}', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'destroySubscriber'])->name('admin.newsletters.subscribers.destroy');
+    Route::get('/admin/newsletters/{newsletter}/edit', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'edit'])->name('admin.newsletters.edit');
+    Route::put('/admin/newsletters/{newsletter}', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'update'])->name('admin.newsletters.update');
+    Route::delete('/admin/newsletters/{newsletter}', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'destroy'])->name('admin.newsletters.destroy');
+    Route::post('/admin/newsletters/{newsletter}/send', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'send'])->name('admin.newsletters.send');
+    Route::get('/admin/newsletters/{newsletter}/preview', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'preview'])->name('admin.newsletters.preview');
+    Route::post('/admin/newsletters/send-test', [App\Http\Controllers\Admin\AdminNewsletterController::class, 'sendTest'])->name('admin.newsletters.send-test');
+
+    // Moderation routes
+    Route::get('/admin/moderation', [App\Http\Controllers\Admin\AdminModerationController::class, 'index'])->name('admin.moderation.index');
+    
+    // Product review moderation
+    Route::post('/admin/moderation/product-reviews/{review}/approve', [App\Http\Controllers\Admin\AdminModerationController::class, 'approveProductReview'])->name('admin.moderation.product-reviews.approve');
+    Route::post('/admin/moderation/product-reviews/{review}/reject', [App\Http\Controllers\Admin\AdminModerationController::class, 'rejectProductReview'])->name('admin.moderation.product-reviews.reject');
+    Route::delete('/admin/moderation/product-reviews/{review}', [App\Http\Controllers\Admin\AdminModerationController::class, 'deleteProductReview'])->name('admin.moderation.product-reviews.delete');
+    Route::delete('/admin/moderation/product-review-reports/{report}', [App\Http\Controllers\Admin\AdminModerationController::class, 'dismissProductReviewReport'])->name('admin.moderation.product-review-reports.dismiss');
+    
+    // Shop review moderation
+    Route::post('/admin/moderation/shop-reviews/{review}/approve', [App\Http\Controllers\Admin\AdminModerationController::class, 'approveShopReview'])->name('admin.moderation.shop-reviews.approve');
+    Route::post('/admin/moderation/shop-reviews/{review}/reject', [App\Http\Controllers\Admin\AdminModerationController::class, 'rejectShopReview'])->name('admin.moderation.shop-reviews.reject');
+    Route::delete('/admin/moderation/shop-reviews/{review}', [App\Http\Controllers\Admin\AdminModerationController::class, 'deleteShopReview'])->name('admin.moderation.shop-reviews.delete');
+    Route::delete('/admin/moderation/shop-review-reports/{report}', [App\Http\Controllers\Admin\AdminModerationController::class, 'dismissShopReviewReport'])->name('admin.moderation.shop-review-reports.dismiss');
+    
+    // Product moderation
+    Route::post('/admin/moderation/products/{product}/approve', [App\Http\Controllers\Admin\AdminModerationController::class, 'approveProduct'])->name('admin.moderation.products.approve');
+    Route::post('/admin/moderation/products/{product}/reject', [App\Http\Controllers\Admin\AdminModerationController::class, 'rejectProduct'])->name('admin.moderation.products.reject');
+    
+    // User moderation
+    Route::post('/admin/moderation/users/{user}/block', [App\Http\Controllers\Admin\AdminModerationController::class, 'blockUser'])->name('admin.moderation.users.block');
+    Route::post('/admin/moderation/users/{user}/unblock', [App\Http\Controllers\Admin\AdminModerationController::class, 'unblockUser'])->name('admin.moderation.users.unblock');
 });
 
 Route::middleware('auth')->group(function () {
@@ -98,6 +152,20 @@ Route::middleware('auth')->group(function () {
     Route::get('delivery/{id}/edit', [DeliveryController::class, 'edit'])->name('delivery.edit');
     Route::patch('delivery/{id}', [DeliveryController::class, 'update'])->name('delivery.update');
 
+    // Notifications routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
+    
+    // API routes for notifications (AJAX calls from dropdown)
+    Route::get('/api/notifications', [NotificationController::class, 'apiIndex'])->name('api.notifications');
+    Route::get('/api/notifications/unread-count', [NotificationController::class, 'apiUnreadCount'])->name('api.notifications.unread-count');
+    Route::post('/api/notifications/{id}/read', [NotificationController::class, 'apiMarkAsRead'])->name('api.notifications.read');
+    Route::post('/api/notifications/read-all', [NotificationController::class, 'apiMarkAllAsRead'])->name('api.notifications.read-all');
+    Route::delete('/api/notifications/{id}', [NotificationController::class, 'apiDestroy'])->name('api.notifications.destroy');
+
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/users', [ChatController::class, 'users'])->name('chat.users');
@@ -105,6 +173,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/start/{user}', [ChatController::class, 'startConversation'])->name('chat.start');
     Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.message');
+    Route::post('/chat/{conversation}/typing', [ChatController::class, 'typing'])->name('chat.typing');
+    Route::get('/chat/{conversation}/online-status', [ChatController::class, 'getOnlineStatus'])->name('chat.online-status');
 
     // Cart routes
     Route::resource('cart', CartController::class)->only(['store']);
@@ -151,6 +221,13 @@ Route::resource('marketplace', MarketplaceController::class)->only(['index', 'sh
 Route::resource('products', ProductController::class)->only(['index', 'show']);
 Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
+
+// Newsletter subscription routes (public)
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
+Route::get('/newsletter/view/{newsletter}', [NewsletterController::class, 'view'])->name('newsletter.view');
+Route::get('/newsletter/status', [NewsletterController::class, 'status'])->name('newsletter.status')->middleware('auth');
+
 Route::get('/contact', function () {
     return Inertia::render('contact');
 });

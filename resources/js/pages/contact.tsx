@@ -43,8 +43,8 @@ function Contact() {
                 <div className="">
                     {/* Header */}
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">Contactez-nous</h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Contactez-nous</h1>
+                        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                             Nous sommes là pour vous aider ! N'hésitez pas à nous contacter pour toute question ou demande d'information.
                         </p>
                     </div>
@@ -63,8 +63,8 @@ function Contact() {
                                     <div className="flex items-start space-x-3">
                                         <MapPin className="h-5 w-5 text-primary mt-1" />
                                         <div>
-                                            <h4 className="font-medium">Adresse</h4>
-                                            <p className="text-sm text-gray-600">
+                                            <h4 className="font-medium dark:text-white">Adresse</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 123 Avenue de la Mode<br />
                                                 Yaoundé, Cameroun
                                             </p>
@@ -74,16 +74,16 @@ function Contact() {
                                     <div className="flex items-start space-x-3">
                                         <Phone className="h-5 w-5 text-primary mt-1" />
                                         <div>
-                                            <h4 className="font-medium">Téléphone</h4>
-                                            <p className="text-sm text-gray-600">+237 656 92 19 21</p>
+                                            <h4 className="font-medium dark:text-white">Téléphone</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">+237 656 92 19 21</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-start space-x-3">
                                         <Mail className="h-5 w-5 text-primary mt-1" />
                                         <div>
-                                            <h4 className="font-medium">Email</h4>
-                                            <p className="text-sm text-gray-600">contact@videdressing.sn</p>
+                                            <h4 className="font-medium dark:text-white">Email</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">contact@videdressing.sn</p>
                                         </div>
                                     </div>
 

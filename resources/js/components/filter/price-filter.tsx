@@ -24,8 +24,8 @@ export const PriceFilter = ({ priceRange, setPriceRange, maxPrice }: PriceFilter
         className="my-6"
       />
       <div className="flex items-center justify-between mt-2">
-        <span className="bg-gray-100 px-3 py-1 rounded">{formatPrice(priceRange[0])}</span>
-        <span className="bg-gray-100 px-3 py-1 rounded">{formatPrice(priceRange[1])}</span>
+        <span className=" px-3 py-1 rounded">{formatPrice(priceRange[0])}</span>
+        <span className=" px-3 py-1 rounded">{formatPrice(priceRange[1])}</span>
       </div>
     </div>
   );
