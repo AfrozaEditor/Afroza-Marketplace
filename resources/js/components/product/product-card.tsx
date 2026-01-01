@@ -51,7 +51,7 @@ function ProductCard({product}: Props) {
             `}
         >
             <Link href={route('products.show', product.slug)} className="block">
-                <Card className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 pt-0">
+                <Card className="bg-white dark:bg-neutral-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 pt-0">
                     <div className="relative h-48 overflow-hidden group">
                         <img
                             src={product.images && product.images.length > 0
@@ -64,7 +64,7 @@ function ProductCard({product}: Props) {
                             <Button
                                 // className="bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md"
                                 onClick={handleFavorite}
-                                className={isFavorite ? 'bg-primary p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md' : 'bg-white p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md'}
+                                className={isFavorite ? 'bg-primary p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md' : 'bg-white dark:bg-neutral-700 p-2 rounded-full text-teal-primary hover:text-teal-secondary transition-colors shadow-md'}
 
                             >
                                 <Heart size={20} />
@@ -80,12 +80,12 @@ function ProductCard({product}: Props) {
                         </div>
                     </div>
                     <CardHeader>
-                        <CardTitle className='text-xl'>{product.name}</CardTitle>
+                        <CardTitle className='text-xl dark:text-white'>{product.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex justify-between">
                         <div className="flex flex-col">
                             <span className="font-bold text-teal-600 text-xl">{product.price} FCFA</span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {/* {Math.round(12 * 0.8).toLocaleString()} XAF with code */}
                                 PAR {product.user.name.toUpperCase()}
                             </span>

@@ -51,6 +51,8 @@ const [selectedConversation, setSelectedConversation] = useState<Conversation | 
 const [messages, setMessages] = useState<Message[]>([]);
   const [showMobileChat, setShowMobileChat] = useState(false);
 const [isSending, setIsSending] = useState(false);
+const [onlineUserIds, setOnlineUserIds] = useState<number[]>([]);
+const [conversationList, setConversationList] = useState<Conversation[]>(conversations);
 const { data, setData, post, processing, reset } = useForm({
     content: '',
   });
@@ -58,6 +60,38 @@ const { data, setData, post, processing, reset } = useForm({
   const page = usePage();
   const urlParams = new URLSearchParams(window.location.search);
   const conversationIdFromUrl = urlParams.get('conversation');
+
+  // Écouter le canal global "online" pour les statuts en ligne
+  useEffect(() => {
+    if (!window.Echo) return;
+
+    const onlineChannel = window.Echo.join('online');
+
+    onlineChannel.here((users: { id: number }[]) => {
+      setOnlineUserIds(users.map(u => u.id));
+    });
+
+    onlineChannel.joining((user: { id: number }) => {
+      setOnlineUserIds(prev => [...prev, user.id]);
+    });
+
+    onlineChannel.leaving((user: { id: number }) => {
+      setOnlineUserIds(prev => prev.filter(id => id !== user.id));
+    });
+
+    return () => {
+      window.Echo.leave('online');
+    };
+  }, []);
+
+  // Mettre à jour la liste des conversations avec le statut en ligne
+  useEffect(() => {
+    const authUser = page.props.auth as { user?: { id: number } } | undefined;
+    setConversationList(conversations.map(conv => ({
+      ...conv,
+      online: onlineUserIds.some(id => id !== authUser?.user?.id)
+    })));
+  }, [conversations, onlineUserIds, page.props.auth]);
 
   useEffect(() => {
     if (conversationIdFromUrl && conversations.length > 0) {
@@ -70,7 +104,7 @@ const { data, setData, post, processing, reset } = useForm({
     // eslint-disable-next-line
   }, [conversationIdFromUrl, conversations]);
 
-  const filteredConversations = conversations.filter(conversation =>
+  const filteredConversations = conversationList.filter(conversation =>
     conversation.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -152,12 +186,13 @@ const { data, setData, post, processing, reset } = useForm({
 
     setIsSending(true);
 
-    const optimisticMessage = {
-        id: `temp_${Date.now()}`,
+    const optimisticMessage: Message = {
+        id: Date.now(),
         content: content,
         created_at: new Date().toISOString(),
         is_mine: true,
-        conversation_id: selectedConversation.id
+        conversation_id: selectedConversation.id,
+        user: {} as any // Placeholder pour l'utilisateur
     };
 
     setMessages(prev => [...prev, optimisticMessage]);
@@ -275,11 +310,11 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
     <AppLayout>
       <Head title="Messagerie" />
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded-xl shadow-sm overflow-hidden">
           <div className="flex h-[calc(100vh-20rem)]">
             {/* Liste des conversations */}
-            <div className={`w-full md:w-1/3 border-r ${showMobileChat ? 'hidden md:block' : ''}`}>
-              <div className="p-4 border-b">
+            <div className={`w-full md:w-1/3 border-r dark:border-neutral-700 ${showMobileChat ? 'hidden md:block' : ''}`}>
+              <div className="p-4 border-b dark:border-neutral-700">
                 <div className="relative">
                   <Input
                     type="text"
@@ -294,7 +329,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
 
               <div className="overflow-y-auto h-[calc(100vh-24rem)]">
                 {filteredConversations.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     Aucune conversation trouvée
                   </div>
                 ) : (
@@ -310,8 +345,8 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                           replace: true // Remplace l'URL sans ajouter à l'historique
                         });
                       }}
-                      className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-                        selectedConversation?.id === conversation.id ? 'bg-gray-100' : ''
+                      className={`p-4 border-b dark:border-neutral-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors ${
+                        selectedConversation?.id === conversation.id ? 'bg-gray-100 dark:bg-neutral-700' : ''
                       }`}
                     >
                       <div className="flex items-center">
@@ -327,9 +362,9 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                         </div>
                         <div className="ml-4 flex-1">
                           <div className="flex justify-between items-start">
-                            <h3 className="font-medium">{conversation.name}</h3>
+                            <h3 className="font-medium dark:text-white">{conversation.name}</h3>
                             {conversation.last_message && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {formatDistanceToNow(new Date(conversation.last_message.created_at), {
                                   addSuffix: true,
                                   locale: fr
@@ -339,7 +374,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                           </div>
                           {conversation.last_message &&
                           (
-                            <p className="text-sm text-gray-500 truncate">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                               {conversation.last_message.is_mine ? 'Vous: ' : ''}
                               {conversation.last_message.content}
                             </p>
@@ -368,7 +403,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                 />
 
               ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500">
+                <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
                   Sélectionnez une conversation pour commencer
                 </div>
               )}

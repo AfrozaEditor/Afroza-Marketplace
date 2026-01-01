@@ -7,18 +7,28 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-Broadcast::channel('chat.{id}', function ($user, $id) {
-    return auth()->check() && $user->conversations()->where('conversations.id', $id)->exists();
+// Canal de présence pour le chat (permet de voir qui est en ligne)
+Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
+    if ($user->conversations()->where('conversations.id', $conversationId)->exists()) {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+        ];
+    }
+    return false;
 });
-//Broadcast::channel('chat.{id}', function ($user, $id) {
-//    return (int) $user->id === (int) $id;
-//});
 
-//Broadcast::channel('chat.{conversation_id}', function ($user, $conversation_id) {
-//    return Conversation::find($conversation_id)
-//        ->participants()
-//        ->where('user_id', $user->id)
-//        ->exists();
-//});
+// Canal de présence pour les utilisateurs en ligne globalement
+Broadcast::channel('online', function ($user) {
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+    ];
+});
+
+// Canal privé pour les notifications utilisateur
+Broadcast::channel('user.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
 
 

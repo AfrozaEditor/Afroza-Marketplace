@@ -31,16 +31,16 @@ const features: Feature[] = [
 
 const Features = () => {
   return (
-    <section className="py-12 md:py-16 bg-gray-50">
+    <section className="py-12 md:py-16 bg-gray-50 dark:bg-neutral-900">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="text-center">
-              <div className="bg-white w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 shadow-md text-primary">
+              <div className="bg-white dark:bg-neutral-800 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 shadow-md text-primary">
                 {feature.icon}
               </div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-lg font-semibold mb-2 dark:text-white">{feature.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
             </div>
           ))}
         </div>

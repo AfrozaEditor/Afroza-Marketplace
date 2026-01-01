@@ -34,13 +34,21 @@ class Delivery extends Model
         'insurance_certificate',
         'url_insurance_certificate',
         'delivery_experience',
-        'statut'
+        'statut',
+        'rejection_reason',
+        'suspension_reason',
+        'approved_at',
+        'rejected_at',
+        'suspended_at',
     ];
 
     protected $casts = [
         'delivery_latitude' => 'decimal:8',
         'delivery_longitude' => 'decimal:8',
         'delivery_radius_km' => 'decimal:2',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'suspended_at' => 'datetime',
     ];
 
     /**

@@ -37,6 +37,11 @@ class ShopReview extends Model
         return $this->belongsTo(Shop::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function votes(): HasMany
     {
         return $this->hasMany(ShopReviewVote::class, 'review_id');

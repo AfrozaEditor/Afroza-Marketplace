@@ -60,10 +60,10 @@ const categories = [
 ];
 
 const categoryImages = {
-    "Hommes": "/google.png",
-    "Femmes": "",
-    "Chaussures": "",
-    "Accessoires": ""
+    "Hommes": "/cat_hommes.webp",
+    "Femmes": "/cat_femmes.jpeg",
+    "Chaussures": "/cat_chaussures.webp",
+    "Accessoires": "/cat_accessoires.webp"
 }
 
 function Home({latestProducts, categories}: Props) {
@@ -124,7 +124,7 @@ function Home({latestProducts, categories}: Props) {
             {/*    /!* Ajoutez ici le reste du contenu de votre page d'accueil *!/*/}
             {/*</div>*/}
             <div className="mx-auto container px-4">
-                <h2 className="text-3xl font-bold text-center mb-6">Nos Catégories</h2>
+                <h2 className="text-3xl font-bold text-center mb-6 dark:text-white">Nos Catégories</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {categories.map((category) => (
                         <Link
@@ -160,8 +160,8 @@ function Home({latestProducts, categories}: Props) {
                         </Link>
                     ))}
                 </div>
-                <h2 className="text-3xl font-bold text-center my-6">Nouveautés</h2>
-                 <ListProduct products={latestProducts} className='md:grid-cols-4'/>
+                <h2 className="text-3xl font-bold text-center my-6 dark:text-white">Nouveautés</h2>
+                 <ListProduct products={latestProducts}/>
             </div>
             <Features/>
             <NewsLetter/>

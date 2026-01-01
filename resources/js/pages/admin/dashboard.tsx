@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
-import { Activity, BarChart3, ShoppingBag, Users } from 'lucide-react';
+import { Activity, BarChart3, ShoppingBag, Users, Truck } from 'lucide-react';
 import Heading from '@/components/heading';
 import { User } from '@/types';
 
@@ -23,10 +23,12 @@ function Dashboard({users}: Props) {
 
     const adminOptions = [
         { title: "Gestion des Utilisateurs", description: "Visualiser, modifier ou suspendre des comptes utilisateurs.", action: <Link href="/admin/users">Gérer les utilisateurs</Link> },
+        { title: "Gestion des Livreurs", description: "Approuver, rejeter ou suspendre les profils des livreurs.", action: <Link href="/admin/deliveries">Gérer les livreurs</Link> },
+        { title: "Gestion des Blogs", description: "Créer, modifier et publier des articles de blog.", action: <Link href="/admin/blogs">Gérer les blogs</Link> },
+        { title: "Gestion des Newsletters", description: "Créer, modifier et publier des articles de newsletter.", action: <Link href="/admin/newsletters">Gérer les newsletters</Link> },
         { title: "Paramètres de la Plateforme", description: "Configurer les options globales de l'application.", action: <Link href="">Accéder aux paramètres</Link>},
-        { title: "Gestion des Blogs", description: "Visualiser, modifier ou suspendre des comptes utilisateurs.", action: <Link href="">Gérer les blog</Link> },
         { title: "Rapports et Analyses", description: "Consulter les statistiques détaillées de la plateforme.", action: <Link href="">Voir les rapports</Link>},
-        { title: "Modération de Contenu", description: "Gérer les signalements et le contenu publié.", action: <Link href="">Modérer le contenu</Link>},
+        { title: "Modération de Contenu", description: "Gérer les signalements et le contenu publié.", action: <Link href="/admin/moderation">Modérer le contenu</Link>},
     ];
 
     return (

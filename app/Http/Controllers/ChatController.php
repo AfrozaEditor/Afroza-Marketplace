@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Events\NewMessage;
+use App\Events\UserTyping;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Notifications\NewMessage as NewMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -438,6 +440,17 @@ $conversations = Auth::user()->conversations()
                 \Log::info('Tentative de broadcasting');
                 broadcast(new NewMessage($messageData, $conversation->id))->toOthers();
                 \Log::info('Broadcasting réussi');
+                
+                // Envoyer des notifications aux autres participants
+                $otherParticipants = $conversation->participants()
+                    ->where('user_id', '!=', Auth::id())
+                    ->get();
+                
+                foreach ($otherParticipants as $participant) {
+                    $participant->notify(new NewMessageNotification($message, Auth::user(), $conversation->id));
+                }
+                \Log::info('Notifications envoyées', ['participants_count' => $otherParticipants->count()]);
+                
             } catch (\Exception $broadcastError) {
                 \Log::error('Erreur de broadcasting', [
                     'error' => $broadcastError->getMessage(),
@@ -503,6 +516,51 @@ $conversations = Auth::user()->conversations()
 
         // return redirect()->route('chat.index', $conversation->id);
        return redirect()->route('chat.index', ['conversation' => $conversation->id]);
+    }
+
+    /**
+     * Broadcast typing status to conversation participants
+     */
+    public function typing(Request $request, Conversation $conversation)
+    {
+        // Vérifier que l'utilisateur fait partie de la conversation
+        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+            return response()->json(['error' => 'Non autorisé'], 403);
+        }
+
+        $validated = $request->validate([
+            'is_typing' => 'required|boolean',
+        ]);
+
+        broadcast(new UserTyping(
+            Auth::id(),
+            Auth::user()->name,
+            $conversation->id,
+            $validated['is_typing']
+        ))->toOthers();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get online status for conversation participants
+     */
+    public function getOnlineStatus(Conversation $conversation)
+    {
+        // Vérifier que l'utilisateur fait partie de la conversation
+        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+            return response()->json(['error' => 'Non autorisé'], 403);
+        }
+
+        // Cette fonctionnalité utilise les presence channels côté frontend
+        // Le backend retourne simplement les participants
+        $participants = $conversation->participants()
+            ->where('user_id', '!=', Auth::id())
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'participants' => $participants,
+        ]);
     }
 
 }

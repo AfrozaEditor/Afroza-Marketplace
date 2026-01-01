@@ -13,7 +13,7 @@ function ListProduct({ products, className }:Props) {
 
     return (
         <div
-            className={cn(`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-opacity duration-500 w-full`,className)}
+            className={cn(`grid grid-cols-1 lg:grid-cols-3 gap-4 transition-opacity duration-500 w-full`,className)}
         >
             {products.map((product) => (
                 <ProductCard

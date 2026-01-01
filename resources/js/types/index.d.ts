@@ -102,6 +102,13 @@ export interface Shop {
     created_at: string;
     logo: string;
     cover_image: string;
+    address?: string;
+    city?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    facebook?: string;
+    instagram?: string;
     followers: User[];
     reviews: ShopReview[];
     user_review?: ShopReview | null;
@@ -113,6 +120,24 @@ export interface Message {
   created_at: string;
   user: User;
   is_mine: boolean;
+  conversation_id?: number;
+}
+
+export interface Article {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    featured_image: string;
+    category: string | null;
+    tags: string[];
+    status: string;
+    read_time: number;
+    featured: boolean;
+    views: number;
+    published_at: string;
+    author?: User;
 }
 
 export interface Notification {

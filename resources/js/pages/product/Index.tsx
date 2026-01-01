@@ -152,14 +152,14 @@ const handlePageChange = (url: string) => {
     return (
         <AppLayout>
             {/* Page header */}
-            <div className="bg-gray-50 py-8">
+            <div className="bg-gray-50 dark:bg-neutral-900 py-8">
                 <div
                     className="container mx-auto px-4"
                 >
-                    <h1 className="text-3xl font-bold mb-2">Articles Disponibles</h1>
-                    <p className="text-gray-600">Découvrez notre collection d'articles de mode de seconde main.</p>
+                    <h1 className="text-3xl font-bold mb-2 dark:text-white">Articles Disponibles</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Découvrez notre collection d'articles de mode de seconde main.</p>
 
-                    <div className="mt-8 bg-white rounded-lg shadow-sm p-4">
+                    <div className="mt-8 bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4">
                         <div className="flex flex-wrap gap-4 items-center justify-between">
                             <div className="relative flex-grow max-w-md">
                                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -174,7 +174,7 @@ const handlePageChange = (url: string) => {
 
                             <div className="flex items-center gap-3">
                                 <select
-                                    className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="border rounded p-2 focus:outline-none focus:ring-1 focus:ring-primary dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
                                 >
@@ -213,8 +213,8 @@ const handlePageChange = (url: string) => {
                 </div>
                 <div className="w-full">
                     <div className="mb-6 flex justify-between items-center">
-                        <h2 className="text-xl font-semibold">Produits ({products.data.length})</h2>
-                        <div className="text-sm text-gray-500">
+                        <h2 className="text-xl font-semibold dark:text-white">Produits ({products.data.length})</h2>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                             {products.data.length} résultats
                         </div>
                     </div>

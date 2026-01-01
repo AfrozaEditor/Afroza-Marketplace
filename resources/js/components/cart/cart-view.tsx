@@ -22,8 +22,8 @@ function CartView({cart}:Props) {
         return (
             <div className="text-center py-12">
                 <ShoppingCart size={64} className="mx-auto text-gray-400 mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Votre panier est vide</h2>
-                <p className="text-gray-600 mb-6">Parcourez nos articles et trouvez votre bonheur !</p>
+                <h2 className="text-2xl font-semibold mb-2 dark:text-white">Votre panier est vide</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Parcourez nos articles et trouvez votre bonheur !</p>
                 <Button asChild>
                     <Link href="/products">Continuer les achats</Link>
                 </Button>
