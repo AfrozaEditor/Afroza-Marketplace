@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class BlogController extends Controller
@@ -30,6 +31,14 @@ class BlogController extends Controller
             ->whereNotNull('category')
             ->distinct()
             ->pluck('category');
+        
+        foreach ($blogs as $blog) {
+            if ($blog->featured_image) {
+                $featured_image_url = Storage::disk('s3')->temporaryUrl($blog->featured_image, now()->addMinutes(5));
+                $blog->featured_image = $featured_image_url;
+            }
+        }
+
         
         return Inertia::render('blog/Index', [
             'blogs' => $blogs,
@@ -60,6 +69,10 @@ class BlogController extends Controller
             })
             ->take(3)
             ->get();
+        
+        if ($blog->featured_image) {
+            $blog->featured_image_url = Storage::disk('s3')->temporaryUrl($blog->featured_image, now()->addMinutes(5));
+        }
         
         return Inertia::render('blog/Show', [
             'blog' => $blog,

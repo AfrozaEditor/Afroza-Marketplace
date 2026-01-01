@@ -23,7 +23,9 @@ import { formatDate } from '@/lib/utils';
 import NewsLetter from '@/components/home/news-letter';
 
 interface Props {
-    blog: Article;
+    blog: Article & {
+        featured_image_url?: string;
+    };
     relatedBlogs: Article[];
 }
 
@@ -59,6 +61,8 @@ export default function Show({ blog, relatedBlogs }: Props) {
             window.open(url, '_blank', 'width=600,height=400');
         }
     };
+
+    console.log(blog.featured_image_url)
 
     return (
         <AppLayout>
@@ -132,7 +136,7 @@ export default function Show({ blog, relatedBlogs }: Props) {
                     <div className="max-w-5xl mx-auto mb-10">
                         <div className="aspect-video relative rounded-xl overflow-hidden">
                             <img
-                                src={blog.featured_image}
+                                src={blog.featured_image_url}
                                 alt={blog.title}
                                 className="w-full h-full object-cover"
                             />

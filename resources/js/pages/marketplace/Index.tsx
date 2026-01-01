@@ -10,10 +10,11 @@ import { MarketplaceFilters } from '@/components/filter/marketplace-filter';
 import Faq from '@/components/faq';
 
 interface Props {
-    shops: (Shop & {
+    shops:  {
+        data: Shop[];
         logo_url?: string;
         cover_image_url?: string;
-    })[];
+    };
     categories: Category[];
     filters?: {
       search?: string;
@@ -83,7 +84,7 @@ function Index({shops,categories,filters}: Props) {
   }, [searchTerm]);
 
   // Filter and search functionality
-  const filteredSellers = shops
+  const filteredSellers = shops.data
     .filter(shop => {
       // Search filter
       if (searchTerm && !shop.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -182,9 +183,9 @@ function Index({shops,categories,filters}: Props) {
               </div>
                 <div className="w-full" id='boutiques'>
                 <div className="mb-6 flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Boutiques ({shops.length})</h2>
+                    <h2 className="text-xl font-semibold">Boutiques ({shops.data.length})</h2>
                     <div className="text-sm text-gray-500">
-                        {shops.length} résultats
+                        {shops.data.length} résultats
                     </div>
                 </div>
 
@@ -193,7 +194,7 @@ function Index({shops,categories,filters}: Props) {
                         <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-all">
                             <div className="relative h-48 overflow-hidden">
                                 <img
-                                    src={shop.cover_image_url}
+                                    src={shop.cover_image}
                                     alt={shop.name}
                                     className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
                                 />
