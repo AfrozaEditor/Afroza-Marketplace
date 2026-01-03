@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Delivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -29,7 +30,7 @@ class DeliveryProfileApproved extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', 'broadcast'];
     }
 
     /**
@@ -55,10 +56,25 @@ class DeliveryProfileApproved extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
+            'title' => '🎉 Profil approuvé !',
             'type' => 'delivery_profile_approved',
             'delivery_id' => $this->delivery->id,
             'message' => 'Votre profil livreur a été approuvé ! Vous pouvez maintenant commencer à livrer.',
             'action_url' => '/delivery-dashboard',
         ];
+    }
+
+    /**
+     * Get the broadcastable representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'title' => '🎉 Profil approuvé !',
+            'type' => 'delivery_profile_approved',
+            'delivery_id' => $this->delivery->id,
+            'message' => 'Votre profil livreur a été approuvé ! Vous pouvez maintenant commencer à livrer.',
+            'action_url' => '/delivery-dashboard',
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Delivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -31,7 +32,7 @@ class DeliveryProfileRejected extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', 'broadcast'];
     }
 
     /**
@@ -58,11 +59,27 @@ class DeliveryProfileRejected extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
+            'title' => 'Profil livreur rejeté',
             'type' => 'delivery_profile_rejected',
             'delivery_id' => $this->delivery->id,
-            'message' => 'Votre demande de profil livreur a été rejetée.',
+            'message' => 'Votre demande de profil livreur a été rejetée. Raison: ' . $this->reason,
             'reason' => $this->reason,
             'action_url' => '/delivery/register',
         ];
+    }
+
+    /**
+     * Get the broadcastable representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'title' => 'Profil livreur rejeté',
+            'type' => 'delivery_profile_rejected',
+            'delivery_id' => $this->delivery->id,
+            'message' => 'Votre demande de profil livreur a été rejetée. Raison: ' . $this->reason,
+            'reason' => $this->reason,
+            'action_url' => '/delivery/register',
+        ]);
     }
 }

@@ -14,8 +14,23 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->foreignId('delivery_id')->nullable()->constrained('deliveries')->cascadeOnDelete();
             $table->string('delivery_address')->nullable(); // Full delivery address
-            $table->decimal('delivery_address_latitude', 10, 8)->nullable(); // Latitude of delivery address
-            $table->decimal('delivery_address_longitude', 11, 8)->nullable(); // Longitude of delivery address
+            $table->decimal('delivery_address_latitude', 10, 8); // Latitude of delivery address
+            $table->decimal('delivery_address_longitude', 11, 8); // Longitude of delivery address
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
         });
     }
 

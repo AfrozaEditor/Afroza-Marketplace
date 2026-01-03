@@ -1,4 +1,4 @@
-import { Category, Product } from '@/types';
+import { Category, Image, Product } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -15,6 +15,23 @@ export function formatDateShort(date: string | Date): string {
 
 export function formatDate(date: string | Date): string {
     return format(new Date(date), 'dd MMMM yyyy', { locale: fr });
+}
+
+/**
+ * Get image URL from either a string or an Image object
+ */
+export function getImageUrl(image: string | Image | undefined): string {
+    if (!image) return '/placeholder.svg';
+    if (typeof image === 'string') return image;
+    return image.url || '/placeholder.svg';
+}
+
+/**
+ * Get first image URL from an array of images
+ */
+export function getFirstImageUrl(images: (string | Image)[] | undefined): string {
+    if (!images || images.length === 0) return '/placeholder.svg';
+    return getImageUrl(images[0]);
 }
 
 

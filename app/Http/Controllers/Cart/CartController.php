@@ -84,15 +84,20 @@ class CartController extends Controller
     public function myCart()
     {
         $user = auth()->user();
-        $cart = Cart::with('items')->where('user_id',$user->id)->first();
-        if(!$cart){
-            return 'Pas de panier';
+        $cart = Cart::with('items.product')->where('user_id', $user->id)->first();
+        
+        // Si pas de panier ou panier vide, créer un panier vide
+        if (!$cart) {
+            $cart = Cart::create([
+                'user_id' => $user->id,
+                'total_price' => 0,
+                'total_quantity' => 0
+            ]);
+            $cart->load('items.product');
         }
-        return Inertia::render('cart/Show',[
-            'cart' => $cart->load([
-                'items.product' // Ceci charge explicitement la relation product pour chaque item
-            ])
-            ,
+        
+        return Inertia::render('cart/Show', [
+            'cart' => $cart
         ]);
     }
 

@@ -25,6 +25,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'status',
+        'block_reason',
     ];
 
     /**
@@ -111,5 +113,29 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Shop::class, 'followed_shops')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the delivery profile for the user.
+     */
+    public function delivery(): HasOne
+    {
+        return $this->hasOne(Delivery::class);
+    }
+
+    /**
+     * Check if user is blocked.
+     */
+    public function isBlocked(): bool
+    {
+        return $this->status === 'blocked';
+    }
+
+    /**
+     * Check if user is a suspended delivery driver.
+     */
+    public function isSuspendedDelivery(): bool
+    {
+        return $this->delivery && $this->delivery->statut === 'suspendu';
     }
 }

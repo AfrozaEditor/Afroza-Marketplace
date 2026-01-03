@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, ArrowLeft, Smile } from 'lucide-react';
@@ -33,6 +34,8 @@ export default function ChatArea({
   onSendMessage,
   setShowMobileChat
 }: ChatAreaProps) {
+  const page = usePage();
+  const currentUserId = (page.props.auth as any)?.user?.id;
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -98,6 +101,9 @@ export default function ChatArea({
 
     // Écouter les événements de typing
     channel.listen('.user.typing', (data: { user_id: number; user_name: string; is_typing: boolean }) => {
+      // Ignorer si c'est l'utilisateur courant (au cas où toOthers() ne fonctionne pas)
+      if (data.user_id === currentUserId) return;
+      
       if (data.is_typing) {
         setTypingUsers(prev => {
           if (!prev.includes(data.user_name)) {

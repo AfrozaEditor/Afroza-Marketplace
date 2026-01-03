@@ -16,14 +16,60 @@ class MarketplaceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Shop::with('products','followers','reviews');
+        $query = Shop::with(['products', 'followers', 'reviews']);
 
-        if($request->filled('search')){
+        // Search filter
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
-                ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
+                  ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
             });
+        }
+
+        // Rating filter - filter shops with average rating >= min_rating
+        if ($request->filled('min_rating') && $request->min_rating > 0) {
+            $minRating = (float) $request->min_rating;
+            $query->whereHas('reviews', function($q) use ($minRating) {
+                $q->havingRaw('AVG(rating) >= ?', [$minRating]);
+            }, '>=', 1);
+        }
+
+        // Products count filter
+        if ($request->filled('min_products')) {
+            $minProducts = (int) $request->min_products;
+            $query->has('products', '>=', $minProducts);
+        }
+        if ($request->filled('max_products')) {
+            $maxProducts = (int) $request->max_products;
+            $query->has('products', '<=', $maxProducts);
+        }
+
+        // City filter
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'rating');
+        switch ($sortBy) {
+            case 'rating':
+                $query->withAvg('reviews', 'rating')->orderByDesc('reviews_avg_rating');
+                break;
+            case 'products':
+                $query->withCount('products')->orderByDesc('products_count');
+                break;
+            case 'followers':
+                $query->withCount('followers')->orderByDesc('followers_count');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'newest':
+                $query->orderByDesc('created_at');
+                break;
+            default:
+                $query->orderByDesc('created_at');
         }
 
         $shops = $query->paginate(6)->withQueryString();
@@ -31,20 +77,28 @@ class MarketplaceController extends Controller
         // Générer les URLs temporaires pour les logos et images de couverture
         foreach ($shops as $shop) {
             if ($shop->logo) {
-                $logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(5));
+                $logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(30));
                 $shop->logo = $logo_url;
             }
             if ($shop->cover_image) {
-                $cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(5));
+                $cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(30));
                 $shop->cover_image = $cover_image_url;
             }
         }
 
+        // Get all unique cities for filter
+        $cities = Shop::distinct()->pluck('city')->filter()->values();
 
-        return Inertia::render('marketplace/Index',[
+        return Inertia::render('marketplace/Index', [
             'shops' => $shops,
+            'cities' => $cities,
             'filters' => [
                 'search' => $request->get('search', ''),
+                'min_rating' => $request->get('min_rating', 0),
+                'min_products' => $request->get('min_products', 0),
+                'max_products' => $request->get('max_products', 200),
+                'city' => $request->get('city', ''),
+                'sort' => $request->get('sort', 'rating'),
             ]
         ]);
     }

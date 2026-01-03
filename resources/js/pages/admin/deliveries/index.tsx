@@ -71,10 +71,13 @@ interface Delivery {
     vehicle_plate: string | null;
     id_card: string;
     url_id_card: string;
+    url_id_card_signed?: string;
     id_driver_license: string;
     url_driver_license: string;
+    url_driver_license_signed?: string;
     insurance_certificate: string | null;
     url_insurance_certificate: string | null;
+    url_insurance_certificate_signed?: string;
     delivery_experience: string | null;
     statut: 'en_attente' | 'approuvé' | 'rejeté' | 'suspendu';
     rejection_reason?: string;
@@ -573,52 +576,105 @@ export default function Index({ deliveries, statusCounts, currentStatus }: Props
 
                             {/* Documents */}
                             <div>
-                                <h4 className="font-semibold mb-2">Documents</h4>
-                                <div className="grid grid-cols-3 gap-4">
+                                <h4 className="font-semibold mb-3">Documents</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Carte d'identité */}
                                     <div className="border rounded-lg p-3">
                                         <p className="text-sm text-muted-foreground mb-2">Carte d'identité</p>
-                                        <p className="text-sm font-medium">{selectedDelivery.id_card}</p>
-                                        {selectedDelivery.url_id_card && (
-                                            <a 
-                                                href={selectedDelivery.url_id_card} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-primary hover:underline flex items-center mt-1"
-                                            >
-                                                <FileText className="h-3 w-3 mr-1" />
-                                                Voir le document
-                                            </a>
-                                        )}
-                                    </div>
-                                    <div className="border rounded-lg p-3">
-                                        <p className="text-sm text-muted-foreground mb-2">Permis de conduire</p>
-                                        <p className="text-sm font-medium">{selectedDelivery.id_driver_license}</p>
-                                        {selectedDelivery.url_driver_license && (
-                                            <a 
-                                                href={selectedDelivery.url_driver_license} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-primary hover:underline flex items-center mt-1"
-                                            >
-                                                <FileText className="h-3 w-3 mr-1" />
-                                                Voir le document
-                                            </a>
-                                        )}
-                                    </div>
-                                    {selectedDelivery.insurance_certificate && (
-                                        <div className="border rounded-lg p-3">
-                                            <p className="text-sm text-muted-foreground mb-2">Assurance</p>
-                                            <p className="text-sm font-medium">{selectedDelivery.insurance_certificate}</p>
-                                            {selectedDelivery.url_insurance_certificate && (
+                                        <p className="text-sm font-medium mb-2">{selectedDelivery.id_card}</p>
+                                        {selectedDelivery.url_id_card_signed ? (
+                                            <div className="space-y-2">
                                                 <a 
-                                                    href={selectedDelivery.url_insurance_certificate} 
+                                                    href={selectedDelivery.url_id_card_signed} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className="text-xs text-primary hover:underline flex items-center mt-1"
+                                                    className="block"
+                                                >
+                                                    <img 
+                                                        src={selectedDelivery.url_id_card_signed} 
+                                                        alt="Carte d'identité"
+                                                        className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity cursor-pointer"
+                                                    />
+                                                </a>
+                                                <a 
+                                                    href={selectedDelivery.url_id_card_signed} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs text-primary hover:underline flex items-center"
                                                 >
                                                     <FileText className="h-3 w-3 mr-1" />
-                                                    Voir le document
+                                                    Ouvrir en plein écran
                                                 </a>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Document non disponible</p>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Permis de conduire */}
+                                    <div className="border rounded-lg p-3">
+                                        <p className="text-sm text-muted-foreground mb-2">Permis de conduire</p>
+                                        <p className="text-sm font-medium mb-2">{selectedDelivery.id_driver_license}</p>
+                                        {selectedDelivery.url_driver_license_signed ? (
+                                            <div className="space-y-2">
+                                                <a 
+                                                    href={selectedDelivery.url_driver_license_signed} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="block"
+                                                >
+                                                    <img 
+                                                        src={selectedDelivery.url_driver_license_signed} 
+                                                        alt="Permis de conduire"
+                                                        className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity cursor-pointer"
+                                                    />
+                                                </a>
+                                                <a 
+                                                    href={selectedDelivery.url_driver_license_signed} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs text-primary hover:underline flex items-center"
+                                                >
+                                                    <FileText className="h-3 w-3 mr-1" />
+                                                    Ouvrir en plein écran
+                                                </a>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Document non disponible</p>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Assurance */}
+                                    {selectedDelivery.insurance_certificate && (
+                                        <div className="border rounded-lg p-3">
+                                            <p className="text-sm text-muted-foreground mb-2">Certificat d'assurance</p>
+                                            <p className="text-sm font-medium mb-2">{selectedDelivery.insurance_certificate}</p>
+                                            {selectedDelivery.url_insurance_certificate_signed ? (
+                                                <div className="space-y-2">
+                                                    <a 
+                                                        href={selectedDelivery.url_insurance_certificate_signed} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="block"
+                                                    >
+                                                        <img 
+                                                            src={selectedDelivery.url_insurance_certificate_signed} 
+                                                            alt="Certificat d'assurance"
+                                                            className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity cursor-pointer"
+                                                        />
+                                                    </a>
+                                                    <a 
+                                                        href={selectedDelivery.url_insurance_certificate_signed} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-primary hover:underline flex items-center"
+                                                    >
+                                                        <FileText className="h-3 w-3 mr-1" />
+                                                        Ouvrir en plein écran
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-muted-foreground">Document non disponible</p>
                                             )}
                                         </div>
                                     )}

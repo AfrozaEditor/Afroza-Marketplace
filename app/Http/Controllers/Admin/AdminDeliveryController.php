@@ -7,7 +7,9 @@ use App\Models\Delivery;
 use App\Models\User;
 use App\Notifications\DeliveryProfileApproved;
 use App\Notifications\DeliveryProfileRejected;
+use App\Notifications\DeliveryProfileSuspended;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +31,20 @@ class AdminDeliveryController extends Controller
         }
         
         $deliveries = $query->paginate(15)->withQueryString();
+        
+        // Générer les URLs temporaires pour les documents
+        $deliveries->getCollection()->transform(function ($delivery) {
+            if ($delivery->url_id_card) {
+                $delivery->url_id_card_signed = Storage::disk('s3')->temporaryUrl($delivery->url_id_card, now()->addMinutes(30));
+            }
+            if ($delivery->url_driver_license) {
+                $delivery->url_driver_license_signed = Storage::disk('s3')->temporaryUrl($delivery->url_driver_license, now()->addMinutes(30));
+            }
+            if ($delivery->url_insurance_certificate) {
+                $delivery->url_insurance_certificate_signed = Storage::disk('s3')->temporaryUrl($delivery->url_insurance_certificate, now()->addMinutes(30));
+            }
+            return $delivery;
+        });
         
         // Get counts for each status
         $statusCounts = [
@@ -157,6 +173,9 @@ class AdminDeliveryController extends Controller
             if ($user->hasRole('delivery')) {
                 $user->removeRole('delivery');
             }
+            
+            // Send notification to user
+            $user->notify(new DeliveryProfileSuspended($delivery, $validated['suspension_reason']));
             
             DB::commit();
             

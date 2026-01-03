@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import axios from 'axios';
 
 window.Pusher = Pusher;
 window.Echo = new Echo({
@@ -14,4 +15,20 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
     // forceTLS: false,
     disableStats: true,
+    // Configuration de l'authentification pour les canaux privés/présence
+    authEndpoint: '/broadcasting/auth',
+    auth: {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        },
+    },
+});
+
+// Configurer Axios pour envoyer le Socket ID avec chaque requête
+// Ceci permet à ->toOthers() de fonctionner correctement côté serveur
+axios.interceptors.request.use((config) => {
+    if (window.Echo?.socketId()) {
+        config.headers['X-Socket-ID'] = window.Echo.socketId();
+    }
+    return config;
 });
