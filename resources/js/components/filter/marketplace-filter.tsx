@@ -20,13 +20,14 @@ interface MarketplaceFiltersProps {
   setProductsRange: (range: number[]) => void;
   featuredOnly: boolean;
   setFeaturedOnly: (featured: boolean) => void;
-  // selectedCategories: string[];
-  // setSelectedCategories: (categories: string[]) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
   resetFilters: () => void;
   activeFiltersCount: number;
   categories: Category[];
+  cities?: string[];
+  selectedCity?: string;
+  setSelectedCity?: (city: string) => void;
 }
 
 // const categories = ['Mode', 'Luxe', 'Vintage', 'Sport', 'Accessoires', 'Chaussures'];
@@ -42,13 +43,14 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
   setProductsRange,
   featuredOnly,
   setFeaturedOnly,
-  // selectedCategories,
-  // setSelectedCategories,
   sortBy,
   setSortBy,
   resetFilters,
   activeFiltersCount,
   categories = [],
+  cities = [],
+  selectedCity = '',
+  setSelectedCity,
 }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price);
@@ -113,9 +115,30 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
             <SelectItem value="products">Nombre de produits</SelectItem>
             <SelectItem value="followers">Popularité</SelectItem>
             <SelectItem value="name">Nom (A-Z)</SelectItem>
+            <SelectItem value="newest">Plus récentes</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {/* City filter */}
+      {cities.length > 0 && setSelectedCity && (
+        <div>
+          <Label className="block text-sm font-medium mb-2">Ville</Label>
+          <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <SelectTrigger>
+              <SelectValue placeholder="Toutes les villes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Toutes les villes</SelectItem>
+              {cities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Active categories display */}
       {/* {selectedCategories.length > 0 && (

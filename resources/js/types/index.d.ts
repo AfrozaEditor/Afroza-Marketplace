@@ -72,7 +72,7 @@ export interface Product {
     shop: Shop;
     price: number;
     quantity: number;
-    images: string[];
+    images: Image[] | string[];
     reviews: ProductReview[];
     user_review?: ProductReview | null;
 
@@ -185,4 +185,60 @@ export interface ProductReview {
     created_at: string;
     helpful: number;
     not_helpful: number;
+}
+
+export interface Order {
+    id: number;
+    order_number: string;
+    user_id: number;
+    user?: User;
+    delivery_id?: number;
+    delivery?: Delivery;
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
+    total: number;
+    delivery_address: string;
+    delivery_city: string;
+    delivery_region: string;
+    delivery_postal_code?: string;
+    delivery_address_latitude?: number;
+    delivery_address_longitude?: number;
+    shipping_method: 'standard' | 'express' | 'pickup';
+    shipping_cost: number;
+    payment_method: 'card' | 'mobile_money' | 'cash_on_delivery' | 'bank_transfer';
+    payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+    payment_reference?: string;
+    paid_at?: string;
+    notes?: string;
+    tracking_number?: string;
+    shipped_at?: string;
+    delivered_at?: string;
+    cancelled_at?: string;
+    cancellation_reason?: string;
+    items: OrderItem[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface OrderItem {
+    id: number;
+    order_id: number;
+    product_id: number;
+    product: Product;
+    quantity: number;
+    price: number;
+}
+
+export interface Delivery {
+    id: number;
+    user_id: number;
+    user?: User;
+    vehicle_type: string;
+    license_plate?: string;
+    is_available: boolean;
+    current_latitude?: number;
+    current_longitude?: number;
+    created_at: string;
 }

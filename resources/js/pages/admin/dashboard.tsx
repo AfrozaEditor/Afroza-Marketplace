@@ -26,9 +26,9 @@ function Dashboard({users}: Props) {
         { title: "Gestion des Livreurs", description: "Approuver, rejeter ou suspendre les profils des livreurs.", action: <Link href="/admin/deliveries">Gérer les livreurs</Link> },
         { title: "Gestion des Blogs", description: "Créer, modifier et publier des articles de blog.", action: <Link href="/admin/blogs">Gérer les blogs</Link> },
         { title: "Gestion des Newsletters", description: "Créer, modifier et publier des articles de newsletter.", action: <Link href="/admin/newsletters">Gérer les newsletters</Link> },
-        { title: "Paramètres de la Plateforme", description: "Configurer les options globales de l'application.", action: <Link href="">Accéder aux paramètres</Link>},
-        { title: "Rapports et Analyses", description: "Consulter les statistiques détaillées de la plateforme.", action: <Link href="">Voir les rapports</Link>},
         { title: "Modération de Contenu", description: "Gérer les signalements et le contenu publié.", action: <Link href="/admin/moderation">Modérer le contenu</Link>},
+        { title: "Paramètres de la Plateforme", description: "Configurer les options globales de l'application.", action: <Link href="">Accéder aux paramètres</Link>},
+        // { title: "Rapports et Analyses", description: "Consulter les statistiques détaillées de la plateforme.", action: <Link href="">Voir les rapports</Link>},
     ];
 
     return (

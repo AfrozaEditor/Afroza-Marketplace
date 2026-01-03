@@ -99,17 +99,14 @@ class DeliveryController extends Controller
             }
 
             $validated['user_id'] = auth()->id();
-            $validated['statut'] = 'en attente'; // Pending admin approval
+            $validated['statut'] = 'en_attente'; // Pending admin approval
 
             $delivery = Delivery::create($validated);
 
-            return response()->json([
-                'message' => 'Delivery profile created successfully',
-                'delivery' => $delivery
-            ], 201);
+            return redirect()->route('home')->with('success', 'Votre profil livreur a été créé avec succès. Il est en attente de validation.');
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to create delivery profile: ' . $e->getMessage()], 500);
+            return back()->withErrors(['error' => 'Échec de la création du profil livreur: ' . $e->getMessage()]);
         }
     }
 
@@ -216,12 +213,50 @@ class DeliveryController extends Controller
     {
         $delivery = Delivery::where('user_id', auth()->id())->firstOrFail();
 
+        // Récupérer toutes les commandes assignées (actives et historique)
         $orders = Order::where('delivery_id', $delivery->id)
             ->with(['user', 'items'])
-            ->whereNotIn('status', ['delivered', 'cancelled'])
+            ->orderByRaw("CASE status 
+                WHEN 'out_for_delivery' THEN 1 
+                WHEN 'shipped' THEN 2 
+                WHEN 'processing' THEN 3 
+                WHEN 'confirmed' THEN 4 
+                WHEN 'pending' THEN 5 
+                WHEN 'delivered' THEN 6 
+                WHEN 'cancelled' THEN 7 
+                WHEN 'refunded' THEN 8 
+                ELSE 9 END")
             ->get();
 
-        return response()->json(['orders' => $orders]);
+        return response()->json([
+            'orders' => $orders->map(fn($order) => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'status' => $order->status,
+                'payment_status' => $order->payment_status,
+                'total' => $order->total,
+                'shipping_cost' => $order->shipping_cost,
+                'delivery_address' => $order->delivery_address,
+                'delivery_city' => $order->delivery_city,
+                'latitude' => $order->delivery_address_latitude,
+                'longitude' => $order->delivery_address_longitude,
+                'customer_name' => $order->customer_name,
+                'customer_phone' => $order->customer_phone,
+                'user' => $order->user ? $order->user->only('id', 'name', 'email') : null,
+                'items_count' => $order->items->count(),
+                'notes' => $order->notes,
+                'created_at' => $order->created_at,
+                'shipped_at' => $order->shipped_at,
+                'delivered_at' => $order->delivered_at,
+            ]),
+            'stats' => [
+                'total' => $orders->count(),
+                'pending' => $orders->whereIn('status', ['pending', 'confirmed', 'processing'])->count(),
+                'in_transit' => $orders->whereIn('status', ['shipped', 'out_for_delivery'])->count(),
+                'delivered' => $orders->where('status', 'delivered')->count(),
+                'cancelled' => $orders->whereIn('status', ['cancelled', 'refunded'])->count(),
+            ]
+        ]);
     }
 
     /**
@@ -232,17 +267,28 @@ class DeliveryController extends Controller
         $delivery = Delivery::where('user_id', auth()->id())->firstOrFail();
         $order = Order::findOrFail($orderId);
 
+        // Vérifier que la commande n'est pas déjà assignée
+        if ($order->delivery_id !== null) {
+            return response()->json(['error' => 'Cette commande est déjà assignée à un livreur'], 400);
+        }
+
+        // Vérifier que la commande est dans un état acceptant un livreur
+        if (!in_array($order->status, ['confirmed', 'processing'])) {
+            return response()->json(['error' => 'Cette commande ne peut pas être acceptée (statut: ' . $order->status . ')'], 400);
+        }
+
         // Verify order is in delivery zone
         if (!GeolocationService::isOrderInDeliveryZone($order, $delivery)) {
-            return response()->json(['error' => 'Order is outside your delivery zone'], 400);
+            return response()->json(['error' => 'Cette commande est en dehors de votre zone de livraison'], 400);
         }
 
         $order->update([
             'delivery_id' => $delivery->id,
-            'status' => 'pending'
+            'status' => 'shipped',
+            'shipped_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Order accepted', 'order' => $order]);
+        return response()->json(['message' => 'Commande acceptée avec succès', 'order' => $order]);
     }
 
     /**
@@ -254,16 +300,48 @@ class DeliveryController extends Controller
         $order = Order::findOrFail($orderId);
 
         if ($order->delivery_id !== $delivery->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Non autorisé'], 403);
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,delivered,cancelled'
+            'status' => 'required|in:shipped,out_for_delivery,delivered,cancelled'
         ]);
 
-        $order->update($validated);
+        // Définir les transitions autorisées
+        $allowedTransitions = [
+            'shipped' => ['out_for_delivery', 'cancelled'],
+            'out_for_delivery' => ['delivered', 'cancelled'],
+        ];
 
-        return response()->json(['message' => 'Status updated', 'order' => $order]);
+        $currentStatus = $order->status;
+        $newStatus = $validated['status'];
+
+        // Vérifier si la transition est autorisée
+        if (isset($allowedTransitions[$currentStatus]) && !in_array($newStatus, $allowedTransitions[$currentStatus])) {
+            return response()->json([
+                'error' => "Transition de '{$currentStatus}' vers '{$newStatus}' non autorisée"
+            ], 400);
+        }
+
+        // Préparer les données de mise à jour
+        $updateData = ['status' => $newStatus];
+
+        // Ajouter les timestamps appropriés
+        if ($newStatus === 'out_for_delivery') {
+            // Pas de timestamp spécifique, juste le changement de statut
+        } elseif ($newStatus === 'delivered') {
+            $updateData['delivered_at'] = now();
+        } elseif ($newStatus === 'cancelled') {
+            $updateData['cancelled_at'] = now();
+            $updateData['cancellation_reason'] = $request->input('cancellation_reason', 'Annulé par le livreur');
+        }
+
+        $order->update($updateData);
+
+        return response()->json([
+            'message' => 'Statut mis à jour avec succès',
+            'order' => $order->fresh()
+        ]);
     }
 
     /**
@@ -279,5 +357,30 @@ class DeliveryController extends Controller
 
         $delivery->delete();
         return response()->json(['message' => 'Delivery profile deleted']);
+    }
+
+    /**
+     * Show the suspended delivery page
+     */
+    public function suspended()
+    {
+        $user = auth()->user();
+        $delivery = $user->delivery;
+
+        // Si l'utilisateur n'a pas de profil livreur ou n'est pas suspendu, rediriger
+        if (!$delivery || $delivery->statut !== 'suspendu') {
+            return redirect()->route('home');
+        }
+
+        return \Inertia\Inertia::render('delivery/Suspended', [
+            'delivery' => [
+                'id' => $delivery->id,
+                'name' => $delivery->name,
+                'suspension_reason' => $delivery->suspension_reason,
+                'suspended_at' => $delivery->suspended_at,
+            ],
+            'contactEmail' => config('mail.from.address', 'contact@vide-dressing.com'),
+            'contactPhone' => config('app.contact_phone', null),
+        ]);
     }
 }

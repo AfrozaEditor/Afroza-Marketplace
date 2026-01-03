@@ -179,9 +179,16 @@ class AdminModerationController extends Controller
     /**
      * Bloquer un utilisateur
      */
-    public function blockUser(User $user)
+    public function blockUser(Request $request, User $user)
     {
-        $user->update(['status' => 'blocked']);
+        $validated = $request->validate([
+            'block_reason' => 'nullable|string|max:1000',
+        ]);
+
+        $user->update([
+            'status' => 'blocked',
+            'block_reason' => $validated['block_reason'] ?? null,
+        ]);
         
         return back()->with('success', 'Utilisateur bloqué.');
     }
@@ -191,7 +198,10 @@ class AdminModerationController extends Controller
      */
     public function unblockUser(User $user)
     {
-        $user->update(['status' => 'active']);
+        $user->update([
+            'status' => 'active',
+            'block_reason' => null,
+        ]);
         
         return back()->with('success', 'Utilisateur débloqué.');
     }

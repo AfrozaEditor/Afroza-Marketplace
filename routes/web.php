@@ -55,6 +55,11 @@ Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::resource('products', ProductController::class);
     Route::resource('marketplace', MarketplaceController::class);
+    
+    // Vendor orders management
+    Route::get('vendor/orders', [App\Http\Controllers\Vendor\VendorOrderController::class, 'index'])->name('vendor.orders');
+    Route::get('vendor/orders/{order}', [App\Http\Controllers\Vendor\VendorOrderController::class, 'show'])->name('vendor.orders.show');
+    Route::patch('vendor/orders/{order}/status', [App\Http\Controllers\Vendor\VendorOrderController::class, 'updateStatus'])->name('vendor.orders.update-status');
 
 });
 
@@ -151,6 +156,9 @@ Route::middleware('auth')->group(function () {
     Route::post('delivery', [DeliveryController::class, 'store'])->name('delivery.store');
     Route::get('delivery/{id}/edit', [DeliveryController::class, 'edit'])->name('delivery.edit');
     Route::patch('delivery/{id}', [DeliveryController::class, 'update'])->name('delivery.update');
+    
+    // Page pour les livreurs suspendus
+    Route::get('delivery/suspended', [DeliveryController::class, 'suspended'])->name('delivery.suspended');
 
     // Notifications routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -185,6 +193,8 @@ Route::middleware('auth')->group(function () {
 
     // Order routes
     Route::resource('order', OrderController::class);
+    Route::post('/order/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+    Route::get('/order/track/{orderNumber}', [OrderController::class, 'track'])->name('order.track');
 
     // Followed shops
     Route::post('/shops/{slug}/follow', [MarketplaceController::class, 'toggleFollow'])->name('shops.follow');

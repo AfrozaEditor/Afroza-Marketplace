@@ -60,9 +60,11 @@ const getNotificationIcon = (type: string) => {
         'App\\Notifications\\OrderStatusChanged': <Package className="h-4 w-4 text-purple-500" />,
         'App\\Notifications\\DeliveryProfileApproved': <Truck className="h-4 w-4 text-green-500" />,
         'App\\Notifications\\DeliveryProfileRejected': <Truck className="h-4 w-4 text-red-500" />,
+        'App\\Notifications\\DeliveryProfileSuspended': <Truck className="h-4 w-4 text-orange-500" />,
         'App\\Notifications\\NewOrder': <ShoppingBag className="h-4 w-4 text-orange-500" />,
         'App\\Notifications\\NewReview': <Star className="h-4 w-4 text-yellow-500" />,
         'App\\Notifications\\NewsletterNotification': <Mail className="h-4 w-4 text-pink-500" />,
+        'App\\Notifications\\NewUserRegistered': <User className="h-4 w-4 text-emerald-500" />,
     };
     return icons[type] || <Bell className="h-4 w-4 text-gray-500" />;
 };

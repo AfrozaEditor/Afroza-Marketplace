@@ -201,20 +201,37 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
     const handleShopSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        const routeName = shop ? 'vendor.shop.update' : 'vendor.shop.create';
-        const method = shop ? 'put' : 'post';
+        const formData = new FormData();
+        formData.append('name', shopForm.data.name);
+        formData.append('description', shopForm.data.description || '');
+        formData.append('address', shopForm.data.address || '');
+        formData.append('city', shopForm.data.city || '');
+        formData.append('phone', shopForm.data.phone || '');
+        formData.append('email', shopForm.data.email || '');
+        formData.append('website', shopForm.data.website || '');
+        formData.append('facebook', shopForm.data.facebook || '');
+        formData.append('instagram', shopForm.data.instagram || '');
         
-        shopForm.transform((data) => ({
-            ...data,
-            _method: method,
-        }));
+        if (shopForm.data.logo instanceof File) {
+            formData.append('logo', shopForm.data.logo);
+        }
+        if (shopForm.data.cover_image instanceof File) {
+            formData.append('cover_image', shopForm.data.cover_image);
+        }
+        
+        if (shop) {
+            formData.append('_method', 'PUT');
+        }
+        
+        const routeName = shop ? 'vendor.shop.update' : 'vendor.shop.create';
 
-        router.post(route(routeName), shopForm.data, {
+        router.post(route(routeName), formData, {
             forceFormData: true,
             onSuccess: () => {
                 toast.success(shop ? 'Boutique mise à jour avec succès' : 'Boutique créée avec succès');
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error(errors);
                 toast.error('Une erreur est survenue');
             },
         });

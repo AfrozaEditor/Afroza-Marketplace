@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -48,6 +49,20 @@ class LoginRequest extends FormRequest
                 'email' => __('auth.failed'),
             ]);
         }
+
+        $user = Auth::user();
+
+        // Vérifier si l'utilisateur est bloqué
+        if ($user->isBlocked()) {
+            Auth::logout();
+            
+            throw ValidationException::withMessages([
+                'email' => 'Votre compte a été bloqué. ' . ($user->block_reason ? 'Raison: ' . $user->block_reason : 'Veuillez contacter l\'administration.'),
+            ]);
+        }
+
+        // Vérifier si c'est un livreur suspendu (sera géré dans le controller pour rediriger vers une page spéciale)
+        // La vérification sera faite dans AuthenticatedSessionController
 
         RateLimiter::clear($this->throttleKey());
     }

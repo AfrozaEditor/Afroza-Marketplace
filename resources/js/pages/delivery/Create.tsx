@@ -4,7 +4,8 @@ import AppLayout from '@/layouts/app-layout';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle, MapPin, Package, User, Image } from 'lucide-react';
+import { CheckCircle, MapPin, Package, User, Image, Loader2 } from 'lucide-react';
+import { router } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -65,6 +66,7 @@ function Create() {
         longitude: 11.5167,
         radius_km: 5,
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<DeliveryRegistrationFormValues>({
         resolver: zodResolver(deliveryRegistrationSchema),
@@ -156,13 +158,57 @@ function Create() {
     };
 
     const onSubmit = (values: DeliveryRegistrationFormValues) => {
+        setIsSubmitting(true);
         const formData = new FormData();
 
+        // Personal info
+        formData.append('name', values.fullName);
+        formData.append('email', values.email);
+        formData.append('phone', values.phone);
+        formData.append('address', values.address);
+        formData.append('city', values.city);
+        formData.append('postal_code', values.postalCode);
 
+        // Delivery zone
+        formData.append('delivery_latitude', zoneData.latitude.toString());
+        formData.append('delivery_longitude', zoneData.longitude.toString());
+        formData.append('delivery_radius_km', zoneData.radius_km.toString());
+        formData.append('delivery_area', values.deliveryZone);
+        formData.append('availability', values.availability);
 
-        console.log("Form submission values:", values);
-        toast.success("Votre inscription en tant que livreur a été soumise avec succès!");
-        // navigate('/');
+        // Vehicle info
+        formData.append('vehicle_type', values.vehicleType);
+        formData.append('vehicle_model', values.vehicleModel);
+        formData.append('vehicle_plate', values.licensePlate);
+
+        // Documents
+        formData.append('id_card', values.idCardNumber);
+        formData.append('id_driver_license', values.drivingLicense);
+        formData.append('insurance_certificate', values.insuranceNumber);
+        formData.append('delivery_experience', values.experience || '');
+
+        // Files
+        if (idCard) {
+            formData.append('url_id_card', idCard);
+        }
+        if (drivingLicense) {
+            formData.append('url_driver_license', drivingLicense);
+        }
+
+        router.post(route('delivery.store'), formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success("Votre inscription en tant que livreur a été soumise avec succès!");
+            },
+            onError: (errors) => {
+                console.error("Form submission errors:", errors);
+                const firstError = Object.values(errors)[0];
+                toast.error(typeof firstError === 'string' ? firstError : "Une erreur s'est produite lors de l'envoi du formulaire");
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            }
+        });
     };
 
     const handleIdCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -641,8 +687,17 @@ function Create() {
                                                     En soumettant ce formulaire, vous acceptez nos conditions générales et notre politique de confidentialité.
                                                 </p>
                                                 <div className="flex justify-between pt-4">
-                                                    <Button type="button" variant="outline" onClick={prevStep}>Retour</Button>
-                                                    <Button type="submit">Soumettre</Button>
+                                                    <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting}>Retour</Button>
+                                                    <Button type="submit" disabled={isSubmitting}>
+                                                        {isSubmitting ? (
+                                                            <>
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                Envoi en cours...
+                                                            </>
+                                                        ) : (
+                                                            'Soumettre'
+                                                        )}
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </TabsContent>

@@ -223,12 +223,6 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
             <div className="bg-primary md:hidden">
                 <div className="container mx-auto flex h-10 items-center justify-between px-4">
                     <div>
-                        <Button className="p-0">
-                            <span className="mr-1 text-sm">Français</span>
-                            <span className="text-xs">▼</span>
-                        </Button>
-                    </div>
-                    <div className="flex items-center gap-6">
                         {/* Menu utilisateur */}
                         {auth.user ? (
                             <DropdownMenu>
@@ -250,6 +244,9 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                 <span>Profil</span>
                             </Link>
                         )}
+                    </div>
+                    <div className="flex items-center gap-6">
+                        
                         {/*<Link href="" className="relative flex items-center text-sm text-white transition-colors hover:text-teal-200">*/}
                         {/*    <Bell size={16} className="mr-1" />*/}
                         {/*    <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white"></span>*/}
