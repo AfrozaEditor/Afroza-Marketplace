@@ -1,17 +1,21 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatDateShort } from '@/lib/utils';
-import { Product, Shop } from '@/types';
-import { ChevronLeft, ChevronRight, Heart, MessageSquare, Share, ShoppingCart, Star, Users } from 'lucide-react';
-import { useState } from 'react';
+import { Category, Product, Shop } from '@/types';
+import { ChevronLeft, ChevronRight, Filter, Heart, MessageSquare, Search, Share, ShoppingCart, Star, Users, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ListProduct from '@/components/product/list-product';
 import ShopReview from '@/components/review/shop-review';
 import { ShopReview as Review } from '@/types';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface Props {
     shop: Shop & {
@@ -34,8 +38,161 @@ interface Props {
 }
 
 function Show({ shop, products }: Props) {
+    const { categories } = usePage<{ categories: Category[] }>().props;
     const [isFollowing, setIsFollowing] = useState(shop.is_followed || false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     const averageRating = shop.reviews.length > 0 ? shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length : 0;
+
+    // Récupérer les paramètres actuels de l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const [filters, setFilters] = useState({
+        search: urlParams.get('search') || '',
+        category: urlParams.get('category') || 'all',
+        minPrice: urlParams.get('min_price') || '',
+        maxPrice: urlParams.get('max_price') || '',
+        // condition: urlParams.get('condition') || 'all',
+        sort: urlParams.get('sort') || 'newest',
+    });
+
+    // Appliquer les filtres avec debounce pour la recherche
+    const applyFilters = (newFilters: typeof filters) => {
+        const params: Record<string, string> = {};
+        
+        if (newFilters.search) params.search = newFilters.search;
+        if (newFilters.category && newFilters.category !== 'all') params.category = newFilters.category;
+        if (newFilters.minPrice) params.min_price = newFilters.minPrice;
+        if (newFilters.maxPrice) params.max_price = newFilters.maxPrice;
+        // if (newFilters.condition && newFilters.condition !== 'all') params.condition = newFilters.condition;
+        if (newFilters.sort && newFilters.sort !== 'newest') params.sort = newFilters.sort;
+
+        router.get(route('marketplace.show', { marketplace: shop.slug }), params, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const debouncedSearch = useDebouncedCallback((value: string) => {
+        const newFilters = { ...filters, search: value };
+        setFilters(newFilters);
+        applyFilters(newFilters);
+    }, 500);
+
+    const debouncedPrice = useDebouncedCallback((key: 'minPrice' | 'maxPrice', value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        applyFilters(newFilters);
+    }, 500);
+
+    const handleFilterChange = (key: keyof typeof filters, value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        setFilters(newFilters);
+        
+        if (key === 'search') {
+            debouncedSearch(value);
+        } else if (key === 'minPrice' || key === 'maxPrice') {
+            debouncedPrice(key, value);
+        } else {
+            applyFilters(newFilters);
+        }
+    };
+
+    const resetFilters = () => {
+        const defaultFilters = {
+            search: '',
+            category: 'all',
+            minPrice: '',
+            maxPrice: '',
+            // condition: 'all',
+            sort: 'newest',
+        };
+        setFilters(defaultFilters);
+        router.get(route('marketplace.show', { marketplace: shop.slug }), {}, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const hasActiveFilters = useMemo(() => {
+        return filters.search || 
+               (filters.category && filters.category !== 'all') || 
+               filters.minPrice || 
+               filters.maxPrice; 
+            //    (filters.condition && filters.condition !== 'all');
+    }, [filters]);
+
+    // JSX des filtres réutilisable
+    const filtersContent = (
+        <div className="space-y-6">
+            {/* Recherche */}
+            <div className="space-y-2">
+                <Label htmlFor="search">Rechercher</Label>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                        id="search"
+                        placeholder="Nom du produit..."
+                        value={filters.search}
+                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+            </div>
+
+            {/* Catégorie */}
+            <div className="space-y-2">
+                <Label>Catégorie</Label>
+                <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Toutes les catégories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Toutes les catégories</SelectItem>
+                        {categories?.map((cat) => (
+                            <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Prix */}
+            <div className="space-y-2">
+                <Label>Prix (FCFA)</Label>
+                <div className="flex gap-2 items-center">
+                    <Input
+                        type="number"
+                        placeholder="Min"
+                        value={filters.minPrice}
+                        onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                        className="w-full"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <Input
+                        type="number"
+                        placeholder="Max"
+                        value={filters.maxPrice}
+                        onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                        className="w-full"
+                    />
+                </div>
+            </div>
+
+            {/* État */}
+            {/* <div className="space-y-2">
+                <Label>État</Label>
+                <Select value={filters.condition} onValueChange={(value) => handleFilterChange('condition', value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Tous les états" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tous les états</SelectItem>
+                        <SelectItem value="neuf">Neuf avec étiquette</SelectItem>
+                        <SelectItem value="tres_bon">Très bon état</SelectItem>
+                        <SelectItem value="bon">Bon état</SelectItem>
+                        <SelectItem value="satisfaisant">Satisfaisant</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div> */}
+        </div>
+    );
 
     const handleFollow = () => {
     router.post(route('shops.follow', { slug: shop.slug }), {}, {
@@ -104,7 +261,7 @@ console.log(products.data);
                     alt={`${shop.name} couverture`}
                     className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent"></div>
             </div>
 
             <div className="relative container mx-auto -mt-16 px-4 md:px-8">
@@ -119,7 +276,7 @@ console.log(products.data);
                             />
                         </div>
 
-                        <div className="flex-grow text-center md:text-left">
+                        <div className="grow text-center md:text-left">
                             <div className="flex flex-col items-center justify-between gap-2 md:flex-row md:items-start">
                                 <div>
                                     <h1 className="text-2xl font-bold md:text-3xl">{shop.name}</h1>
@@ -210,20 +367,24 @@ console.log(products.data);
                     {/* Filters sidebar - Desktop */}
                     <div className="hidden md:block md:col-span-1">
                         <div className="sticky top-24">
-                            <Card className="shadow-sm">
+                            <Card className="shadow-sm dark:bg-gray-800">
                                 <CardHeader className="pb-3">
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="text-lg">Filtres</CardTitle>
-                                        <Button variant="ghost" size="sm"
-                                                // onClick={resetFilters}
+                                        <CardTitle className="text-lg dark:text-white">Filtres</CardTitle>
+                                        {hasActiveFilters && (
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                onClick={resetFilters}
                                                 className="text-sm h-8 px-2"
-                                        >
-                                            Réinitialiser
-                                        </Button>
+                                            >
+                                                Réinitialiser
+                                            </Button>
+                                        )}
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    {/*<BoutiqueFilters {...filterProps} />*/}
+                                    {filtersContent}
                                 </CardContent>
                             </Card>
                         </div>
@@ -232,16 +393,16 @@ console.log(products.data);
                     {/* Products */}
                     <div className="md:col-span-3">
                         <Tabs defaultValue="products">
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                 <TabsList className="grid w-full max-w-md grid-cols-3">
-                                    <TabsTrigger value="products">Produits ({shop.products.length})</TabsTrigger>
+                                    <TabsTrigger value="products">Produits ({products.total})</TabsTrigger>
                                     <TabsTrigger value="reviews">Avis ({shop.reviews.length})</TabsTrigger>
                                     <TabsTrigger value="about">À propos</TabsTrigger>
                                 </TabsList>
 
                                 <div className="flex items-center gap-2">
-                                    <Select defaultValue="newest">
-                                        <SelectTrigger className="w-[180px]">
+                                    <Select value={filters.sort} onValueChange={(value) => handleFilterChange('sort', value)}>
+                                        <SelectTrigger className="w-auto">
                                             <SelectValue placeholder="Trier par" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -253,53 +414,67 @@ console.log(products.data);
                                     </Select>
 
                                     {/* Mobile Filter Button */}
-                                    {/*<Sheet */}
-                                    {/*    open={showMobileFilters} onOpenChange={setShowMobileFilters}>*/}
-                                    {/*    <SheetTrigger asChild>*/}
-                                    {/*        <Button variant="outline" size="icon" className="md:hidden">*/}
-                                    {/*            <Filter size={18} />*/}
-                                    {/*        </Button>*/}
-                                    {/*    </SheetTrigger>*/}
-                                    {/*    <SheetContent side="right" className="w-[320px] p-0 flex flex-col">*/}
-                                    {/*        <SheetHeader className="p-6 pb-4 border-b">*/}
-                                    {/*            <div className="flex justify-between items-center">*/}
-                                    {/*                <SheetTitle>Filtres</SheetTitle>*/}
-                                    {/*                <SheetClose asChild>*/}
-                                    {/*                    <Button variant="ghost" size="icon" className="rounded-full">*/}
-                                    {/*                        <X size={20} />*/}
-                                    {/*                    </Button>*/}
-                                    {/*                </SheetClose>*/}
-                                    {/*            </div>*/}
-                                    {/*        </SheetHeader>*/}
-                                    {/*        <div className="p-6 flex-grow overflow-y-auto">*/}
-                                    {/*            <BoutiqueFilters {...filterProps} />*/}
-                                    {/*        </div>*/}
-                                    {/*        <div className="p-6 border-t bg-gray-50">*/}
-                                    {/*            <Button onClick={resetFilters} variant="outline" className="w-full mb-3">*/}
-                                    {/*                Réinitialiser*/}
-                                    {/*            </Button>*/}
-                                    {/*            <SheetClose asChild>*/}
-                                    {/*                <Button className="w-full bg-videdressing-primary hover:bg-videdressing-secondary">*/}
-                                    {/*                    Appliquer les filtres*/}
-                                    {/*                </Button>*/}
-                                    {/*            </SheetClose>*/}
-                                    {/*        </div>*/}
-                                    {/*    </SheetContent>*/}
-                                    {/*</Sheet>*/}
+                                    <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                                        <SheetTrigger asChild>
+                                            <Button variant="outline" size="icon" className="md:hidden relative">
+                                                <Filter size={18} />
+                                                {hasActiveFilters && (
+                                                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full" />
+                                                )}
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="right" className="w-[320px] p-0 flex flex-col">
+                                            <SheetHeader className="p-6 pb-4 border-b">
+                                                <div className="flex justify-between items-center">
+                                                    <SheetTitle>Filtres</SheetTitle>
+                                                    <SheetClose asChild>
+                                                        <Button variant="ghost" size="icon" className="rounded-full">
+                                                            <X size={20} />
+                                                        </Button>
+                                                    </SheetClose>
+                                                </div>
+                                            </SheetHeader>
+                                            <div className="p-6 flex-grow overflow-y-auto">
+                                                {filtersContent}
+                                            </div>
+                                            <div className="p-6 border-t bg-gray-50 dark:bg-gray-800">
+                                                {hasActiveFilters && (
+                                                    <Button onClick={resetFilters} variant="outline" className="w-full mb-3">
+                                                        Réinitialiser
+                                                    </Button>
+                                                )}
+                                                <SheetClose asChild>
+                                                    <Button className="w-full">
+                                                        Voir les résultats ({products.total})
+                                                    </Button>
+                                                </SheetClose>
+                                            </div>
+                                        </SheetContent>
+                                    </Sheet>
                                 </div>
                             </div>
 
                             <TabsContent value="products">
-                                {shop.products && (
+                                {products.data.length > 0 ? (
                                     <ListProduct products={products.data} />
-                                )}
-
-                                {shop.products.length === 0 && (
-                                    <Card className="text-center py-12 bg-gray-50">
+                                ) : (
+                                    <Card className="text-center py-12 bg-gray-50 dark:bg-gray-800">
                                         <CardContent className="pt-6">
                                             <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun produit disponible</h3>
-                                            <p className="text-gray-500">Cette boutique n'a pas encore de produits en vente.</p>
+                                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                                {hasActiveFilters ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+                                            </h3>
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                {hasActiveFilters 
+                                                    ? 'Essayez de modifier vos filtres pour trouver plus de produits.'
+                                                    : 'Cette boutique n\'a pas encore de produits en vente.'
+                                                }
+                                            </p>
+                                            {hasActiveFilters && (
+                                                <Button onClick={resetFilters} variant="outline" className="mt-4">
+                                                    Réinitialiser les filtres
+                                                </Button>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 )}
@@ -350,7 +525,7 @@ console.log(products.data);
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">Localisation</span>
-                                                        {/*<span className="font-medium">{shop.location}</span>*/}
+                                                        <span className="font-medium">{shop.city}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-600">Produits en vente</span>
@@ -375,8 +550,8 @@ console.log(products.data);
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <h4 className="font-semibold mb-3 text-lg">Spécialités</h4>
+                                            {/* <div> */}
+                                                {/* <h4 className="font-semibold mb-3 text-lg">Spécialités</h4> */}
                                                 {/*<div className="flex flex-wrap gap-2">*/}
                                                 {/*    {shop.categories.map(category => (*/}
                                                 {/*        <Badge key={category} className="bg-videdressing-light text-videdressing-primary px-3 py-1">*/}
@@ -396,7 +571,7 @@ console.log(products.data);
                                                 {/*        </p>*/}
                                                 {/*    </div>*/}
                                                 {/*)}*/}
-                                            </div>
+                                            {/* </div> */}
                                         </div>
                                     </CardContent>
                                 </Card>

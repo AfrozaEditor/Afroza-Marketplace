@@ -188,39 +188,75 @@ export default function NotificationDropdown({
 
     const handleMarkAsRead = async (notificationId: string) => {
         try {
-            await fetch(`/api/notifications/${notificationId}/read`, {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                throw new Error('CSRF token non trouvé');
+            }
+            
+            const response = await fetch(`/api/notifications/${notificationId}/read`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
+                credentials: 'same-origin',
             });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', response.status, errorText);
+                throw new Error(`Erreur serveur: ${response.status}`);
+            }
+            
+            const data = await response.json();
             
             setNotifications(prev => 
                 prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
             );
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            setUnreadCount(data.unread_count ?? Math.max(0, unreadCount - 1));
         } catch (error) {
+            console.error('Error marking as read:', error);
             toast.error('Erreur lors de la mise à jour');
         }
     };
 
     const handleMarkAllAsRead = async () => {
         try {
-            await fetch('/api/notifications/read-all', {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                throw new Error('CSRF token non trouvé');
+            }
+            
+            const response = await fetch('/api/notifications/read-all', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
+                credentials: 'same-origin',
             });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', response.status, errorText);
+                throw new Error(`Erreur serveur: ${response.status}`);
+            }
+            
+            const data = await response.json();
             
             setNotifications(prev => 
                 prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
             );
-            setUnreadCount(0);
+            setUnreadCount(data.unread_count ?? 0);
             toast.success('Toutes les notifications marquées comme lues');
         } catch (error) {
+            console.error('Error marking all as read:', error);
             toast.error('Erreur lors de la mise à jour');
         }
     };

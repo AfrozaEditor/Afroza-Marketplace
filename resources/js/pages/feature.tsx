@@ -83,7 +83,7 @@ function Feature() {
                     </div>
 
                     <div className="my-10 text-center">
-                        <Button className="bg-primary hover:bg-videdressing-secondary text-white px-6 py-3 rounded-md text-lg font-medium inline-flex items-center">
+                        <Button className="bg-primary hover:bg-videdressing-secondary text-white px-6 py-3 rounded-md text-lg font-medium inline-flex items-center" onClick={() => window.location.href = route('products.index')}>
                             Commencer maintenant
                             <ChevronRight className="ml-2 h-5 w-5" />
                         </Button>

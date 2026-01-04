@@ -36,6 +36,7 @@ Route::get('/', function () {
             $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
         }
         $product->images = $imagesUrls;
+        $product->is_favorite = $product->favorites->contains(auth()->id());
         return $product;
     });
     return Inertia::render('home', [

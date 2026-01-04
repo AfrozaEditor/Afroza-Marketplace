@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Minus, Plus, X } from 'lucide-react';
 import { Input } from '../ui/input';
 import { CartItem } from '@/types';
+import { getFirstImageUrl } from '@/lib/utils';
 
 interface Props {
     item: CartItem
@@ -27,7 +28,7 @@ function CartItems({item}:Props) {
             <div className="flex items-center space-x-4">
                 <Link href="">
                     <img
-                        // src={item.product.image || '/placeholder.svg'}
+                        src={getFirstImageUrl(item.product.images) || '/placeholder.svg'}
                         alt={item.product?.name}
                         className="w-16 h-20 object-cover rounded"
                     />

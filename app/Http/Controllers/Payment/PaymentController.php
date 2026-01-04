@@ -217,7 +217,11 @@ public function createPayment(Request $request, LygosService $lygos)
         $item->product->price * $item->quantity
     );
 
-    $shippingCost = $request->shippingMethod === 'express' ? 2000 : 0;
+    /**
+     * 2️⃣bis Utiliser le shipping_cost envoyé par le frontend
+     * car il peut varier selon la méthode (express, pickup, standard)
+     */
+    $shippingCost = (int) ($request->shipping_cost ?? 0);
     $totalAmount = (int) ceil($subTotal + $shippingCost);
 
 
@@ -246,7 +250,13 @@ public function createPayment(Request $request, LygosService $lygos)
         // 'order_id' => $order->reference,
     ];
 
-    \Log::info('Lygos payload', $data);
+    \Log::info('Lygos payload', [
+        'subTotal' => $subTotal,
+        'shippingCost' => $shippingCost,
+        'totalAmount' => $totalAmount,
+        'shipping_method' => $request->shipping_method,
+        'data' => $data
+    ]);
 
     /**
      * 5️⃣ Appel API Lygos
