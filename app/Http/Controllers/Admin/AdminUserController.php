@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\RoleChanged;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -76,6 +77,9 @@ class AdminUserController extends Controller
             'password' => ['nullable', Rules\Password::defaults()],
         ]);
 
+        // Récupérer l'ancien rôle avant modification
+        $oldRole = $user->roles->first()?->name ?? 'customer';
+
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -86,6 +90,11 @@ class AdminUserController extends Controller
         }
 
         $user->syncRoles([$request->role]);
+
+        // Notifier l'utilisateur si son rôle a changé
+        if ($oldRole !== $request->role) {
+            $user->notify(new RoleChanged($oldRole, $request->role));
+        }
 
         return back()->with('success', 'Utilisateur mis à jour avec succès.');
     }
@@ -99,7 +108,15 @@ class AdminUserController extends Controller
             'role' => ['required', 'string', 'exists:roles,name'],
         ]);
 
+        // Récupérer l'ancien rôle avant modification
+        $oldRole = $user->roles->first()?->name ?? 'customer';
+
         $user->syncRoles([$request->role]);
+
+        // Notifier l'utilisateur si son rôle a changé
+        if ($oldRole !== $request->role) {
+            $user->notify(new RoleChanged($oldRole, $request->role));
+        }
 
         return back()->with('success', 'Rôle mis à jour avec succès.');
     }

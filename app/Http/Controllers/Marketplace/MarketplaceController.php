@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Notifications\NewShopFollower;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -46,12 +47,12 @@ class MarketplaceController extends Controller
         }
 
         // City filter
-        if ($request->filled('city')) {
+        if ($request->filled('city') && $request->city !== 'all') {
             $query->where('city', $request->city);
         }
 
         // Sorting
-        $sortBy = $request->get('sort', 'rating');
+        $sortBy = $request->get('sort', 'newest');
         switch ($sortBy) {
             case 'rating':
                 $query->withAvg('reviews', 'rating')->orderByDesc('reviews_avg_rating');
@@ -178,7 +179,7 @@ class MarketplaceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
         $shop = Shop::where('slug', $slug)->with(['products.user', 'user', 'followers', 'reviews'])->firstOrFail();
 
@@ -194,9 +195,56 @@ class MarketplaceController extends Controller
             $shop->cover_image_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(5));
         }
 
-        // $shop->products()->paginate(6);
-        // Charger les produits paginés
-        $products = $shop->products()->with(['user','reviews'])->orderBy('created_at', 'desc')->paginate(6);
+        // Construire la requête des produits avec filtres
+        $productsQuery = $shop->products()->with(['user', 'reviews', 'category']);
+
+        // Filtre par recherche
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $productsQuery->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
+        }
+
+        // Filtre par catégorie
+        if ($request->filled('category') && $request->category !== 'all') {
+            $productsQuery->where('category_id', $request->category);
+        }
+
+        // Filtre par prix minimum
+        if ($request->filled('min_price')) {
+            $productsQuery->where('price', '>=', (float) $request->min_price);
+        }
+
+        // Filtre par prix maximum
+        if ($request->filled('max_price')) {
+            $productsQuery->where('price', '<=', (float) $request->max_price);
+        }
+
+        // // Filtre par état
+        // if ($request->filled('condition') && $request->condition !== 'all') {
+        //     $productsQuery->where('etat', $request->condition);
+        // }
+
+        // Tri
+        $sortBy = $request->get('sort', 'newest');
+        switch ($sortBy) {
+            case 'price-asc':
+                $productsQuery->orderBy('price', 'asc');
+                break;
+            case 'price-desc':
+                $productsQuery->orderBy('price', 'desc');
+                break;
+            case 'popular':
+                $productsQuery->withCount('favorites')->orderByDesc('favorites_count');
+                break;
+            case 'newest':
+            default:
+                $productsQuery->orderBy('created_at', 'desc');
+        }
+
+        $products = $productsQuery->paginate(6)->withQueryString();
 
         $products->transform(function ($product) {
             $images = $product->images()->get();
@@ -223,13 +271,18 @@ class MarketplaceController extends Controller
 
     public function toggleFollow(Request $request, string $slug)
     {
-        $shop = Shop::where('slug', $slug)->firstOrFail();
-        $user = auth()->user(); // Ou auth()->user();
+        $shop = Shop::where('slug', $slug)->with('user')->firstOrFail();
+        $user = auth()->user();
 
         // La méthode toggle() ajoute le lien si inexistant, ou le supprime si existant.
         // Elle retourne un tableau avec 'attached' et 'detached' (les IDs).
         $syncResult = $shop->followers()->toggle($user->id);
         $isFollowing = !empty($syncResult['attached']);
+
+        // Notifier le vendeur uniquement si c'est un nouveau follow (pas un unfollow)
+        if ($isFollowing && $shop->user && $shop->user->id !== $user->id) {
+            $shop->user->notify(new NewShopFollower($user, $shop));
+        }
 
         return back()->with([
         'isFollowing' => $isFollowing,

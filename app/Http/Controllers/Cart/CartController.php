@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cart;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CartController extends Controller
@@ -95,6 +96,22 @@ class CartController extends Controller
             ]);
             $cart->load('items.product');
         }
+
+        // Transform cart items with images
+        $cart->items->transform(function ($item) {
+            if ($item->product) {
+                $images = $item->product->images()->get();
+                $imagesData = [];
+                foreach ($images as $image) {
+                    $imagesData[] = [
+                        'id' => $image->id,
+                        'url' => Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30))
+                    ];
+                }
+                $item->product->images = $imagesData;
+            }
+            return $item;
+        });
         
         return Inertia::render('cart/Show', [
             'cart' => $cart

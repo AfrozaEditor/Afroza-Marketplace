@@ -134,7 +134,20 @@ class NotificationController extends Controller
      */
     public function apiMarkAllAsRead(Request $request)
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $user = $request->user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'Non authentifié.',
+                'unread_count' => 0,
+            ], 401);
+        }
+
+        $unreadNotifications = $user->unreadNotifications;
+        
+        if ($unreadNotifications->isNotEmpty()) {
+            $unreadNotifications->markAsRead();
+        }
 
         return response()->json([
             'message' => 'Toutes les notifications ont été marquées comme lues.',

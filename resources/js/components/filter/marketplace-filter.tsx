@@ -124,12 +124,12 @@ export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
       {cities.length > 0 && setSelectedCity && (
         <div>
           <Label className="block text-sm font-medium mb-2">Ville</Label>
-          <Select value={selectedCity} onValueChange={setSelectedCity}>
+          <Select value={selectedCity || 'all'} onValueChange={(value) => setSelectedCity(value === 'all' ? '' : value)}>
             <SelectTrigger>
               <SelectValue placeholder="Toutes les villes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les villes</SelectItem>
+              <SelectItem value="all">Toutes les villes</SelectItem>
               {cities.map((city) => (
                 <SelectItem key={city} value={city}>
                   {city}
