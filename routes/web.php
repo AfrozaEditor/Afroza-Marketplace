@@ -253,6 +253,12 @@ Route::get('/help', function () {
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+// Routes pour le choix du rôle après connexion Google
+Route::middleware('auth')->group(function () {
+    Route::get('auth/choose-role', [GoogleController::class, 'showChooseRole'])->name('auth.choose-role');
+    Route::post('auth/choose-role', [GoogleController::class, 'storeRole'])->name('auth.store-role');
+});
+
 //Route::get('/available',[ProductController::class, 'index']);
 
 require __DIR__ . '/settings.php';

@@ -51,7 +51,7 @@ interface Stats {
     pending_orders: number;
     processing_orders: number;
     completed_orders: number;
-    total_views: number;
+    total_followers: number;
 }
 
 interface ShopWithUrls extends Shop {
@@ -325,9 +325,9 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
             bgColor: 'bg-purple-50',
         },
         {
-            title: 'Vues',
-            value: stats.total_views.toString(),
-            icon: <Eye className="h-5 w-5 text-orange-600" />,
+            title: 'Abonnés',
+            value: stats.total_followers.toString(),
+            icon: <Users className="h-5 w-5 text-orange-600" />,
             bgColor: 'bg-orange-50',
         },
     ];
