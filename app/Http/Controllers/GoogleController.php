@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class GoogleController extends Controller
 {
@@ -19,18 +21,79 @@ class GoogleController extends Controller
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
 
-        // Recherche l'utilisateur ou crée un nouveau
-        $user = User::firstOrCreate(
-            ['email' => $googleUser->getEmail()],
-            [
-                'name' => $googleUser->getName(),
-                'google_id' => $googleUser->getId(),
-                'password' => bcrypt(Str::random(24)),
-            ]
-        );
+        // Recherche l'utilisateur existant par email
+        $existingUser = User::where('email', $googleUser->getEmail())->first();
+
+        if ($existingUser) {
+            // Utilisateur existant - mettre à jour google_id si nécessaire
+            if (!$existingUser->google_id) {
+                $existingUser->update(['google_id' => $googleUser->getId()]);
+            }
+            
+            Auth::login($existingUser);
+            
+            // Si l'utilisateur n'a pas de rôle, rediriger vers le choix du rôle
+            if ($existingUser->roles->isEmpty()) {
+                return redirect()->route('auth.choose-role');
+            }
+            
+            return redirect('/');
+        }
+
+        // Nouvel utilisateur - créer et rediriger vers le choix du rôle
+        $user = User::create([
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'google_id' => $googleUser->getId(),
+            'password' => bcrypt(Str::random(24)),
+            'email_verified_at' => now(), // Email vérifié via Google
+        ]);
 
         Auth::login($user);
 
-        return redirect('/'); // ou une autre page
+        // Rediriger vers la page de choix du rôle
+        return redirect()->route('auth.choose-role');
+    }
+
+    /**
+     * Afficher la page de choix du rôle
+     */
+    public function showChooseRole()
+    {
+        $user = auth()->user();
+        
+        // Si l'utilisateur a déjà un rôle, rediriger vers l'accueil
+        if ($user->roles->isNotEmpty()) {
+            return redirect('/');
+        }
+
+        return Inertia::render('auth/ChooseRole');
+    }
+
+    /**
+     * Enregistrer le rôle choisi
+     */
+    public function storeRole(Request $request)
+    {
+        $request->validate([
+            'role' => ['required', 'string', 'in:customer,vendor,delivery'],
+        ]);
+
+        $user = auth()->user();
+        
+        // Vérifier que l'utilisateur n'a pas déjà un rôle
+        if ($user->roles->isNotEmpty()) {
+            return redirect('/')->with('error', 'Vous avez déjà un rôle attribué.');
+        }
+
+        $user->assignRole($request->role);
+
+        $messages = [
+            'customer' => 'Bienvenue ! Vous pouvez maintenant faire vos achats.',
+            'vendor' => 'Bienvenue ! Vous pouvez maintenant créer votre boutique.',
+            'delivery' => 'Bienvenue ! Vous pouvez maintenant postuler comme livreur.',
+        ];
+
+        return redirect('/')->with('success', $messages[$request->role]);
     }
 }

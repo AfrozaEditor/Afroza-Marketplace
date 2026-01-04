@@ -17,6 +17,16 @@ class VendorDashboardController extends Controller
     {
         $user = auth()->user();
         
+        // Récupérer la boutique du vendeur avec ses followers
+        $shop = Shop::where('user_id', $user->id)->with('followers')->first();
+        
+        // Si le vendeur a une boutique, associer automatiquement tous ses produits orphelins
+        if ($shop) {
+            Product::where('user_id', $user->id)
+                ->whereNull('shop_id')
+                ->update(['shop_id' => $shop->id]);
+        }
+        
         // Récupérer les produits du vendeur
         $products = Product::with(['user', 'category'])
             ->orderBy('created_at', 'desc')
@@ -33,8 +43,7 @@ class VendorDashboardController extends Controller
             return $product;
         });
 
-        // Récupérer la boutique du vendeur
-        $shop = Shop::where('user_id', $user->id)->first();
+        // Générer les URLs temporaires pour la boutique
         if ($shop && $shop->logo) {
             $shop->logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(30));
         }
@@ -66,7 +75,7 @@ class VendorDashboardController extends Controller
             'pending_orders' => $orders->where('status', 'pending')->count(),
             'processing_orders' => $orders->where('status', 'processing')->count(),
             'completed_orders' => $orders->whereIn('status', ['delivered', 'completed'])->count(),
-            'total_views' => $products->sum('views') ?? 0,
+            'total_followers' => $shop ? $shop->followers->count() : 0,
         ];
 
         // Commandes récentes (5 dernières)
@@ -177,8 +186,18 @@ class VendorDashboardController extends Controller
             $validated['cover_image'] = $request->file('cover_image')->store('shops/covers', 's3');
         }
 
-        Shop::create($validated);
+        $shop = Shop::create($validated);
 
-        return back()->with('success', 'Boutique créée avec succès.');
+        // Transférer automatiquement les produits existants du vendeur à sa nouvelle boutique
+        $productsUpdated = Product::where('user_id', $user->id)
+            ->whereNull('shop_id')
+            ->update(['shop_id' => $shop->id]);
+
+        $message = 'Boutique créée avec succès.';
+        if ($productsUpdated > 0) {
+            $message .= " {$productsUpdated} produit(s) ont été automatiquement ajoutés à votre boutique.";
+        }
+
+        return back()->with('success', $message);
     }
 }
