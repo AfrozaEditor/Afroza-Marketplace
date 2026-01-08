@@ -66,9 +66,8 @@ Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
 
 Route::middleware(['auth', 'role:delivery'])->group(function () {
     Route::get('delivery/profile', [DeliveryController::class, 'show'])->name('delivery.profile');
-    Route::get('delivery-dashboard', function () {
-        return Inertia::render('delivery/Dashboard');
-    })->name('delivery-dashboard');
+    Route::get('delivery-dashboard', [DeliveryController::class, 'dashboard'])->name('delivery-dashboard');
+    Route::get('delivery/pending-approval', [DeliveryController::class, 'pendingApproval'])->name('delivery.pending-approval');
     Route::get('/delivery/available-orders', [DeliveryController::class, 'availableOrders'])->name('delivery.available-orders');
     Route::get('/delivery/assigned-orders', [DeliveryController::class, 'assignedOrders'])->name('delivery.assigned-orders');
     Route::post('/delivery/accept-order/{orderId}', [DeliveryController::class, 'acceptOrder'])->name('delivery.accept-order');
@@ -147,6 +146,21 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     // User moderation
     Route::post('/admin/moderation/users/{user}/block', [App\Http\Controllers\Admin\AdminModerationController::class, 'blockUser'])->name('admin.moderation.users.block');
     Route::post('/admin/moderation/users/{user}/unblock', [App\Http\Controllers\Admin\AdminModerationController::class, 'unblockUser'])->name('admin.moderation.users.unblock');
+
+    // Shop management routes
+    Route::get('/admin/shops', [App\Http\Controllers\Admin\AdminShopController::class, 'index'])->name('admin.shops.index');
+    Route::get('/admin/shops/{shop}', [App\Http\Controllers\Admin\AdminShopController::class, 'show'])->name('admin.shops.show');
+    Route::post('/admin/shops/{shop}/approve', [App\Http\Controllers\Admin\AdminShopController::class, 'approve'])->name('admin.shops.approve');
+    Route::post('/admin/shops/{shop}/reject', [App\Http\Controllers\Admin\AdminShopController::class, 'reject'])->name('admin.shops.reject');
+    Route::delete('/admin/shops/{shop}', [App\Http\Controllers\Admin\AdminShopController::class, 'destroy'])->name('admin.shops.destroy');
+
+    // Product management routes
+    Route::get('/admin/products', [App\Http\Controllers\Admin\AdminProductController::class, 'index'])->name('admin.products.index');
+    Route::get('/admin/products/{product}', [App\Http\Controllers\Admin\AdminProductController::class, 'show'])->name('admin.products.show');
+    Route::post('/admin/products/{product}/approve', [App\Http\Controllers\Admin\AdminProductController::class, 'approve'])->name('admin.products.approve');
+    Route::post('/admin/products/{product}/reject', [App\Http\Controllers\Admin\AdminProductController::class, 'reject'])->name('admin.products.reject');
+    Route::post('/admin/products/{product}/toggle-active', [App\Http\Controllers\Admin\AdminProductController::class, 'toggleActive'])->name('admin.products.toggle-active');
+    Route::delete('/admin/products/{product}', [App\Http\Controllers\Admin\AdminProductController::class, 'destroy'])->name('admin.products.destroy');
 });
 
 Route::middleware('auth')->group(function () {

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 
@@ -28,7 +29,40 @@ class Shop extends Model
         'facebook',
         'instagram',
         'user_id',
+        'is_approved',
+        'approved_at',
+        'approved_by',
+        'rejection_reason',
     ];
+
+    protected $casts = [
+        'is_approved' => 'boolean',
+        'approved_at' => 'datetime',
+    ];
+
+    /**
+     * Scope pour les boutiques approuvées et visibles
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('is_approved', true);
+    }
+
+    /**
+     * Scope pour les boutiques en attente d'approbation
+     */
+    public function scopePending($query)
+    {
+        return $query->where('is_approved', false)->whereNull('rejection_reason');
+    }
+
+    /**
+     * Relation avec l'admin qui a approuvé
+     */
+    public function approvedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 
     /**
      * @return BelongsTo

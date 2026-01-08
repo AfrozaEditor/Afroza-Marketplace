@@ -25,13 +25,43 @@ class Product extends Model
         'quantity',
 //        'image',
         'active',
+        'is_approved',
+        'approved_at',
+        'approved_by',
+        'rejection_reason',
     ];
 
     protected $casts = [
         'active' => 'boolean',
+        'is_approved' => 'boolean',
         'price' => 'decimal:2',
         'quantity' => 'integer',
+        'approved_at' => 'datetime',
     ];
+
+    /**
+     * Scope pour les produits approuvés et visibles
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('is_approved', true)->where('active', true);
+    }
+
+    /**
+     * Scope pour les produits en attente d'approbation
+     */
+    public function scopePending($query)
+    {
+        return $query->where('is_approved', false)->whereNull('rejection_reason');
+    }
+
+    /**
+     * Relation avec l'admin qui a approuvé
+     */
+    public function approvedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 
     /**
      * @use BelongsTo

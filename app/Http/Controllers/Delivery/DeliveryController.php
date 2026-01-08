@@ -383,4 +383,62 @@ class DeliveryController extends Controller
             'contactPhone' => config('app.contact_phone', null),
         ]);
     }
+
+    /**
+     * Show the pending approval page
+     */
+    public function pendingApproval()
+    {
+        $user = auth()->user();
+        $delivery = $user->delivery;
+
+        // Si l'utilisateur n'a pas de profil livreur ou est déjà approuvé, rediriger
+        if (!$delivery || $delivery->statut === 'approuve') {
+            return redirect()->route('delivery-dashboard');
+        }
+
+        return \Inertia\Inertia::render('delivery/PendingApproval', [
+            'delivery' => [
+                'id' => $delivery->id,
+                'name' => $delivery->name,
+                'created_at' => $delivery->created_at,
+            ],
+            'contactEmail' => config('mail.from.address', 'contact@vide-dressing.com'),
+            'contactPhone' => config('app.contact_phone', null),
+        ]);
+    }
+
+    /**
+     * Dashboard avec vérification du statut
+     */
+    public function dashboard()
+    {
+        $user = auth()->user();
+        $delivery = $user->delivery;
+
+        // Si pas de profil livreur, rediriger vers la création
+        if (!$delivery) {
+            return redirect()->route('delivery.register');
+        }
+
+        // Si suspendu, rediriger vers la page suspendu
+        if ($delivery->statut === 'suspendu') {
+            return redirect()->route('delivery.suspended');
+        }
+
+        // Si rejeté, rediriger vers la page de rejet (ou page d'édition)
+        if ($delivery->statut === 'rejete') {
+            return redirect()->route('delivery.edit', $delivery->id)
+                ->with('error', 'Votre profil a été rejeté. Raison: ' . ($delivery->rejection_reason ?? 'Non spécifiée'));
+        }
+
+        // Si en attente, rediriger vers la page d'attente
+        if ($delivery->statut === 'en_attente') {
+            return redirect()->route('delivery.pending-approval');
+        }
+
+        // Approuvé - afficher le dashboard
+        return \Inertia\Inertia::render('delivery/Dashboard');
+    }
 }
+
