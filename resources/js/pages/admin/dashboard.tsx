@@ -23,6 +23,8 @@ function Dashboard({users}: Props) {
 
     const adminOptions = [
         { title: "Gestion des Utilisateurs", description: "Visualiser, modifier ou suspendre des comptes utilisateurs.", action: <Link href="/admin/users">Gérer les utilisateurs</Link> },
+        { title: "Gestion des Boutiques", description: "Visualiser et gérer toutes les boutiques de la plateforme.", action: <Link href="/admin/shops">Gérer les boutiques</Link> },
+        { title: "Gestion des Produits", description: "Visualiser, activer/désactiver ou supprimer des produits.", action: <Link href="/admin/products">Gérer les produits</Link> },
         { title: "Gestion des Livreurs", description: "Approuver, rejeter ou suspendre les profils des livreurs.", action: <Link href="/admin/deliveries">Gérer les livreurs</Link> },
         { title: "Gestion des Blogs", description: "Créer, modifier et publier des articles de blog.", action: <Link href="/admin/blogs">Gérer les blogs</Link> },
         { title: "Gestion des Newsletters", description: "Créer, modifier et publier des articles de newsletter.", action: <Link href="/admin/newsletters">Gérer les newsletters</Link> },
