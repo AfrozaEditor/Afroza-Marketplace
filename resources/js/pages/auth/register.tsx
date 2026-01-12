@@ -49,15 +49,20 @@ export default function Register() {
     const submit = async (data: RegisterFormValues) => {
         router.post(route('register'), data, {
             onSuccess: () => {
-                toast.success('Compte créé avec succès!', {
-                    description: 'Vous allez être redirigé vers la page d\'accueil.'
+                toast.success('Code de vérification envoyé !', {
+                    description: 'Vérifiez votre boîte email pour le code à 6 chiffres.'
                 });
-                form.reset();
             },
-            onError: () => {
-                toast.error('Une erreur est survenue lors de la création du compte.', {
-                    description: 'Veuillez vérifier vos informations et réessayer.'
-                });
+            onError: (errors) => {
+                if (errors.email) {
+                    toast.error('Erreur avec l\'email', {
+                        description: errors.email
+                    });
+                } else {
+                    toast.error('Une erreur est survenue lors de l\'inscription.', {
+                        description: 'Veuillez vérifier vos informations et réessayer.'
+                    });
+                }
             }
         });
     };

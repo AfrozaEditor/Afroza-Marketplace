@@ -283,19 +283,28 @@ export default function NotificationDropdown({
         }
     };
 
-    const handleNotificationClick = (notification: Notification) => {
+    const handleNotificationClick = (notification: Notification, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Fermer le dropdown d'abord
+        setIsOpen(false);
+        
         if (!notification.read_at) {
             handleMarkAsRead(notification.id);
         }
         
         if (notification.data.action_url) {
-            router.visit(notification.data.action_url);
-            setIsOpen(false);
+            const actionUrl = notification.data.action_url;
+            // Petit délai pour laisser le dropdown se fermer proprement
+            setTimeout(() => {
+                router.visit(actionUrl);
+            }, 100);
         }
     };
 
     return (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
             <DropdownMenuTrigger asChild>
                 <Button 
                     variant="ghost" 
@@ -313,8 +322,8 @@ export default function NotificationDropdown({
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel className="flex items-center justify-between">
+            <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)] sm:w-80" sideOffset={5}>
+                <DropdownMenuLabel className="flex items-center justify-between flex-wrap gap-2">
                     <span>Notifications</span>
                     {unreadCount > 0 && (
                         <Button 
@@ -345,7 +354,7 @@ export default function NotificationDropdown({
                             {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    onClick={() => handleNotificationClick(notification)}
+                                    onClick={(e) => handleNotificationClick(notification, e)}
                                     className={cn(
                                         "flex items-start gap-3 p-3 cursor-pointer hover:bg-muted transition-colors group",
                                         !notification.read_at && "bg-blue-50 dark:bg-blue-950/20"
