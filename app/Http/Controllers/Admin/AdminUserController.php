@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Notifications\RoleChanged;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
@@ -152,7 +154,7 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Supprimer un utilisateur
+     * Supprimer un utilisateur et toutes ses données associées
      */
     public function destroy(User $user)
     {
@@ -161,8 +163,21 @@ class AdminUserController extends Controller
             return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
         }
 
-        $user->delete();
+        $userName = $user->name;
 
-        return back()->with('success', 'Utilisateur supprimé avec succès.');
+        try {
+            DB::transaction(function () use ($user) {
+                // Le modèle User gère la suppression en cascade dans l'événement deleting
+                $user->delete();
+            });
+
+            Log::info("Utilisateur supprimé avec toutes ses données: {$userName} (ID: {$user->id})");
+
+            return back()->with('success', "Utilisateur {$userName} et toutes ses données ont été supprimés avec succès.");
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de la suppression de l'utilisateur {$userName}: " . $e->getMessage());
+            
+            return back()->with('error', 'Une erreur est survenue lors de la suppression. Veuillez réessayer.');
+        }
     }
 }

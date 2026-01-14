@@ -25,8 +25,9 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     $latestProducts = Product::with(['category', 'shop', 'user', 'reviews'])
+        ->visible()
         ->orderBy('created_at', 'desc')
-        ->take(3)
+        ->take(6)
         ->get();
     // Générer les URLs temporaires pour chaque produit
     $latestProducts->transform(function ($product) {
@@ -41,7 +42,7 @@ Route::get('/', function () {
     });
     return Inertia::render('home', [
         'latestProducts' => $latestProducts,
-        'categories' => Category::all(),
+        'categories' => Category::with('children')->whereNull('parent_id')->get(),
     ]);
 })->name('home');
 

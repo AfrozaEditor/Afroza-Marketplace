@@ -309,7 +309,7 @@ export default function MapZone({
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution:
-        '© OpenStreetMap contributors | © Vide-Dressing Delivery',
+        '© OpenStreetMap contributors | © Afroza Marketplac Delivery',
       maxZoom: 19,
       minZoom: 3,
     }).addTo(mapInstance.current);

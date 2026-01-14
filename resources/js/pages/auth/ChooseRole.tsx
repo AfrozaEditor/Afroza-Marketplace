@@ -91,7 +91,7 @@ export default function ChooseRole() {
                 <div className="w-full max-w-4xl">
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            Bienvenue sur Vide-Dressing !
+                            Bienvenue sur Afroza Marketplac !
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 text-lg">
                             Pour commencer, dites-nous comment vous souhaitez utiliser la plateforme

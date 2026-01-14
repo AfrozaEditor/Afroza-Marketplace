@@ -39,14 +39,14 @@ class NewUserRegistered extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Nouvel utilisateur inscrit sur Vide-Dressing')
+            ->subject('Nouvel utilisateur inscrit sur Afroza Marketplace')
             ->greeting('Bonjour ' . $notifiable->name . ' !')
             ->line('Un nouvel utilisateur vient de s\'inscrire sur la plateforme.')
             ->line('**Nom:** ' . $this->newUser->name)
             ->line('**Email:** ' . $this->newUser->email)
             ->line('**Date d\'inscription:** ' . $this->newUser->created_at->format('d/m/Y à H:i'))
             ->action('Voir les utilisateurs', url('/admin/users'))
-            ->line('Merci d\'utiliser Vide-Dressing !');
+            ->line('Merci d\'utiliser Afroza Marketplace !');
     }
 
     /**
