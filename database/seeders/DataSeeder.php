@@ -40,17 +40,8 @@ class DataSeeder extends Seeder
         ]);
         $admin->assignSingleRole('admin');
 
-        // Création des catégories
-        $categories = [
-            ['name' => 'Femmes', 'slug' => 'femmes'],
-            ['name' => 'Hommes', 'slug' => 'hommes'],
-            ['name' => 'Accessoires', 'slug' => 'accessoires'],
-            ['name' => 'Chaussures', 'slug' => 'chaussures'],
-        ];
-
-        foreach ($categories as $category) {
-            Category::create($category);
-        }
+        // Création des catégories via le CategorySeeder
+        $this->call(CategorySeeder::class);
 
         // Création des vendeurs et leurs boutiques
         for ($i = 1; $i <= 5; $i++) {

@@ -6,8 +6,27 @@ import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, Category, type NavItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
-import { Facebook, Instagram, Menu, MessageCircle, Moon, Search, ShoppingCart, Sun, Twitter, User, X } from 'lucide-react';
-import { useState } from 'react';
+import { 
+    Facebook, 
+    Instagram, 
+    Menu, 
+    MessageCircle, 
+    Moon, 
+    Search, 
+    ShoppingCart, 
+    Sun, 
+    Twitter, 
+    User, 
+    X,
+    Heart,
+    Phone,
+    MapPin,
+    ChevronDown,
+    Sparkles,
+    Store,
+    Tag
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
 import AppLogo from './app-logo';
 import NotificationDropdown from './notifications/NotificationDropdown';
@@ -22,18 +41,15 @@ import {
 import { Input } from './ui/input';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
+import { Badge } from './ui/badge';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Accueil',
         href: '/',
     },
-    // {
-    //     title: 'Boutique',
-    //     href: '/products',
-    // },
     {
-        title: 'Disponibles',
+        title: 'Produits',
         href: '/products',
     },
     {
@@ -79,25 +95,25 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     const { auth } = page.props;
     const [searchQuery, setSearchQuery] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const { appearance, updateAppearance } = useAppearance();
-    // const getInitials = useInitials();
-    // console.log(categories[0].name);
+    
     console.log(auth.user?.cart);
-    // console.log(auth.user.role);
     const isVendor = auth.user?.role === 'vendor';
     const isCustomer = auth.user?.role === 'customer';
+
+    // Effet de scroll pour le header sticky
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
-
-    // const handleSearch = (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     if (searchQuery.trim()) {
-    //         router.get(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-    //         setSearchQuery('');
-    //     }
-    // };
     const [selectedSearchCategory, setSelectedSearchCategory] = useState('');
 
     // Modifiez la fonction handleSearch
@@ -125,181 +141,100 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     };
 
     return (
-        <header className="sticky top-0 z-50">
-            {/* Barre de réseaux sociaux */}
-            <div className="bg-primary hidden md:block">
-                <div className="container mx-auto flex h-10 items-center justify-between px-4">
-                    <div>
-                        <Button className="p-0">
-                            <span className="mr-1 text-sm">Français</span>
-                            <span className="text-xs">▼</span>
-                        </Button>
+        <header className={cn(
+            "sticky top-0 z-50 transition-all duration-300",
+            isScrolled && "shadow-lg"
+        )}>
+            {/* Top Bar - Info & réseaux sociaux */}
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 hidden md:block">
+                <div className="container mx-auto flex h-9 items-center justify-between px-4">
+                    {/* Info gauche */}
+                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                        <span className="flex items-center gap-1.5 hover:text-white transition-colors">
+                            <Phone className="h-3 w-3" />
+                            +237 6XX XXX XXX
+                        </span>
+                        <span className="text-gray-600">|</span>
+                        <span className="flex items-center gap-1.5 hover:text-white transition-colors">
+                            <MapPin className="h-3 w-3" />
+                            Douala, Cameroun
+                        </span>
                     </div>
-                    <div className="flex items-center gap-6">
-                        {/* Menu utilisateur */}
-                        {auth.user ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center gap-2 text-white">
-                                        <User className="h-5 w-5" />
-                                        <span>{auth.user.name}</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <UserMenuContent user={auth.user} />
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            // <UserMenu user={auth.user} />
-                            // <Button size="icon" asChild className="text-white gap-1 bg-primary flex items-center justify-center hover:text-gray-600 hover:bg-teal-600">
-                            <Link href={route('login')} className="flex size-15 items-center justify-center gap-2 text-sm text-white">
-                                <User className="h-5 w-5" />
-                                <span>Profil</span>
-                            </Link>
-                        )}
-                        {/*<Link href="" className="relative flex items-center text-sm text-white transition-colors hover:text-teal-200">*/}
-                        {/*    <Bell size={16} className="mr-1" />*/}
-                        {/*    <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white"></span>*/}
-                        {/*</Link>*/}
-                        {auth.user && (
-                            <NotificationDropdown className="text-white hover:text-gray-200 hover:bg-transparent" />
-                        )}
-                        <Link href={route('chat.index')} className="flex items-center text-sm text-white transition-colors hover:text-teal-200">
-                            <MessageCircle size={16} className="mr-1" />
-                            {/*<span>chat</span>*/}
-                        </Link>
-                        <div className="flex items-center justify-center gap-4">
-                            {/* Toggle Dark Mode */}
-                            <button
-                                onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
-                                className="p-1.5 rounded-full text-white hover:bg-white/20 transition-colors"
-                                title={appearance === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
-                            >
-                                {appearance === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                            </button>
-                            <Link
-                                href="https://facebook.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-white transition-colors hover:text-gray-200"
-                            >
-                                <Facebook className="h-4 w-4" />
-                                {/*<span className="sr-only">Facebook</span>*/}
-                            </Link>
-                            <Link
-                                href="https://instagram.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-white transition-colors hover:text-gray-200"
-                            >
-                                <Instagram className="h-4 w-4" />
-                                {/*<span className="sr-only">Instagram</span>*/}
-                            </Link>
-                            <Link
-                                href="https://twitter.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-white transition-colors hover:text-gray-200"
-                            >
-                                <Twitter className="h-4 w-4" />
-                            </Link>
-                        </div>
+                    
+                    {/* Actions droite */}
+                    <div className="flex items-center gap-4">
+                        {/* Langue */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors">
+                                <span>🇫🇷 FR</span>
+                                <ChevronDown className="h-3 w-3" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="min-w-[100px]">
+                                <DropdownMenuItem>🇫🇷 Français</DropdownMenuItem>
+                                <DropdownMenuItem>🇬🇧 English</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
-                        {/* Panier */}
-                        {/*<Button size="icon" asChild className="text-white bg-primary gap-1 hover:bg-teal-600">*/}
-                        <Link href={route('my-cart')} className="flex items-center justify-center text-white">
-                            <ShoppingCart className="h-5 w-5" />
-                            <span className="ml-1 flex items-center justify-center rounded-full bg-orange-400 px-1.5 py-0.5 text-xs font-bold">
-                                {auth.user?.cart?.total_quantity ?? 0}
-                            </span>
-                            <span className="ml-2 text-sm">{auth.user?.cart?.total_price ? `${auth.user.cart.total_price} FCFA` : '0 FCFA'}</span>
-                        </Link>
-                        {/*</Button>*/}
-                    </div>
-                </div>
-            </div>
-
-            {/*Barre mobile*/}
-            <div className="bg-primary md:hidden">
-                <div className="container mx-auto flex h-10 items-center justify-between px-4">
-                    <div>
-                        {/* Menu utilisateur */}
-                        {auth.user ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center gap-2 text-white">
-                                        <User className="h-5 w-5" />
-                                        <span>{auth.user.name}</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <UserMenuContent user={auth.user} />
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            // <UserMenu user={auth.user} />
-                            // <Button size="icon" asChild className="text-white gap-1 bg-primary flex items-center justify-center hover:text-gray-600 hover:bg-teal-600">
-                            <Link href={route('login')} className="flex size-15 items-center justify-center gap-2 text-sm text-white">
-                                <User className="h-5 w-5" />
-                                <span>Profil</span>
-                            </Link>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-6">
+                        {/* Dark mode toggle */}
+                        <button
+                            onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
+                            className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                            title={appearance === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                        >
+                            {appearance === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                        </button>
                         
-                        {/*<Link href="" className="relative flex items-center text-sm text-white transition-colors hover:text-teal-200">*/}
-                        {/*    <Bell size={16} className="mr-1" />*/}
-                        {/*    <span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-sm text-white"></span>*/}
-                        {/*</Link>*/}
-                        {auth.user && (
-                            <NotificationDropdown className="text-white hover:text-gray-200 hover:bg-transparent" />
-                        )}
-                        <Link href={route('chat.index')} className="flex items-center text-sm text-white transition-colors hover:text-teal-200">
-                            <MessageCircle size={16} className="mr-1" />
-                            {/*<span>chat</span>*/}
-                        </Link>
-                        {/* Panier */}
-                        {/*<Button size="icon" asChild className="text-white bg-primary gap-1 hover:bg-teal-600">*/}
-                        <Link href={route('my-cart')} className="flex items-center justify-center text-white">
-                            <ShoppingCart className="h-5 w-5" />
-                            <span className="ml-1 flex items-center justify-center rounded-full bg-orange-400 px-1.5 py-0.5 text-xs font-bold">
-                                {auth.user?.cart?.total_quantity ?? 0}
-                            </span>
-                        </Link>
-                        {/*</Button>*/}
+                        <span className="text-gray-600">|</span>
+                        
+                        {/* Réseaux sociaux */}
+                        <div className="flex items-center gap-2">
+                            {[
+                                { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
+                                { icon: Instagram, href: 'https://instagram.com/afrozaeditor', label: 'Instagram' },
+                                { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+                            ].map((social) => (
+                                <a
+                                    key={social.label}
+                                    href={social.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-400 hover:text-primary transition-colors"
+                                    title={social.label}
+                                >
+                                    <social.icon className="h-3.5 w-3.5" />
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
-            <Separator />
-            <div className="bg-primary border-b border-gray-200">
-                <div
-                    // className="mx-auto flex h-16 items-center justify-between px-4 md:max-w-7xl"
-                    className="container mx-auto px-4"
-                >
+
+            {/* Section principale du header */}
+            <div className={cn(
+                "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-all duration-300",
+                isScrolled && "py-1"
+            )}>
+                <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between gap-4 py-3">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center pt-2">
+                        <Link href="/" className="flex items-center flex-shrink-0 group">
                             <AppLogo />
                         </Link>
 
                         {/* Barre de recherche - Desktop */}
-                        <div className="mx-8 hidden max-w-2xl flex-1 md:flex">
+                        <div className="mx-4 hidden flex-1 max-w-2xl lg:flex">
                             <form onSubmit={handleSearch} className="w-full">
-                                <div className="relative flex">
+                                <div className="relative flex rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/40 focus-within:border-primary transition-colors shadow-sm">
                                     <Select onValueChange={(value) => setSelectedSearchCategory(value)}>
-                                        <SelectTrigger className="w-40 rounded-l-md rounded-r-none border-r bg-white px-4 py-2 text-gray-800 focus:outline-none">
+                                        <SelectTrigger className="w-36 rounded-none border-0 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 text-sm focus:ring-0">
                                             <SelectValue placeholder="Catégorie" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {/* <SelectItem value="">Toutes les catégories</SelectItem> */}
                                             {categories.map((cat) => (
                                                 <SelectItem key={cat.id} value={cat.id.toString()}>
                                                     {cat.name}
                                                 </SelectItem>
                                             ))}
-                                            {/* <SelectItem key={1} value='essai'>
-                                                Essai
-                                            </SelectItem> */}
                                         </SelectContent>
                                     </Select>
                                     <Input
@@ -307,129 +242,163 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                         placeholder="Rechercher des produits, marques, vendeurs..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full rounded-l-none border-0 bg-gray-50 py-3 pr-24 transition-colors focus:bg-white"
+                                        className="flex-1 border-0 bg-white dark:bg-gray-900 py-2.5 px-4 focus-visible:ring-0 text-sm"
                                     />
                                     <Button
                                         type="submit"
-                                        size="sm"
-                                        className="bg-primary hover:bg-primary/80 absolute top-1/2 right-2 h-8 -translate-y-1/2 transform px-4 py-1.5"
+                                        className="rounded-none px-5 bg-primary hover:bg-primary/90"
                                         disabled={!searchQuery.trim()}
                                     >
-                                        <Search size={18} />
+                                        <Search className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </form>
                         </div>
 
-                        {/* Menu mobile: icône panier + burger */}
-                        <div className="flex items-center md:hidden">
-                            {/*<Link href="/panier" className="relative text-videdressing-primary p-2 hover:bg-gray-100 rounded-lg transition-colors">*/}
-                            {/*    <ShoppingCart size={22} />*/}
-                            {/*    /!*{itemCount > 0 && (*!/*/}
-                            {/*    /!*    <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs h-4 min-w-[1rem] flex items-center justify-center">*!/*/}
-                            {/*    /!*        {itemCount}*!/*/}
-                            {/*    /!*    </Badge>*!/*/}
-                            {/*    /!*)}*!/*/}
-                            {/*</Link>*/}
-                            <button className="py-0 px-0 flex text-white hover:text-black" onClick={toggleMenu}>
-                                {isMenuOpen ? <X size={25} /> : <Menu size={25} className="w-full "/>}
+                        {/* Actions droite - Desktop */}
+                        <div className="hidden md:flex items-center gap-2">
+                            {/* Favoris */}
+                            {auth.user && (
+                                <Link
+                                    href="/favorites"
+                                    className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                    title="Mes favoris"
+                                >
+                                    <Heart className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                </Link>
+                            )}
+
+                            {/* Messages */}
+                            {auth.user && (
+                                <Link
+                                    href={route('chat.index')}
+                                    className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                    title="Messages"
+                                >
+                                    <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                </Link>
+                            )}
+
+                            {/* Notifications */}
+                            {auth.user && (
+                                <NotificationDropdown className="text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-2.5" />
+                            )}
+
+                            {/* Panier */}
+                            <Link
+                                href={route('my-cart')}
+                                className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                title="Mon panier"
+                            >
+                                <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
+                                    <Badge className="absolute -top-0.5 -right-0.5 h-5 min-w-[20px] px-1.5 text-[10px] bg-primary border-2 border-white dark:border-gray-900">
+                                        {auth.user?.cart?.total_quantity}
+                                    </Badge>
+                                )}
+                            </Link>
+
+                            <span className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+
+                            {/* Menu utilisateur ou connexion */}
+                            {auth.user ? (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="flex items-center gap-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white text-sm font-medium">
+                                                {auth.user.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="text-sm font-medium hidden lg:block">{auth.user.name}</span>
+                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        <UserMenuContent user={auth.user} />
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Link href={route('login')}>
+                                        <Button variant="ghost" size="sm" className="text-sm">
+                                            Connexion
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('register')}>
+                                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-sm">
+                                            S'inscrire
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Actions mobile */}
+                        <div className="flex items-center gap-1 md:hidden">
+                            {auth.user && (
+                                <Link
+                                    href={route('my-cart')}
+                                    className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                    {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
+                                        <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 text-[9px] bg-primary">
+                                            {auth.user?.cart?.total_quantity}
+                                        </Badge>
+                                    )}
+                                </Link>
+                            )}
+                            <button 
+                                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" 
+                                onClick={toggleMenu}
+                            >
+                                {isMenuOpen ? (
+                                    <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                                ) : (
+                                    <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                                )}
                             </button>
                         </div>
-
-                        {/* Actions Desktop à droite */}
-                        <div className="hidden items-center space-x-4 md:flex">
-                            {/*Button de connexion/inscription*/}
-                            {!auth.user && (
-                                <Button
-                                    className="bg-white text-teal-600 hover:bg-white/80"
-                                    // className="bg-gradient-to-l from-primary to-chart-3"
-                                    // disabled={!!auth.user}
-                                >
-                                    <Link href={route('register')}>
-                                        <span>S'inscrire</span>
-                                    </Link>
-                                </Button>
-                            )}
-                            {isVendor && (
-                                <Button
-                                    className="bg-white text-teal-600 hover:bg-white/80"
-                                    // disabled={!isVendor}
-                                >
-                                    <Link href={route('products.create')}>
-                                        <span>Vends tes articles</span>
-                                    </Link>
-                                </Button>
-                            )}
-                            {/*/!* Barre de recherche *!/*/}
-                            {/*<Button variant="ghost" size="icon" className="hidden md:flex">*/}
-                            {/*    <Search className="h-5 w-5" />*/}
-                            {/*</Button>*/}
-                            {isCustomer && (
-                                <Button
-                                    className="bg-white text-teal-600 hover:bg-white/80"
-                                    // disabled={!isVendor}
-                                >
-                                    <Link href={route('products.index')}>
-                                        <span>Achète des articles</span>
-                                    </Link>
-                                </Button>
-                            )}
-                        </div>
                     </div>
-                    <Separator className="hidden md:block"/>
 
                     {/* Barre de recherche mobile */}
-                    <div className="md:hidden pb-4">
+                    <div className="md:hidden pb-3">
                         <form onSubmit={handleSearch}>
-                            <div className="relative flex">
-                                <Select onValueChange={(value) => setSelectedSearchCategory(value)}>
-                                    <SelectTrigger className="w-40 rounded-l-md rounded-r-none border-r bg-white px-4 py-2 text-gray-800 focus:outline-none">
-                                        <SelectValue placeholder="Catégorie" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {/* <SelectItem value="">Toutes les catégories</SelectItem> */}
-                                        {categories.map((cat) => (
-                                            <SelectItem key={cat.id} value={cat.id.toString()}>
-                                                {cat.name}
-                                            </SelectItem>
-                                        ))}
-                                        {/* <SelectItem key={1} value='essai'>
-                                                Essai
-                                            </SelectItem> */}
-                                    </SelectContent>
-                                </Select>
-                                {/*<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />*/}
+                            <div className="relative flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                                 <Input
                                     type="text"
                                     placeholder="Rechercher..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pr-16 py-3 w-full border-0 rounded-l-none border-gray-200 focus:border-primary bg-gray-50 focus:bg-white transition-colors text-black"
+                                    className="flex-1 border-0 bg-transparent py-2 px-3 focus-visible:ring-0 text-sm"
                                 />
                                 <Button
                                     type="submit"
                                     size="sm"
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1.5 h-8 text-xs bg-primary hover:bg-primary/80"
+                                    className="rounded-none px-4 bg-primary"
                                     disabled={!searchQuery.trim()}
                                 >
-                                    <Search size={18} />
+                                    <Search className="h-4 w-4" />
                                 </Button>
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
 
-                    {/* Navigation principale - Desktop */}
-                    <div className="hidden items-center justify-center space-x-8 py-1 md:flex">
+            {/* Navigation principale - Desktop */}
+            <div className="bg-primary hidden md:block">
+                <div className="container mx-auto px-4">
+                    <div className="flex items-center justify-between">
+                        {/* Navigation */}
                         <NavigationMenu>
-                            <NavigationMenuList>
+                            <NavigationMenuList className="gap-1">
                                 {mainNavItems.map((item) => (
                                     <NavigationMenuItem key={item.title}>
                                         <Link
                                             href={item.href}
                                             className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                'bg-primary text-[16px] text-white hover:text-white/80',
-                                                page.url === item.href,
+                                                "px-4 py-3 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-all inline-flex items-center",
+                                                page.url === item.href && "bg-white/15 text-white"
                                             )}
                                         >
                                             {item.title}
@@ -438,6 +407,34 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                 ))}
                             </NavigationMenuList>
                         </NavigationMenu>
+
+                        {/* CTA Buttons */}
+                        <div className="flex items-center gap-2 py-1.5">
+                            {isVendor && (
+                                <Link href={route('products.create')}>
+                                    <Button size="sm" className="bg-white text-primary hover:bg-white/90 gap-1.5 text-xs font-semibold shadow-sm">
+                                        <Tag className="h-3.5 w-3.5" />
+                                        Vendre
+                                    </Button>
+                                </Link>
+                            )}
+                            {isCustomer && (
+                                <Link href={route('products.index')}>
+                                    <Button size="sm" className="bg-white/15 text-white hover:bg-white/25 gap-1.5 text-xs font-semibold border border-white/20">
+                                        <Store className="h-3.5 w-3.5" />
+                                        Acheter
+                                    </Button>
+                                </Link>
+                            )}
+                            {!auth.user && (
+                                <Link href={route('register')}>
+                                    <Button size="sm" className="bg-white text-primary hover:bg-white/90 gap-1.5 text-xs font-semibold shadow-sm">
+                                        <Sparkles className="h-3.5 w-3.5" />
+                                        Commencer
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -447,89 +444,137 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                 <>
                     {/* Overlay sombre */}
                     <div
-                        className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
                         onClick={() => setIsMenuOpen(false)}
                     />
-                    <div className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-neutral-900 shadow-2xl z-50 md:hidden animate-slide-in-left">
-                        <div className="flex">
-                            <h2 className="flex-1 text-xl text-white font-bold text-center py-4 bg-primary">Menu</h2>
-                        </div>
-                        <div className="overflow-y-auto px-4">
-                            {/* Toggle Dark Mode Mobile */}
-                            <div className="flex items-center justify-center py-3 border-b dark:border-neutral-700">
-                                <button
-                                    onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition-colors"
+                    <div className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl z-50 md:hidden animate-slide-in-left overflow-hidden">
+                        {/* Header du menu */}
+                        <div className="bg-gradient-to-r from-primary to-primary/80 px-4 py-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-white font-bold text-lg">Menu</span>
+                                <button 
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                                 >
-                                    {appearance === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                                    <span className="text-sm">{appearance === 'dark' ? 'Mode Clair' : 'Mode Sombre'}</span>
+                                    <X className="h-5 w-5 text-white" />
                                 </button>
                             </div>
-                            <div className="flex items-center justify-between py-2 w-full">
-                                <NavigationMenu className="">
-                                    <NavigationMenuList className="flex flex-col items-center justify-center gap-4 py-4 w-full">
-                                        {mainNavItems.map((item) => (
-                                            <NavigationMenuItem key={item.title}>
-                                                <Link
-                                                    href={item.href}
-                                                    className={cn(
-                                                        navigationMenuTriggerStyle(),
-                                                        'text-[16px] text-primary hover:text-primary/80',
-                                                        page.url === item.href,
-                                                    )}
-                                                >
-                                                    {item.title}
-                                                </Link>
-                                            </NavigationMenuItem>
-                                        ))}
-                                    </NavigationMenuList>
-                                </NavigationMenu>
+                            
+                            {/* User info */}
+                            {auth.user ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
+                                        {auth.user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-medium">{auth.user.name}</p>
+                                        <p className="text-white/70 text-sm">{auth.user.email}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Link href={route('login')} className="flex-1">
+                                        <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20">
+                                            Connexion
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('register')} className="flex-1">
+                                        <Button size="sm" className="w-full bg-white text-primary hover:bg-white/90">
+                                            S'inscrire
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation links */}
+                        <div className="overflow-y-auto h-[calc(100%-200px)] py-4">
+                            <nav className="px-4 space-y-1">
+                                {mainNavItems.map((item) => (
+                                    <Link
+                                        key={item.title}
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+                                            page.url === item.href && "bg-primary/10 text-primary font-medium"
+                                        )}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        {item.title}
+                                    </Link>
+                                ))}
+                            </nav>
+
+                            {/* Separator */}
+                            <div className="my-4 px-4">
+                                <Separator />
                             </div>
-                            {/* Actions mobile */}
-                            <div className="flex flex-col items-center justify-center gap-4 py-4">
-                                {/*{auth.user && (*/}
-                                {/*    <DropdownMenu>*/}
-                                {/*        <DropdownMenuTrigger asChild>*/}
-                                {/*            <Button variant="ghost" className="flex items-center gap-2 text-primary">*/}
-                                {/*                <User className="h-5 w-5" />*/}
-                                {/*                <span>{auth.user.name}</span>*/}
-                                {/*            </Button>*/}
-                                {/*        </DropdownMenuTrigger>*/}
-                                {/*        <DropdownMenuContent align="end" className="w-56">*/}
-                                {/*            <UserMenuContent user={auth.user} />*/}
-                                {/*        </DropdownMenuContent>*/}
-                                {/*    </DropdownMenu>*/}
-                                {/*)}*/}
-                                {!auth.user && (
-                                    <Button
-                                        className="bg-primary text-white  w-full"
-                                        // disabled={!!auth.user}
-                                    >
-                                        <Link href={route('register')}>
-                                            <span>S'inscrire</span>
+
+                            {/* Quick actions */}
+                            <div className="px-4 space-y-2">
+                                {auth.user && (
+                                    <>
+                                        <Link
+                                            href="/favorites"
+                                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <Heart className="h-5 w-5" />
+                                            Mes favoris
                                         </Link>
-                                    </Button>
+                                        <Link
+                                            href={route('chat.index')}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <MessageCircle className="h-5 w-5" />
+                                            Messages
+                                        </Link>
+                                    </>
                                 )}
+                            </div>
+
+                            {/* CTA buttons */}
+                            <div className="px-4 mt-4 space-y-2">
                                 {isVendor && (
-                                    <Button
-                                        className="bg-primary text-white  w-full"
-                                        // disabled={!isVendor}
-                                    >
-                                        <Link href={route('products.create')}>
-                                            <span>Vends tes articles</span>
-                                        </Link>
-                                    </Button>
+                                    <Link href={route('products.create')} onClick={() => setIsMenuOpen(false)}>
+                                        <Button className="w-full bg-primary text-white gap-2">
+                                            <Tag className="h-4 w-4" />
+                                            Vendre un article
+                                        </Button>
+                                    </Link>
                                 )}
                                 {isCustomer && (
-                                    <Button
-                                        className="bg-primary text-white  w-full"
-                                        // disabled={!isVendor}
-                                    >
-                                        <Link href={route('products.index')}>
-                                            <span>Achète des articles</span>
-                                        </Link>
-                                    </Button>
+                                    <Link href={route('products.index')} onClick={() => setIsMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full gap-2">
+                                            <Store className="h-4 w-4" />
+                                            Voir les articles
+                                        </Button>
+                                    </Link>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Footer du menu mobile */}
+                        <div className="absolute bottom-0 left-0 right-0 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Thème</span>
+                                <button
+                                    onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm"
+                                >
+                                    {appearance === 'dark' ? (
+                                        <>
+                                            <Sun className="h-4 w-4" />
+                                            Clair
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Moon className="h-4 w-4" />
+                                            Sombre
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>

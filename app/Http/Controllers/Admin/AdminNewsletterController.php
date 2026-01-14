@@ -209,6 +209,8 @@ class AdminNewsletterController extends Controller
                 'email' => 'exemple@email.com',
                 'token' => 'preview-token',
             ],
+            'unsubscribeUrl' => url('/newsletter/unsubscribe/preview-token'),
+            'viewInBrowserUrl' => url('/admin/newsletters/' . $newsletter->id . '/preview'),
         ]);
     }
 

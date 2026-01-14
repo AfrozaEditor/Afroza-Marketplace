@@ -26,18 +26,12 @@ class NewsletterController extends Controller
         
         if ($existing) {
             if ($existing->status === 'active') {
-                return response()->json([
-                    'message' => 'Vous êtes déjà inscrit à notre newsletter.',
-                    'already_subscribed' => true,
-                ], 200);
+                return back()->with('message', 'Vous êtes déjà inscrit à notre newsletter.');
             }
             
             // Resubscribe
             $existing->resubscribe();
-            return response()->json([
-                'message' => 'Vous êtes à nouveau inscrit à notre newsletter !',
-                'resubscribed' => true,
-            ]);
+            return back()->with('message', 'Vous êtes à nouveau inscrit à notre newsletter !');
         }
 
         // Create new subscriber
@@ -49,10 +43,7 @@ class NewsletterController extends Controller
             'status' => 'active',
         ]);
 
-        return response()->json([
-            'message' => 'Merci ! Vous êtes maintenant inscrit à notre newsletter.',
-            'subscriber' => $subscriber,
-        ], 201);
+        return back()->with('message', 'Merci ! Vous êtes maintenant inscrit à notre newsletter.');
     }
 
     /**
