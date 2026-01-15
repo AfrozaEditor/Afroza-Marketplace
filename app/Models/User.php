@@ -135,6 +135,9 @@ class User extends Authenticatable
             // Supprimer les boutiques suivies
             $user->followedShops()->detach();
 
+            // Supprimer les boutiques favorites
+            $user->favoriteShops()->detach();
+
             // Supprimer l'abonnement newsletter
             NewsletterSubscriber::where('user_id', $user->id)->delete();
         });
@@ -208,6 +211,15 @@ class User extends Authenticatable
     public function followedShops(): BelongsToMany
     {
         return $this->belongsToMany(Shop::class, 'followed_shops')
+            ->withTimestamps();
+    }
+
+    /**
+     * Boutiques mises en favoris par l'utilisateur
+     */
+    public function favoriteShops(): BelongsToMany
+    {
+        return $this->belongsToMany(Shop::class, 'shop_favorites')
             ->withTimestamps();
     }
 

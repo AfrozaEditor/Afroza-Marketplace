@@ -181,10 +181,13 @@ class MarketplaceController extends Controller
      */
     public function show(Request $request, string $slug)
     {
-        $shop = Shop::where('slug', $slug)->with(['products.user', 'user', 'followers', 'reviews'])->firstOrFail();
+        $shop = Shop::where('slug', $slug)->with(['products.user', 'user', 'followers', 'reviews', 'favoritedBy'])->firstOrFail();
 
-        // Ajouter cette ligne pour vérifier si l'utilisateur suit la boutique
-    $shop->is_followed = $shop->followers->contains(auth()->id());
+        // Vérifier si l'utilisateur suit la boutique
+        $shop->is_followed = $shop->followers->contains(auth()->id());
+        
+        // Vérifier si l'utilisateur a mis la boutique en favoris
+        $shop->is_favorite = $shop->favoritedBy->contains(auth()->id());
 
         // Générer les URLs temporaires si les fichiers existent
         if ($shop->logo) {
@@ -289,6 +292,25 @@ class MarketplaceController extends Controller
         'success' => $isFollowing
             ? 'Vous suivez maintenant cette boutique.'
             : 'Vous ne suivez plus cette boutique.'
+        ]);
+    }
+
+    /**
+     * Toggle favorite status for a shop
+     */
+    public function toggleFavorite(Request $request, string $slug)
+    {
+        $shop = Shop::where('slug', $slug)->firstOrFail();
+        $user = auth()->user();
+
+        $syncResult = $shop->favoritedBy()->toggle($user->id);
+        $isFavorite = !empty($syncResult['attached']);
+
+        return back()->with('flash', [
+            'isFavorite' => $isFavorite,
+            'message' => $isFavorite
+                ? 'Boutique ajoutée aux favoris.'
+                : 'Boutique retirée des favoris.'
         ]);
     }
 

@@ -117,4 +117,12 @@ class Product extends Model
         $userId = $userId ?? auth()->id();
         return $this->hasOne(ProductReview::class)->where('user_id', $userId);
     }
+
+    /**
+     * Signalements du produit
+     */
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 }

@@ -1,16 +1,34 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Minus, Plus, ShoppingCart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+    Heart, 
+    MessageCircle, 
+    Minus, 
+    Plus, 
+    ShoppingCart, 
+    Share2, 
+    Shield, 
+    Truck, 
+    RotateCcw,
+    Star,
+    Flag,
+    ChevronRight,
+    Package,
+    Store
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Product } from '@/types';
-import icon from '../../../../public/apple-touch-icon.png';
 import ProductReview from '@/components/review/product-review';
 import { toast } from 'sonner';
+import { ReportDialog } from '@/components/report/report-dialog';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
     product: Product & {
@@ -20,13 +38,11 @@ interface Props {
 }
 
 function Show({product, images}:Props) {
-    // const [mainImage, setMainImage] = useState(images[0]);
     const [quantity, setQuantity] = useState(1);
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [isFavorite, setIsFavorite] = useState(product.is_favorite || false);
-
 
     const handleQuantityChange = (amount: number) => {
         const newQuantity = quantity + amount;
@@ -46,6 +62,11 @@ function Show({product, images}:Props) {
         router.post(route('cart.store'), {
             product_id: product.id,
             quantity: quantity
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Produit ajouté au panier');
+            }
         });
     };
 
@@ -54,17 +75,11 @@ function Show({product, images}:Props) {
             preserveState: false,
             preserveScroll: true,
             onSuccess: (page) => {
-                // Récupérer isFollowing depuis les props flash
                 const flash = page.props.flash;
-                // const isFollowing = page.props.isFollowing;
                 if (flash) {
                     setIsFavorite(flash.isFavorite);
                     flash.isFavorite ? toast.success(flash.message) : toast.info(flash.message);
                 }
-                // setIsFollowing(true);
-    
-                // Afficher le message de succès
-                // toast[isFollowing ? 'success' : 'info'](page.props.success);
             },
             onError: () => {
                 toast.error("Une erreur est survenue");
@@ -72,203 +87,360 @@ function Show({product, images}:Props) {
         });
     };
 
-    console.log(isFavorite);
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: product.name,
+                    text: product.description,
+                    url: window.location.href,
+                });
+            } catch (error) {
+                console.log('Erreur de partage:', error);
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success('Lien copié dans le presse-papiers');
+        }
+    };
 
     const plugin = React.useRef(
         Autoplay({delay: 5000, stopOnInteraction: true})
-    )
+    );
 
-    // Initialiser l'API du carousel
     useEffect(() => {
-        if (!api) {
-            return;
-        }
-
+        if (!api) return;
         setCount(api.scrollSnapList().length);
         setCurrent(api.selectedScrollSnap() + 1);
-
         api.on("select", () => {
             setCurrent(api.selectedScrollSnap() + 1);
         });
     }, [api]);
 
-    // Fonction pour naviguer vers une image spécifique
     const goToSlide = useCallback((index: number) => {
-        if (api) {
-            api.scrollTo(index);
-        }
+        if (api) api.scrollTo(index);
     }, [api]);
 
-    // const handleContactSeller {
-    //
-    // }
-    // console.log(product.images[0].url);
-    console.log(images);
-
-    const breadcrumbs = [
-        { title: 'Accueil', href: '/' },
-        { title: 'Produits', href: '/products' },
-        { title: product.name, href: `/products/${product.slug}` },
-    ];
+    const rating = product.reviews.length > 0 
+        ? (product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length).toFixed(1)
+        : '0';
 
     return (
-        <AppLayout
-            // breadcrumbs={breadcrumbs}
-        >
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 py-6 px-4 container mx-auto">
-                {/* Product Images */}
-                <Card className="overflow-hidden border-0 shadow-none">
-                    <CardContent className="p-0">
-                        <div className='flex gap-4'>
-                            <div className="flex flex-col gap-2 w-24">
-                            {images.map((image, index) => (
-                                <div
-                                    key={index}
-                                    className={`aspect-square rounded-md overflow-hidden cursor-pointer ${current - 1 === index ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100'}`}
-                                    onClick={() => goToSlide(index)}
-                                >
-                                    <img
-                                        src={image}
-                                        alt={`${product.name} - vue ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className='flex-1'>
-                            <Carousel
-                        // className="w-full"
-                                setApi={setApi}
-                        plugins={[plugin.current]}
-                            opts={{
-                                align: "start",
-                                loop: true,
-                            }}
-                        >
-                            <CarouselContent>
-                                {images.map((image, index) => (
-                                    <CarouselItem key={product.id}>
-                                        <div className="aspect-square w-full overflow-hidden rounded-md">
-                                            <img
-                                                // src="http://localhost:9000/products/1748515032.jpg"
-                                                src={image}
-                                                // src={'/placeholder.svg'}
-                                                alt={`${product.name} - image ${index + 1}`}
-                                                // alt={`${product.name}`}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </div>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="left-2" />
-                            <CarouselNext className="right-2" />
-                        </Carousel>
-                        </div>
-                        </div>
-                    </CardContent>
-                </Card>
+        <AppLayout>
+            {/* Breadcrumb */}
+            <div className="bg-gray-50 dark:bg-gray-900 border-b">
+                <div className="container mx-auto px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Link href="/" className="hover:text-primary">Accueil</Link>
+                        <ChevronRight className="h-4 w-4" />
+                        <Link href="/products" className="hover:text-primary">Produits</Link>
+                        <ChevronRight className="h-4 w-4" />
+                        <Link href={`/products?category=${product.category.id}`} className="hover:text-primary">
+                            {product.category.name}
+                        </Link>
+                        <ChevronRight className="h-4 w-4" />
+                        <span className="text-gray-900 dark:text-white font-medium truncate max-w-48">
+                            {product.name}
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-                {/* Product Info */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <CardTitle className="text-2xl">{product.name}</CardTitle>
-                                <p className="text-muted-foreground mt-1 text-sm">
-                                    Catégorie: {product.category.name}
-                                    {/*Catégorie: R*/}
-                                </p>
-                            </div>
-                            {/*{product.isPromoted && discount > 0 && (*/}
-                            {/*    <Badge className="bg-red-500 hover:bg-red-600">-{discount}%</Badge>*/}
-                            {/*)}*/}
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="mb-4 flex items-center space-x-2">
-                            {/*{product.discountedPrice ? (*/}
-                            {/*    <>*/}
-                            {/*        <span className="text-3xl font-bold">{product.discountedPrice.toFixed(2)} €</span>*/}
-                            {/*        <span className="text-xl text-muted-foreground line-through">{product.price.toFixed(2)} €</span>*/}
-                            {/*    </>*/}
-                            {/*) : (*/}
-                            <span className="text-3xl font-bold">{product.price} FCFA</span>
-                            {/*)}*/}
-                        </div>
-
+            <div className="bg-white dark:bg-gray-900 min-h-screen">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                        {/* Galerie d'images */}
                         <div className="space-y-4">
-                            <h3 className="font-medium">Description</h3>
-                            <p className="text-muted-foreground">{product.description}</p>
+                            <div className="relative">
+                                <Carousel
+                                    setApi={setApi}
+                                    plugins={[plugin.current]}
+                                    opts={{ align: "start", loop: true }}
+                                    className="w-full"
+                                >
+                                    <CarouselContent>
+                                        {images.map((image, index) => (
+                                            <CarouselItem key={index}>
+                                                <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-100">
+                                                    <img
+                                                        src={image}
+                                                        alt={`${product.name} - image ${index + 1}`}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious className="left-4 h-10 w-10" />
+                                    <CarouselNext className="right-4 h-10 w-10" />
+                                </Carousel>
+                                
+                                {/* Indicateur de position */}
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-3 py-1 rounded-full">
+                                    {current} / {count}
+                                </div>
+                            </div>
+                            
+                            {/* Miniatures */}
+                            <div className="flex gap-2 overflow-x-auto pb-2">
+                                {images.map((image, index) => (
+                                    <button
+                                        key={index}
+                                        className={cn(
+                                            "aspect-square w-20 shrink-0 rounded-lg overflow-hidden transition-all",
+                                            current - 1 === index 
+                                                ? 'ring-2 ring-primary ring-offset-2' 
+                                                : 'opacity-60 hover:opacity-100'
+                                        )}
+                                        onClick={() => goToSlide(index)}
+                                    >
+                                        <img
+                                            src={image}
+                                            alt={`${product.name} - vue ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
+                        {/* Informations produit */}
+                        <div className="space-y-6">
+                            {/* En-tête */}
                             <div>
-                                <p className="mb-2 text-sm">
-                                    Disponibilité: <span className="font-medium text-green-600">{product.quantity} en stock</span>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <Badge variant="outline" className="mb-2">
+                                            {product.category.name}
+                                        </Badge>
+                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                                            {product.name}
+                                        </h1>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={handleShare}
+                                            className="rounded-full"
+                                        >
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant={isFavorite ? "default" : "outline"}
+                                            size="icon"
+                                            onClick={handleFavorite}
+                                            className={cn("rounded-full", isFavorite && "bg-red-500 hover:bg-red-600")}
+                                        >
+                                            <Heart className="h-4 w-4" fill={isFavorite ? 'white' : 'none'} />
+                                        </Button>
+                                    </div>
+                                </div>
+                                
+                                {/* Rating */}
+                                <div className="flex items-center gap-4 mt-3">
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={cn(
+                                                    "h-5 w-5",
+                                                    star <= Math.round(parseFloat(rating))
+                                                        ? "text-yellow-400 fill-yellow-400"
+                                                        : "text-gray-300"
+                                                )}
+                                            />
+                                        ))}
+                                        <span className="ml-2 font-medium">{rating}</span>
+                                    </div>
+                                    <span className="text-gray-500">
+                                        ({product.reviews.length} avis)
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Prix */}
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-3xl font-bold text-primary">
+                                        {product.price.toLocaleString()} FCFA
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Livraison calculée à la caisse
                                 </p>
                             </div>
 
-                            <div className="border-t pt-4">
-                                <h3 className="mb-2 font-medium">Quantité</h3>
-                                <div className="flex items-center space-x-2">
-                                    <Button variant="outline" size="icon" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
-                                        <Minus className="h-4 w-4" />
+                            {/* Description */}
+                            <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
+                                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {product.description}
+                                </p>
+                            </div>
+
+                            {/* Stock */}
+                            <div className="flex items-center gap-2">
+                                <Package className="h-5 w-5 text-green-500" />
+                                <span className={cn(
+                                    "font-medium",
+                                    product.quantity > 5 ? "text-green-600" : product.quantity > 0 ? "text-orange-500" : "text-red-500"
+                                )}>
+                                    {product.quantity > 5 
+                                        ? `${product.quantity} en stock` 
+                                        : product.quantity > 0 
+                                            ? `Plus que ${product.quantity} en stock !`
+                                            : 'Rupture de stock'}
+                                </span>
+                            </div>
+
+                            <Separator />
+
+                            {/* Quantité et boutons */}
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="font-medium text-gray-900 dark:text-white mb-2 block">
+                                        Quantité
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            onClick={() => handleQuantityChange(-1)} 
+                                            disabled={quantity <= 1}
+                                            className="h-10 w-10 rounded-full"
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <Input
+                                            type="number"
+                                            value={quantity}
+                                            onChange={handleInputChange}
+                                            min={1}
+                                            max={product.quantity}
+                                            className="w-20 text-center"
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleQuantityChange(1)}
+                                            disabled={quantity >= product.quantity}
+                                            className="h-10 w-10 rounded-full"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <Button
+                                        className="flex-1 h-12 text-base"
+                                        onClick={handleAddToCart}
+                                        disabled={product.quantity === 0}
+                                    >
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Ajouter au panier
                                     </Button>
-                                    <Input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={handleInputChange}
-                                        min={1}
-                                        max={product.quantity}
-                                        className="w-20 text-center"
-                                    />
                                     <Button
                                         variant="outline"
-                                        size="icon"
-                                        onClick={() => handleQuantityChange(1)}
-                                        disabled={quantity >= product.quantity}
+                                        className="flex-1 h-12 text-base"
+                                        onClick={() => {
+                                            router.post(route('chat.start', { user: product.user.id }));
+                                        }}
                                     >
-                                        <Plus className="h-4 w-4" />
+                                        <MessageCircle className="mr-2 h-5 w-5" />
+                                        Contacter le vendeur
                                     </Button>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col gap-3">
-                        <div className="flex w-full flex-col gap-3 sm:flex-row">
-                            <Button
-                                className="flex-1"
-                                onClick={handleAddToCart}
-                            >
-                                <ShoppingCart className="mr-2 h-4 w-4" /> Ajouter au panier
-                            </Button>
-                            <Button 
-                                onClick={handleFavorite}
-                                variant={isFavorite ? 'default' : 'outline'}
-                                className={isFavorite ? 'bg-primary flex-1' : 'flex-1'}
-                            >
-                                <Heart className="mr-2 h-4 w-4" fill={isFavorite ? 'white' : 'none'}/>
-                                    {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                            </Button>
-                        </div>
-                        <Button
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => {
-                                // Utilisez le router d'Inertia pour faire la requête POST
-                                router.post(route('chat.start', { user: product.user.id }));
-                            }}
-                        >
-                            <MessageCircle className="mr-2 h-4 w-4" /> Contacter le vendeur
-                        </Button>
-                    </CardFooter>
-                </Card>
-                <section>
-                </section>
-            </div>
-            <div className="container mx-auto px-4 py-6">
-                <ProductReview product={product} />
-            </div>
 
+                            {/* Garanties */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                                <div className="flex items-center gap-3 text-sm">
+                                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                        <Shield className="h-5 w-5 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900 dark:text-white">Paiement sécurisé</p>
+                                        <p className="text-gray-500 text-xs">100% sécurisé</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                        <Truck className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900 dark:text-white">Livraison rapide</p>
+                                        <p className="text-gray-500 text-xs">2-5 jours ouvrés</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                        <RotateCcw className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900 dark:text-white">Retours faciles</p>
+                                        <p className="text-gray-500 text-xs">14 jours</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Vendeur */}
+                            <Card>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <Link 
+                                            href={product.shop ? route('marketplace.show', { marketplace: product.shop.slug }) : '#'}
+                                            className="flex items-center gap-3 group"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
+                                                {product.shop?.name?.charAt(0) || product.user.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                                    {product.shop?.name || product.user.name}
+                                                </p>
+                                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                    <Store className="h-3.5 w-3.5" />
+                                                    <span>Vendeur vérifié</span>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                        <Button variant="outline" size="sm" asChild>
+                                            <Link href={product.shop ? route('marketplace.show', { marketplace: product.shop.slug }) : '#'}>
+                                                Voir la boutique
+                                                <ChevronRight className="h-4 w-4 ml-1" />
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Actions secondaires */}
+                            <div className="flex items-center justify-center">
+                                <ReportDialog 
+                                    type="product" 
+                                    targetId={product.id} 
+                                    targetName={product.name}
+                                    trigger={
+                                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500">
+                                            <Flag className="h-4 w-4 mr-2" />
+                                            Signaler ce produit
+                                        </Button>
+                                    }
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section avis */}
+                    <div className="mt-12 pt-8 border-t">
+                        <ProductReview product={product} />
+                    </div>
+                </div>
+            </div>
         </AppLayout>
     );
 }

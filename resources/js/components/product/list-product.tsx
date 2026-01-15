@@ -6,25 +6,25 @@ import { cn } from '@/lib/utils';
 interface Props {
     products: Product[];
     className?: string;
+    viewMode?: 'grid' | 'list';
 }
 
-function ListProduct({ products, className }:Props) {
-    // const filteredProducts = category === 'all' ? products : products.filter((product) => product.category === category);
-
+function ListProduct({ products, className, viewMode = 'grid' }:Props) {
     return (
         <div
-            className={cn(`grid grid-cols-1 lg:grid-cols-3 gap-4 transition-opacity duration-500 w-full`,className)}
+            className={cn(
+                `transition-opacity duration-500 w-full`,
+                viewMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                    : 'flex flex-col gap-4',
+                className
+            )}
         >
             {products.map((product) => (
                 <ProductCard
                     key={product.id}
                     product={product}
-                    // id={product.id}
-                    // name={product.name[language as keyof typeof product.name]}
-                    // price={product.price}
-                    // image={product.image}
-                    // rating={product.rating}
-                    // reviews={product.reviews}
+                    viewMode={viewMode}
                 />
             ))}
         </div>

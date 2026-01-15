@@ -3,6 +3,23 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Afroza Marketplace - La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main. Rejoignez notre communauté de passionnés de mode.">
+        <meta name="keywords" content="afroza, marketplace, mode, vêtements, seconde main, occasion, Afrique, fashion, accessoires, boutique en ligne, lifestyle">
+        <meta name="author" content="{{ config('app.name', 'Afroza Marketplace') }}">
+        
+        {{-- Open Graph / Facebook --}}
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ config('app.name', 'Afroza Marketplace') }} - Mode & Lifestyle Africain">
+        <meta property="og:description" content="La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main.">
+        <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
+        <meta property="og:locale" content="fr_FR">
+        
+        {{-- Twitter --}}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ config('app.name', 'Afroza Marketplace') }} - Mode & Lifestyle Africain">
+        <meta name="twitter:description" content="La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main.">
+        <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>

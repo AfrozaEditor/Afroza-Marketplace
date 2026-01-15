@@ -55,15 +55,24 @@ interface Props {
 
 function Index({products, categories, filters}: Props) {
     const defaultCategory = { id: 0, name: 'Tous', slug: 'tous' } as Category;
-    // const [selectedCategory, setSelectedCategory] = useState<Category>(defaultCategory);
-    // const [priceRange, setPriceRange] = useState<number[]>([0, 60000]);
-    // const [sortBy, setSortBy] = useState('newest');
-    // const [searchTerm, setSearchTerm] = useState('');
     const maxPrice = 60000; // Prix maximum en FCFA
-        // Initialiser les états avec les valeurs des filtres
+    
+    // Fonction pour trouver une catégorie par ID (y compris dans les enfants)
+    const findCategoryById = (id: number): Category | undefined => {
+        for (const cat of categories) {
+            if (cat.id === id) return cat;
+            if (cat.children) {
+                const child = cat.children.find(c => c.id === id);
+                if (child) return child;
+            }
+        }
+        return undefined;
+    };
+    
+    // Initialiser les états avec les valeurs des filtres
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         filters?.category && categories
-            ? categories.find(c => c.id === parseInt(filters.category || '0')) || defaultCategory
+            ? findCategoryById(parseInt(filters.category || '0')) || defaultCategory
             : defaultCategory
     );
     const [priceRange, setPriceRange] = useState<number[]>([
@@ -378,7 +387,7 @@ const handlePageChange = (url: string) => {
                                     </Button>
                                 </div>
                             ) : (
-                                <ListProduct products={products.data} />
+                                <ListProduct products={products.data} viewMode={viewMode} />
                             )}
 
                             {/* Pagination améliorée */}

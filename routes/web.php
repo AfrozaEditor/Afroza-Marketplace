@@ -12,6 +12,7 @@ use App\Http\Controllers\Favorite\FavoriteController;
 use App\Http\Controllers\Promotion\PromotionController;
 use App\Http\Controllers\Review\ProductReviewController;
 use App\Http\Controllers\Review\ShopReviewController;
+use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Delivery\DeliveryController;
 use App\Http\Controllers\NewsletterController;
@@ -214,6 +215,11 @@ Route::middleware('auth')->group(function () {
 
     // Followed shops
     Route::post('/shops/{slug}/follow', [MarketplaceController::class, 'toggleFollow'])->name('shops.follow');
+    Route::post('/shops/{slug}/favorite', [MarketplaceController::class, 'toggleFavorite'])->name('shops.favorite');
+
+    // Reports
+    Route::post('/products/{product}/report', [ReportController::class, 'reportProduct'])->name('products.report');
+    Route::post('/shops/{shop}/report', [ReportController::class, 'reportShop'])->name('shops.report');
 
     // Favorites
     Route::post('/products/{slug}/favorite', [ProductController::class, 'toggleFavorite'])->name('products.favorite');

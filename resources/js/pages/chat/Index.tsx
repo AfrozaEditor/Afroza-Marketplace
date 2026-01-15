@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { PlusCircle, Search, Send } from 'lucide-react';
+import { PlusCircle, Search, Send, MessageCircle, Users, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AppLayout from '@/layouts/app-layout';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import ChatArea from '@/components/chat/chat-area';
 import { Message } from '@/types';
 import axios from 'axios';
+import { cn } from '@/lib/utils';
 
 // interface LastMessage {
 //   content: string;
@@ -309,102 +310,182 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
     // </AppLayout>
     <AppLayout>
       <Head title="Messagerie" />
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-neutral-800 border dark:border-neutral-700 rounded-xl shadow-sm overflow-hidden">
-          <div className="flex h-[calc(100vh-20rem)]">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header de la page */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+              <MessageCircle className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messagerie</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {conversations.length} conversation{conversations.length > 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 overflow-hidden">
+          <div className="flex h-[calc(100vh-14rem)]">
             {/* Liste des conversations */}
-            <div className={`w-full md:w-1/3 border-r dark:border-neutral-700 ${showMobileChat ? 'hidden md:block' : ''}`}>
-              <div className="p-4 border-b dark:border-neutral-700">
+            <div className={cn(
+              "w-full md:w-96 border-r dark:border-gray-700 flex flex-col",
+              showMobileChat ? 'hidden md:flex' : ''
+            )}>
+              {/* Barre de recherche */}
+              <div className="p-4 border-b dark:border-gray-700">
                 <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
                     type="text"
                     placeholder="Rechercher une conversation..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border-0 focus:ring-2 focus:ring-primary/20"
                   />
-                  <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
                 </div>
               </div>
 
-              <div className="overflow-y-auto h-[calc(100vh-24rem)]">
+              {/* Liste scrollable */}
+              <div className="flex-1 overflow-y-auto">
                 {filteredConversations.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    Aucune conversation trouvée
+                  <div className="flex flex-col items-center justify-center h-full py-12 px-4 text-center">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                      <Users className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">
+                      Aucune conversation
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Commencez une conversation avec un vendeur
+                    </p>
                   </div>
                 ) : (
-                  filteredConversations.map((conversation) => (
-                    <div
-                      key={conversation.id}
-                      // onClick={() => setSelectedConversation(conversation)}
-                      onClick={() => {
-                        handleSelectConversation(conversation)
-                        setShowMobileChat(true);
-                        router.visit(route('chat.index', { conversation: conversation.id }), {
-                          preserveScroll: true,
-                          replace: true // Remplace l'URL sans ajouter à l'historique
-                        });
-                      }}
-                      className={`p-4 border-b dark:border-neutral-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors ${
-                        selectedConversation?.id === conversation.id ? 'bg-gray-100 dark:bg-neutral-700' : ''
-                      }`}
-                    >
-                      <div className="flex items-center">
-                        <div className="relative">
-                          <img
-                            src={conversation.avatar || '/default-avatar.png'}
-                            alt={conversation.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                          {conversation.online && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                          )}
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-medium dark:text-white">{conversation.name}</h3>
-                            {conversation.last_message && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatDistanceToNow(new Date(conversation.last_message.created_at), {
-                                  addSuffix: true,
-                                  locale: fr
-                                })}
-                              </span>
+                  <div className="divide-y dark:divide-gray-700">
+                    {filteredConversations.map((conversation) => (
+                      <div
+                        key={conversation.id}
+                        onClick={() => {
+                          handleSelectConversation(conversation)
+                          setShowMobileChat(true);
+                          router.visit(route('chat.index', { conversation: conversation.id }), {
+                            preserveScroll: true,
+                            replace: true
+                          });
+                        }}
+                        className={cn(
+                          "p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50",
+                          selectedConversation?.id === conversation.id 
+                            ? 'bg-primary/5 dark:bg-primary/10 border-l-4 border-primary' 
+                            : ''
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Avatar avec indicateur en ligne */}
+                          <div className="relative shrink-0">
+                            <img
+                              src={conversation.avatar || '/default-avatar.png'}
+                              alt={conversation.name[0]}
+                              className={cn(
+                                "w-14 h-14 rounded-full object-cover transition-all flex justify-center items-center font-bold text-xl",
+                                selectedConversation?.id === conversation.id 
+                                  ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-800' 
+                                  : ''
+                              )}
+                            />
+                            {conversation.online && (
+                              <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
                             )}
                           </div>
-                          {conversation.last_message &&
-                          (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                              {conversation.last_message.is_mine ? 'Vous: ' : ''}
-                              {conversation.last_message.content}
-                            </p>
-                          )}
-                        </div>
-                        {conversation.unread_count > 0 && (
-                          <div className="ml-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                            {conversation.unread_count}
+                          
+                          {/* Contenu */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className={cn(
+                                "font-semibold text-gray-900 dark:text-white truncate",
+                                conversation.unread_count > 0 ? 'text-gray-900 dark:text-white' : ''
+                              )}>
+                                {conversation.name}
+                              </h3>
+                              {conversation.last_message && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0 ml-2">
+                                  {formatDistanceToNow(new Date(conversation.last_message.created_at), {
+                                    addSuffix: false,
+                                    locale: fr
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              {conversation.last_message ? (
+                                <p className={cn(
+                                  "text-sm truncate max-w-[200px]",
+                                  conversation.unread_count > 0 
+                                    ? 'text-gray-700 dark:text-gray-300 font-medium' 
+                                    : 'text-gray-500 dark:text-gray-400'
+                                )}>
+                                  {conversation.last_message.is_mine && (
+                                    <span className="text-gray-400">Vous: </span>
+                                  )}
+                                  {conversation.last_message.content}
+                                </p>
+                              ) : (
+                                <p className="text-sm text-gray-400 italic">
+                                  Aucun message
+                                </p>
+                              )}
+                              
+                              {/* Badge de messages non lus */}
+                              {conversation.unread_count > 0 && (
+                                <span className="shrink-0 ml-2 bg-primary text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                                  {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Zone de chat */}
-            <div  className={`w-full flex flex-col ${!showMobileChat ? 'hidden md:flex' : ''}`}>
+            <div className={cn(
+              "flex-1 flex flex-col bg-gray-50 dark:bg-gray-900",
+              !showMobileChat ? 'hidden md:flex' : ''
+            )}>
               {selectedConversation ? (
                 <ChatArea
                   conversation={selectedConversation}
-                  messages={messages} // Vous pouvez passer vos messages ici
+                  messages={messages}
                   onSendMessage={handleSendMessage}
                   setShowMobileChat={setShowMobileChat}
                 />
-
               ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  Sélectionnez une conversation pour commencer
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
+                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                    <Sparkles className="w-12 h-12 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Bienvenue dans votre messagerie
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+                    Sélectionnez une conversation pour commencer à discuter avec un vendeur ou un acheteur
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full" />
+                      En ligne
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full" />
+                      Hors ligne
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
