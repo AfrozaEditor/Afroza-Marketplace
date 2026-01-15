@@ -116,6 +116,7 @@ export interface Shop {
     followers: User[];
     reviews: ShopReview[];
     user_review?: ShopReview | null;
+    is_approved?: boolean;
 }
 
 export interface Message {

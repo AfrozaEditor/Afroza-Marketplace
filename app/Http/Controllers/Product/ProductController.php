@@ -23,9 +23,19 @@ class ProductController extends Controller
         // ->paginate(9);
         $query = Product::with(['category', 'shop', 'user', 'reviews']);
 
-    // Filtre par catégorie
-    if ($request->filled('category')&& $request->category !== '0') {
-        $query->where('category_id', $request->category);
+    // Filtre par catégorie (inclut les sous-catégories)
+    if ($request->filled('category') && $request->category !== '0') {
+        $categoryId = $request->category;
+        $category = Category::with('children')->find($categoryId);
+        
+        if ($category) {
+            // Récupérer les IDs de cette catégorie et de ses enfants
+            $categoryIds = [$category->id];
+            if ($category->children && $category->children->count() > 0) {
+                $categoryIds = array_merge($categoryIds, $category->children->pluck('id')->toArray());
+            }
+            $query->whereIn('category_id', $categoryIds);
+        }
     }
 
     // Filtre par recherche
@@ -82,9 +92,11 @@ class ProductController extends Controller
         return $product;
     });
 
-
-
-    $categories = Category::all();
+    // Charger les catégories parents avec leurs enfants
+    $categories = Category::whereNull('parent_id')
+        ->with('children')
+        ->orderBy('name')
+        ->get();
 
         return Inertia::render('product/Index', [
             'products' => $products,

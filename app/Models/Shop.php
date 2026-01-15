@@ -101,4 +101,20 @@ class Shop extends Model
         $userId = $userId ?? auth()->id();
         return $this->hasOne(ShopReview::class)->where('user_id', $userId);
     }
+
+    /**
+     * Signalements de la boutique
+     */
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    /**
+     * Utilisateurs qui ont mis la boutique en favoris
+     */
+    public function favoritedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'shop_favorites', 'shop_id', 'user_id')->withTimestamps();
+    }
 }

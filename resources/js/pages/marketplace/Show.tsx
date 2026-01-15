@@ -2,7 +2,28 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatDateShort } from '@/lib/utils';
 import { Category, Product, Shop } from '@/types';
-import { ChevronLeft, ChevronRight, Filter, Heart, MessageSquare, Search, Share, ShoppingCart, Star, Users, X } from 'lucide-react';
+import { 
+    ChevronLeft, 
+    ChevronRight, 
+    Filter, 
+    Heart, 
+    MessageSquare, 
+    Search, 
+    Share2, 
+    ShoppingCart, 
+    Star, 
+    Users, 
+    X,
+    MapPin,
+    Calendar,
+    ShieldCheck,
+    Store,
+    Flag,
+    Bookmark,
+    Package,
+    TrendingUp,
+    Clock
+} from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { router, usePage } from '@inertiajs/react';
@@ -12,16 +33,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 import ListProduct from '@/components/product/list-product';
 import ShopReview from '@/components/review/shop-review';
-import { ShopReview as Review } from '@/types';
+import { ReportDialog } from '@/components/report/report-dialog';
 import { useDebouncedCallback } from 'use-debounce';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
     shop: Shop & {
         logo_url?: string;
         cover_image_url?: string;
         is_followed?: boolean;
+        is_favorite?: boolean;
     };
     products: {
         data: Product[];
@@ -40,8 +65,12 @@ interface Props {
 function Show({ shop, products }: Props) {
     const { categories } = usePage<{ categories: Category[] }>().props;
     const [isFollowing, setIsFollowing] = useState(shop.is_followed || false);
+    const [isFavorite, setIsFavorite] = useState(shop.is_favorite || false);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const averageRating = shop.reviews.length > 0 ? shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length : 0;
+    
+    const averageRating = shop.reviews.length > 0 
+        ? (shop.reviews.reduce((acc, review) => acc + review.rating, 0) / shop.reviews.length).toFixed(1)
+        : '0';
 
     // Récupérer les paramètres actuels de l'URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -50,11 +79,9 @@ function Show({ shop, products }: Props) {
         category: urlParams.get('category') || 'all',
         minPrice: urlParams.get('min_price') || '',
         maxPrice: urlParams.get('max_price') || '',
-        // condition: urlParams.get('condition') || 'all',
         sort: urlParams.get('sort') || 'newest',
     });
 
-    // Appliquer les filtres avec debounce pour la recherche
     const applyFilters = (newFilters: typeof filters) => {
         const params: Record<string, string> = {};
         
@@ -62,7 +89,6 @@ function Show({ shop, products }: Props) {
         if (newFilters.category && newFilters.category !== 'all') params.category = newFilters.category;
         if (newFilters.minPrice) params.min_price = newFilters.minPrice;
         if (newFilters.maxPrice) params.max_price = newFilters.maxPrice;
-        // if (newFilters.condition && newFilters.condition !== 'all') params.condition = newFilters.condition;
         if (newFilters.sort && newFilters.sort !== 'newest') params.sort = newFilters.sort;
 
         router.get(route('marketplace.show', { marketplace: shop.slug }), params, {
@@ -101,7 +127,6 @@ function Show({ shop, products }: Props) {
             category: 'all',
             minPrice: '',
             maxPrice: '',
-            // condition: 'all',
             sort: 'newest',
         };
         setFilters(defaultFilters);
@@ -115,14 +140,69 @@ function Show({ shop, products }: Props) {
         return filters.search || 
                (filters.category && filters.category !== 'all') || 
                filters.minPrice || 
-               filters.maxPrice; 
-            //    (filters.condition && filters.condition !== 'all');
+               filters.maxPrice;
     }, [filters]);
+
+    const handleFollow = () => {
+        router.post(route('shops.follow', { slug: shop.slug }), {}, {
+            preserveState: false,
+            preserveScroll: true,
+            onSuccess: (page) => {
+                const flash = page.props.shop;
+                if (flash) {
+                    flash.is_followed ? toast.success("Boutique suivie") : toast.info("Boutique plus suivie");
+                }
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue");
+            }
+        });
+    };
+
+    const handleFavorite = () => {
+        router.post(route('shops.favorite', { slug: shop.slug }), {}, {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                const flash = page.props.flash;
+                if (flash) {
+                    setIsFavorite(flash.isFavorite);
+                    flash.isFavorite ? toast.success(flash.message) : toast.info(flash.message);
+                }
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue");
+            }
+        });
+    };
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: shop.name,
+                    text: shop.description,
+                    url: window.location.href,
+                });
+            } catch (error) {
+                console.log('Erreur de partage:', error);
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success('Lien copié dans le presse-papiers');
+        }
+    };
+
+    // Statistiques de la boutique
+    const stats = [
+        { icon: Package, label: 'Produits', value: shop.products.length },
+        { icon: Users, label: 'Abonnés', value: shop.followers.length },
+        { icon: Star, label: 'Note', value: `${averageRating}/5` },
+        { icon: TrendingUp, label: 'Avis', value: shop.reviews.length },
+    ];
 
     // JSX des filtres réutilisable
     const filtersContent = (
         <div className="space-y-6">
-            {/* Recherche */}
             <div className="space-y-2">
                 <Label htmlFor="search">Rechercher</Label>
                 <div className="relative">
@@ -137,7 +217,6 @@ function Show({ shop, products }: Props) {
                 </div>
             </div>
 
-            {/* Catégorie */}
             <div className="space-y-2">
                 <Label>Catégorie</Label>
                 <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
@@ -153,7 +232,6 @@ function Show({ shop, products }: Props) {
                 </Select>
             </div>
 
-            {/* Prix */}
             <div className="space-y-2">
                 <Label>Prix (FCFA)</Label>
                 <div className="flex gap-2 items-center">
@@ -174,209 +252,182 @@ function Show({ shop, products }: Props) {
                     />
                 </div>
             </div>
-
-            {/* État */}
-            {/* <div className="space-y-2">
-                <Label>État</Label>
-                <Select value={filters.condition} onValueChange={(value) => handleFilterChange('condition', value)}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Tous les états" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les états</SelectItem>
-                        <SelectItem value="neuf">Neuf avec étiquette</SelectItem>
-                        <SelectItem value="tres_bon">Très bon état</SelectItem>
-                        <SelectItem value="bon">Bon état</SelectItem>
-                        <SelectItem value="satisfaisant">Satisfaisant</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div> */}
         </div>
     );
 
-    const handleFollow = () => {
-    router.post(route('shops.follow', { slug: shop.slug }), {}, {
-        preserveState: false,
-        preserveScroll: true,
-        onSuccess: (page) => {
-            // Récupérer isFollowing depuis les props flash
-            const flash = page.props.shop;
-            // const isFollowing = page.props.isFollowing;
-            console.log(flash)
-            if (flash) {
-                // setIsFollowing(flash.isFollowing);
-                flash.is_followed ? toast.success("Boutique suivie") : toast.info("Boutique plus suivie");
-                
-            }
-            // setIsFollowing(true);
-
-            // Afficher le message de succès
-            // toast[isFollowing ? 'success' : 'info'](page.props.success);
-        },
-        onError: () => {
-            toast.error("Une erreur est survenue");
-        }
-    });
-};
-console.log(products.data);
-    // const handleFollow = () => {
-    //     // if (!auth.user) {
-    //     //     toast.error("Vous devez être connecté pour suivre une boutique");
-    //     //     return;
-    //     // }
-    //     // setIsFollowing(!isFollowing);
-    //     // if (!isFollowing) {
-    //     //     toast.success(`Vous suivez maintenant ${shop.name}`);
-    //     // } else {
-    //     //     toast.error(`Vous ne suivez plus ${shop.name}`);
-    //     // }
-    //     router.post(route('shops.follow', { slug: shop.slug }), {}, {
-    //         preserveState: true,
-    //         preserveScroll: true,
-    //         onSuccess: (response) => {
-    //             setIsFollowing(response.isFollowing);
-    //             toast[response.isFollowing ? 'success' : 'info'](
-    //                 response.isFollowing
-    //                     ? `Vous suivez maintenant ${shop.name}`
-    //                     : `Vous ne suivez plus ${shop.name}`
-    //             );
-    //         },
-    //         onError: () => {
-    //             toast.error("Une erreur est survenue");
-    //         }
-    //     });
-    // };
-
-    console.log(isFollowing);
-
-    console.log(shop.logo);
-    console.log(shop.cover_image);
-    console.log(shop.products);
-
     return (
         <AppLayout>
-            <div className="relative h-48 overflow-hidden md:h-64">
+            {/* Hero Banner */}
+            <div className="relative h-56 md:h-72 overflow-hidden">
                 <img
-                    src={shop.cover_image_url}
+                    src={shop.cover_image_url || '/placeholder-cover.jpg'}
                     alt={`${shop.name} couverture`}
                     className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+                
+                {/* Actions flottantes */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        onClick={handleShare}
+                        className="rounded-full bg-white/90 hover:bg-white"
+                    >
+                        <Share2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        onClick={handleFavorite}
+                        className={cn(
+                            "rounded-full",
+                            isFavorite ? "bg-primary text-white hover:bg-primary/90" : "bg-white/90 hover:bg-white"
+                        )}
+                    >
+                        <Bookmark className="h-4 w-4" fill={isFavorite ? 'currentColor' : 'none'} />
+                    </Button>
+                </div>
             </div>
 
-            <div className="relative container mx-auto -mt-16 px-4 md:px-8">
-                <div className="mb-8 flex flex-col gap-4 md:flex-row">
-                    {/* Profile image and info */}
-                    <div className="flex w-full flex-col items-center gap-4 rounded-lg bg-white p-4 shadow-md md:flex-row md:gap-6 md:p-6">
-                        <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-md md:h-32 md:w-32">
-                            <img
-                                src={shop.logo_url}
-                                alt={shop.name}
-                                className="h-full w-full object-cover"
-                            />
-                        </div>
-
-                        <div className="grow text-center md:text-left">
-                            <div className="flex flex-col items-center justify-between gap-2 md:flex-row md:items-start">
-                                <div>
-                                    <h1 className="text-2xl font-bold md:text-3xl">{shop.name}</h1>
-                                    <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start">
-                                        <div className="flex items-center gap-1 text-amber-500">
-                                            <Star size={18} fill="currentColor" />
-                                            <span>
-                                                {/*{seller.rating}/5 ({seller.reviews} avis)*/}
-                                                {averageRating}/5 ({shop.reviews.length} avis)
-                                            </span>
+            <div className="container mx-auto px-4">
+                {/* Profile Card */}
+                <div className="relative -mt-20 mb-8">
+                    <Card className="overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex flex-col md:flex-row gap-6">
+                                {/* Avatar */}
+                                <div className="flex flex-col items-center md:items-start">
+                                    <div className="relative">
+                                        <div className="h-28 w-28 md:h-32 md:w-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-white">
+                                            <img
+                                                src={shop.logo_url || '/placeholder-logo.jpg'}
+                                                alt={shop.name}
+                                                className="h-full w-full object-cover"
+                                            />
                                         </div>
-                                        <span className="text-gray-500">|</span>
-                                        <div className="flex items-center gap-1 text-gray-600">
-                                            <ShoppingCart size={16} />
-                                            <span>{shop.products.length} produits</span>
+                                        {shop.is_approved && (
+                                        <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1.5 rounded-full">
+                                            <ShieldCheck className="h-4 w-4" />
                                         </div>
-                                        <span className="text-gray-500">|</span>
-                                        <div className="flex items-center gap-1 text-gray-600">
-                                            <Users size={16} />
-                                            <span>
-                                                {shop.followers.length} abonnés
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="mt-2 text-gray-600">{shop.description}</p>
-                                    <div className="mt-2 flex flex-wrap justify-center gap-1 md:justify-start">
-                                        {/*{seller.categories.map(cat => (*/}
-                                        {/*    <Badge key={cat} variant="outline" className="bg-gray-100">*/}
-                                        {/*        {cat}*/}
-                                        {/*    </Badge>*/}
-                                        {/*))}*/}
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex flex-col gap-2 md:mt-0">
-                                    <Button
-                                        onClick={handleFollow}
-                                        variant={isFollowing ? 'default' : 'outline'}
-                                        className={isFollowing ? 'bg-primary' : ''}
-                                    >
-                                        <Heart size={16} className="mr-2" fill={isFollowing ? 'white' : 'none'} />
-                                        {isFollowing ? 'Abonné' : 'Suivre'}
-                                    </Button>
-                                    <div className="flex gap-2 justify-center">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={() => {
-                                                // Utilisez le router d'Inertia pour faire la requête POST
-                                                // router.post(route('chat.start', { user: shop.user.id }));
-                                                router.post(route('chat.start', { user: shop.user.id }), {}, {
-                                                onSuccess: (page) => {
-                                                    // Redirige vers la page de chat avec le paramètre conversation
-                                                    if (page.props?.conversation_id) {
-                                                    router.visit(route('chat.index', { conversation: page.props.conversation_id }));
-                                                    } else if (page.url) {
-                                                    // Si le backend fait déjà la redirection, rien à faire
-                                                    window.location.href = page.url;
-                                                    }
+                                {/* Infos */}
+                                <div className="flex-1 text-center md:text-left">
+                                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                        <div>
+                                            <div className="flex items-center justify-center md:justify-start gap-2">
+                                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                                                    {shop.name}
+                                                </h1>
+                                                {shop.is_approved &&
+                                                    <Badge className="bg-green-100 text-green-700 border-green-200">
+                                                        Vérifié
+                                                    </Badge>
+                                                }       
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2 text-sm text-gray-500">
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                                    <span className="font-medium text-gray-900 dark:text-white">{averageRating}</span>
+                                                    <span>({shop.reviews.length} avis)</span>
+                                                </div>
+                                                {shop.city && (
+                                                    <div className="flex items-center gap-1">
+                                                        <MapPin className="h-4 w-4" />
+                                                        <span>{shop.city}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar className="h-4 w-4" />
+                                                    <span>Depuis {formatDateShort(shop.created_at)}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <p className="mt-3 text-gray-600 dark:text-gray-400 max-w-2xl line-clamp-2">
+                                                {shop.description}
+                                            </p>
+                                        </div>
+
+                                        {/* Boutons d'action */}
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    onClick={handleFollow}
+                                                    variant={isFollowing ? 'default' : 'outline'}
+                                                    className={cn("flex-1", isFollowing && "bg-primary")}
+                                                >
+                                                    <Heart className="h-4 w-4 mr-2" fill={isFollowing ? 'white' : 'none'} />
+                                                    {isFollowing ? 'Abonné' : 'Suivre'}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        router.post(route('chat.start', { user: shop.user.id }), {}, {
+                                                            onSuccess: (page) => {
+                                                                if (page.props?.conversation_id) {
+                                                                    router.visit(route('chat.index', { conversation: page.props.conversation_id }));
+                                                                }
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <ReportDialog 
+                                                type="shop" 
+                                                targetId={shop.id} 
+                                                targetName={shop.name}
+                                                trigger={
+                                                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500 w-full">
+                                                        <Flag className="h-4 w-4 mr-2" />
+                                                        Signaler
+                                                    </Button>
                                                 }
-                                                });
-                                            }}
-
-                                        >
-                                            <MessageSquare size={16} />
-                                            {/*<span>Contacter</span>*/}
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            // onClick={handleShare}
-                                        >
-                                            <Share size={16} />
-                                        </Button>
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-3 flex flex-wrap justify-center gap-4 text-sm text-gray-500 md:justify-start">
-                                <span>Membre depuis {formatDateShort(shop.created_at)}</span>
-                                <span>•</span>
-                                {/*<span>{seller.location}</span>*/}
+                            {/* Stats */}
+                            <Separator className="my-6" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {stats.map((stat, index) => (
+                                    <div key={index} className="text-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
+                                        <stat.icon className="h-6 w-6 mx-auto text-primary mb-2" />
+                                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                                        <p className="text-sm text-gray-500">{stat.label}</p>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                    {/* Filters sidebar - Desktop */}
+
+                {/* Contenu principal */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12">
+                    {/* Sidebar Filtres - Desktop */}
                     <div className="hidden md:block md:col-span-1">
                         <div className="sticky top-24">
-                            <Card className="shadow-sm dark:bg-gray-800">
+                            <Card className="shadow-sm">
                                 <CardHeader className="pb-3">
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="text-lg dark:text-white">Filtres</CardTitle>
+                                        <CardTitle className="text-lg flex items-center gap-2">
+                                            <Filter className="h-5 w-5 text-primary" />
+                                            Filtres
+                                        </CardTitle>
                                         {hasActiveFilters && (
                                             <Button 
                                                 variant="ghost" 
                                                 size="sm"
                                                 onClick={resetFilters}
-                                                className="text-sm h-8 px-2"
+                                                className="text-sm h-8 px-2 text-primary"
                                             >
                                                 Réinitialiser
                                             </Button>
@@ -390,19 +441,30 @@ console.log(products.data);
                         </div>
                     </div>
 
-                    {/* Products */}
+                    {/* Contenu principal */}
                     <div className="md:col-span-3">
-                        <Tabs defaultValue="products">
+                        <Tabs defaultValue="products" className="w-full">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                                <TabsList className="grid w-full max-w-md grid-cols-3">
-                                    <TabsTrigger value="products">Produits ({products.total})</TabsTrigger>
-                                    <TabsTrigger value="reviews">Avis ({shop.reviews.length})</TabsTrigger>
-                                    <TabsTrigger value="about">À propos</TabsTrigger>
+                                <TabsList className="grid w-full max-w-md grid-cols-3 h-12">
+                                    <TabsTrigger value="products" className="gap-2">
+                                        <Package className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Produits</span>
+                                        <Badge variant="secondary" className="ml-1">{products.total}</Badge>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="reviews" className="gap-2">
+                                        <Star className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Avis</span>
+                                        <Badge variant="secondary" className="ml-1">{shop.reviews.length}</Badge>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="about" className="gap-2">
+                                        <Store className="h-4 w-4" />
+                                        <span className="hidden sm:inline">À propos</span>
+                                    </TabsTrigger>
                                 </TabsList>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
                                     <Select value={filters.sort} onValueChange={(value) => handleFilterChange('sort', value)}>
-                                        <SelectTrigger className="w-auto">
+                                        <SelectTrigger className="w-full sm:w-auto">
                                             <SelectValue placeholder="Trier par" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -413,11 +475,11 @@ console.log(products.data);
                                         </SelectContent>
                                     </Select>
 
-                                    {/* Mobile Filter Button */}
+                                    {/* Bouton filtres mobile */}
                                     <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                                         <SheetTrigger asChild>
                                             <Button variant="outline" size="icon" className="md:hidden relative">
-                                                <Filter size={18} />
+                                                <Filter className="h-4 w-4" />
                                                 {hasActiveFilters && (
                                                     <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full" />
                                                 )}
@@ -425,14 +487,7 @@ console.log(products.data);
                                         </SheetTrigger>
                                         <SheetContent side="right" className="w-[320px] p-0 flex flex-col">
                                             <SheetHeader className="p-6 pb-4 border-b">
-                                                <div className="flex justify-between items-center">
-                                                    <SheetTitle>Filtres</SheetTitle>
-                                                    <SheetClose asChild>
-                                                        <Button variant="ghost" size="icon" className="rounded-full">
-                                                            <X size={20} />
-                                                        </Button>
-                                                    </SheetClose>
-                                                </div>
+                                                <SheetTitle>Filtres</SheetTitle>
                                             </SheetHeader>
                                             <div className="p-6 flex-grow overflow-y-auto">
                                                 {filtersContent}
@@ -456,7 +511,32 @@ console.log(products.data);
 
                             <TabsContent value="products">
                                 {products.data.length > 0 ? (
-                                    <ListProduct products={products.data} />
+                                    <>
+                                        <ListProduct products={products.data} />
+                                        
+                                        {/* Pagination */}
+                                        {products.last_page > 1 && (
+                                            <div className="mt-8 flex justify-center gap-2">
+                                                {products.links.map((link, i) => (
+                                                    <Button
+                                                        key={i}
+                                                        variant={link.active ? "default" : "outline"}
+                                                        disabled={!link.url}
+                                                        size="sm"
+                                                        onClick={() => link.url && router.get(link.url)}
+                                                    >
+                                                        {link.label === "&laquo; Previous" ? (
+                                                            <ChevronLeft className="h-4 w-4" />
+                                                        ) : link.label === "Next &raquo;" ? (
+                                                            <ChevronRight className="h-4 w-4" />
+                                                        ) : (
+                                                            link.label
+                                                        )}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <Card className="text-center py-12 bg-gray-50 dark:bg-gray-800">
                                         <CardContent className="pt-6">
@@ -478,33 +558,10 @@ console.log(products.data);
                                         </CardContent>
                                     </Card>
                                 )}
-                                <div className="mt-8 flex justify-center gap-2">
-                                    {products.links.map((link, i) => (
-                                        <Button
-                                            key={i}
-                                            variant={link.active ? "default" : "outline"}
-                                            disabled={!link.url}
-                                            onClick={() => {
-                                                if (link.url) {
-                                                    router.get(link.url);
-                                                    // handlePageChange(link.url);
-                                                }
-                                            }}
-                                        >
-                                            {link.label === "&laquo; Previous" ? (
-                                                <ChevronLeft className="h-4 w-4" />
-                                            ) : link.label === "Next &raquo;" ? (
-                                                <ChevronRight className="h-4 w-4" />
-                                            ) : (
-                                                link.label
-                                            )}
-                                        </Button>
-                                    ))}
-                                </div>
                             </TabsContent>
 
                             <TabsContent value="reviews">
-                                <ShopReview shop={shop}/>
+                                <ShopReview shop={shop} />
                             </TabsContent>
 
                             <TabsContent value="about">
@@ -512,66 +569,77 @@ console.log(products.data);
                                     <CardHeader>
                                         <CardTitle>À propos de {shop.name}</CardTitle>
                                     </CardHeader>
-                                    <CardContent>
-                                        <p className="mb-6 text-gray-700 leading-relaxed">{shop.description}</p>
+                                    <CardContent className="space-y-6">
+                                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                            {shop.description}
+                                        </p>
+
+                                        <Separator />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <h4 className="font-semibold mb-3 text-lg">Statistiques</h4>
+                                            <div className="space-y-4">
+                                                <h4 className="font-semibold text-lg flex items-center gap-2">
+                                                    <TrendingUp className="h-5 w-5 text-primary" />
+                                                    Statistiques
+                                                </h4>
                                                 <div className="space-y-3">
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Membre depuis</span>
+                                                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                            <Calendar className="h-4 w-4" />
+                                                            Membre depuis
+                                                        </span>
                                                         <span className="font-medium">{formatDateShort(shop.created_at)}</span>
                                                     </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Localisation</span>
-                                                        <span className="font-medium">{shop.city}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Produits en vente</span>
+                                                    {shop.city && (
+                                                        <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                            <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                                <MapPin className="h-4 w-4" />
+                                                                Localisation
+                                                            </span>
+                                                            <span className="font-medium">{shop.city}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                            <Package className="h-4 w-4" />
+                                                            Produits en vente
+                                                        </span>
                                                         <span className="font-medium">{shop.products.length}</span>
                                                     </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Abonnés</span>
+                                                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                            <Users className="h-4 w-4" />
+                                                            Abonnés
+                                                        </span>
                                                         <span className="font-medium">{shop.followers.length}</span>
                                                     </div>
-                                                    {/*{seller.totalSales && (*/}
-                                                    {/*    <div className="flex justify-between">*/}
-                                                    {/*        <span className="text-gray-600">Ventes totales</span>*/}
-                                                    {/*        <span className="font-medium text-green-600">{seller.totalSales}</span>*/}
-                                                    {/*    </div>*/}
-                                                    {/*)}*/}
-                                                    {/*{seller.responseTime && (*/}
-                                                    {/*    <div className="flex justify-between">*/}
-                                                    {/*        <span className="text-gray-600">Temps de réponse</span>*/}
-                                                    {/*        <span className="font-medium">{seller.responseTime}</span>*/}
-                                                    {/*    </div>*/}
-                                                    {/*)}*/}
                                                 </div>
                                             </div>
 
-                                            {/* <div> */}
-                                                {/* <h4 className="font-semibold mb-3 text-lg">Spécialités</h4> */}
-                                                {/*<div className="flex flex-wrap gap-2">*/}
-                                                {/*    {shop.categories.map(category => (*/}
-                                                {/*        <Badge key={category} className="bg-videdressing-light text-videdressing-primary px-3 py-1">*/}
-                                                {/*            {category}*/}
-                                                {/*        </Badge>*/}
-                                                {/*    ))}*/}
-                                                {/*</div>*/}
-
-                                                {/*{seller.verified && (*/}
-                                                {/*    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">*/}
-                                                {/*        <div className="flex items-center gap-2 text-green-700">*/}
-                                                {/*            <Award size={16} />*/}
-                                                {/*            <span className="font-medium">Boutique vérifiée</span>*/}
-                                                {/*        </div>*/}
-                                                {/*        <p className="text-sm text-green-600 mt-1">*/}
-                                                {/*            Cette boutique a été vérifiée par notre équipe.*/}
-                                                {/*        </p>*/}
-                                                {/*    </div>*/}
-                                                {/*)}*/}
-                                            {/* </div> */}
+                                            <div className="space-y-4">
+                                                <h4 className="font-semibold text-lg flex items-center gap-2">
+                                                    <ShieldCheck className="h-5 w-5 text-green-500" />
+                                                    Garanties vendeur
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    {shop.is_approved && (
+                                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                                            <ShieldCheck className="h-5 w-5 text-green-600" />
+                                                            <div>
+                                                                <p className="font-medium text-green-700 dark:text-green-400">Boutique vérifiée</p>
+                                                                <p className="text-sm text-green-600 dark:text-green-500">Identité confirmée</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                                                        <Clock className="h-5 w-5 text-blue-600" />
+                                                        <div>
+                                                            <p className="font-medium text-blue-700 dark:text-blue-400">Réponse rapide</p>
+                                                            <p className="text-sm text-blue-600 dark:text-blue-500">Généralement sous 24h</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>

@@ -157,7 +157,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         <span className="text-gray-600">|</span>
                         <span className="flex items-center gap-1.5 hover:text-white transition-colors">
                             <MapPin className="h-3 w-3" />
-                            Douala, Cameroun
+                            Yaoundé, Cameroun
                         </span>
                     </div>
                     
