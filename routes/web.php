@@ -23,6 +23,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 Route::get('/', function () {
     $latestProducts = Product::with(['category', 'shop', 'user', 'reviews'])
@@ -50,6 +52,19 @@ Route::get('/', function () {
 Route::get('features', function () {
     return Inertia::render('feature');
 });
+
+Route::get('/generate-sitemap', function () {
+    Sitemap::create()
+        ->add(Url::create('/'))
+        ->add(Url::create('/marketplace'))
+        ->add(Url::create('/blog'))
+        ->add(Url::create('/contact'))
+        ->add(Url::create('/products'))
+        ->writeToFile(public_path('sitemap.xml'));
+
+    return 'Sitemap generated';
+});
+
 
 Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\Vendor\VendorDashboardController::class, 'index'])->name('dashboard');
