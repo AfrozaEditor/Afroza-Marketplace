@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Shop;
 use App\Models\ProductReview;
 use App\Models\ProductReviewReport;
 use App\Models\ShopReview;
@@ -44,12 +45,19 @@ class AdminModerationController extends Controller
             ->paginate(10, ['*'], 'shop_page')
             ->withQueryString();
 
-        // Récupérer les produits signalés (si applicable)
-        // $reportedProducts = Product::where('status', 'reported')
-        //     ->with(['user', 'category'])
-        //     ->latest()
-        //     ->paginate(10, ['*'], 'products_page')
-        //     ->withQueryString();
+        // Récupérer les produits signalés
+        $reportedProducts = Product::whereHas('reports')
+            ->with(['user', 'category'])
+            ->latest()
+            ->paginate(10, ['*'], 'products_page')
+            ->withQueryString();
+
+        // Récupérer les boutiques signalés
+        $reportedShops = Shop::whereHas('reports')
+            ->with(['user'])
+            ->latest()
+            ->paginate(10, ['*'], 'shops_page')
+            ->withQueryString();
 
         // Statistiques
         $stats = [
@@ -57,14 +65,15 @@ class AdminModerationController extends Controller
             'pending_product_review_reports' => $productReviewReportsCount,
             'total_shop_review_reports' => ShopReviewReport::count(),
             'pending_shop_review_reports' => $shopReviewReportsCount,
-            // 'reported_products' => Product::where('status', 'reported')->count(),
-            // 'blocked_users' => User::where('status', 'blocked')->count(),
+            'reported_products' => Product::whereHas('reports')->count(),
+            'reported_shops' => Shop::whereHas('reports')->count(),
         ];
         
         return Inertia::render('admin/moderation/index', [
             'productReviewReports' => $productReviewReports,
             'shopReviewReports' => $shopReviewReports,
-            // 'reportedProducts' => $reportedProducts,
+            'reportedProducts' => $reportedProducts,
+            'reportedShops' => $reportedShops,
             'stats' => $stats,
             'currentTab' => $tab,
         ]);

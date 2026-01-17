@@ -133,7 +133,7 @@ class User extends Authenticatable
             $user->favorites()->detach();
 
             // Supprimer les boutiques suivies
-            $user->followedShops()->detach();
+            // $user->followedShops()->detach();
 
             // Supprimer les boutiques favorites
             $user->favoriteShops()->detach();

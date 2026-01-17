@@ -121,13 +121,25 @@ interface ReportedProduct {
     };
 }
 
+interface ReportedShop {
+    id: number;
+    name: string;
+    status: string;
+    created_at: string;
+    user: {
+        id: number;
+        name: string;
+        avatar?: string;
+    };
+}
+
 interface Stats {
     total_product_review_reports: number;
     pending_product_review_reports: number;
     total_shop_review_reports: number;
     pending_shop_review_reports: number;
     reported_products: number;
-    blocked_users: number;
+    reported_shops: number;
 }
 
 interface Props {
@@ -145,6 +157,10 @@ interface Props {
     };
     reportedProducts: {
         data: ReportedProduct[];
+        links: any;
+    };
+    reportedShops: {
+        data: ReportedShop[];
         links: any;
     };
     stats: Stats;
@@ -168,7 +184,7 @@ const reasonLabels: { [key: string]: string } = {
 export default function ModerationIndex({
     productReviewReports,
     shopReviewReports,
-    // reportedProducts,
+    reportedProducts,
     stats,
     currentTab,
 }: Props) {
@@ -237,12 +253,12 @@ export default function ModerationIndex({
         });
     };
 
-    // const handleRejectProduct = (productId: number) => {
-    //     router.post(route('admin.moderation.products.reject', productId), {}, {
-    //         onSuccess: () => toast.success('Produit rejeté'),
-    //         onError: () => toast.error('Erreur lors du rejet'),
-    //     });
-    // };
+    const handleRejectProduct = (productId: number) => {
+        router.post(route('admin.moderation.products.reject', productId), {}, {
+            onSuccess: () => toast.success('Produit rejeté'),
+            onError: () => toast.error('Erreur lors du rejet'),
+        });
+    };
 
     const handleBlockUser = (userId: number) => {
         router.post(route('admin.moderation.users.block', userId), {}, {
@@ -289,8 +305,8 @@ export default function ModerationIndex({
             color: 'text-purple-600',
         },
         {
-            title: 'Utilisateurs Bloqués',
-            value: stats.blocked_users,
+            title: 'Boutiques Signalées',
+            value: stats.reported_shops,
             icon: <Ban className="h-5 w-5 text-red-600" />,
             bgColor: 'bg-red-50',
             color: 'text-red-600',
@@ -667,7 +683,7 @@ export default function ModerationIndex({
                     </TabsContent>
 
                     {/* Products Tab */}
-                    {/* <TabsContent value="products" className="space-y-4">
+                    <TabsContent value="products" className="space-y-4">
                         <h2 className="text-xl font-semibold">
                             Produits signalés ({reportedProducts.data.length})
                         </h2>
@@ -730,7 +746,7 @@ export default function ModerationIndex({
                                 </CardContent>
                             </Card>
                         )}
-                    </TabsContent> */}
+                    </TabsContent>
                 </Tabs>
             </div>
         </AppLayout>
