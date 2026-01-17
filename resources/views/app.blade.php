@@ -3,23 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Afroza Marketplace - La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main. Rejoignez notre communauté de passionnés de mode.">
-        <meta name="keywords" content="afroza, marketplace, mode, vêtements, seconde main, occasion, Afrique, fashion, accessoires, boutique en ligne, lifestyle">
+        <meta name="description" content="Afroza Marketplace est une marketplace généraliste africaine pour acheter et vendre facilement des produits neufs ou d’occasion : électronique, mode, maison, services et plus.">
+        <meta name="keywords" content="afroza, afroza marketplace, marketplace africaine, marketplace généraliste, e-commerce Afrique, acheter en ligne Afrique, vendre en ligne Afrique, produits neufs, produits d’occasion">
         <meta name="author" content="{{ config('app.name', 'Afroza Marketplace') }}">
-        
-        {{-- Open Graph / Facebook --}}
-        <meta property="og:type" content="website">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="{{ config('app.name', 'Afroza Marketplace') }} - Mode & Lifestyle Africain">
-        <meta property="og:description" content="La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main.">
-        <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
-        <meta property="og:locale" content="fr_FR">
-        
-        {{-- Twitter --}}
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ config('app.name', 'Afroza Marketplace') }} - Mode & Lifestyle Africain">
-        <meta name="twitter:description" content="La marketplace mode et lifestyle africaine. Achetez et vendez des vêtements, accessoires et articles de seconde main.">
-        <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}">
+
+        <meta property="og:title" content="Afroza Marketplace – Achetez & vendez tout en Afrique">
+        <meta property="og:description" content="Téléphones, mode, maison, services… Achetez et vendez facilement sur Afroza Marketplace, la marketplace généraliste africaine.">
+        <meta property="og:url" content="https://afrozamarketplace.app">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -47,7 +37,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title>Afroza Marketplace – Marketplace généraliste africaine</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <!-- <link rel="icon" href="/favicon.svg" type="image/svg+xml"> -->
