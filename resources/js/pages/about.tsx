@@ -57,7 +57,7 @@ function About() {
             <HeroSection
                 // className="bg-gradient-to-r from-primary to-white"
                 className="bg-gradient-to-l from-primary to-chart-3 text-white"
-                title={(`A propos de Vide Dressing`)}
+                title={(`A propos de Afroza Marketplace`)}
                 description={"Nous sommes la première plateforme camerounaise dédiée à la vente et à l'achat de vêtements de seconde main. Notre mission est de démocratiser la mode durable tout en créant une communauté de passionnés de style au Cameroun."}
             />
             <div className="container mx-auto px-4 py-8">

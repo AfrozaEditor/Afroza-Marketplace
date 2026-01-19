@@ -6,17 +6,17 @@ import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, Category, type NavItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
-import { 
-    Facebook, 
-    Instagram, 
-    Menu, 
-    MessageCircle, 
-    Moon, 
-    Search, 
-    ShoppingCart, 
-    Sun, 
-    Twitter, 
-    User, 
+import {
+    Facebook,
+    Instagram,
+    Menu,
+    MessageCircle,
+    Moon,
+    Search,
+    ShoppingCart,
+    Sun,
+    Twitter,
+    User,
     X,
     Heart,
     Phone,
@@ -24,7 +24,9 @@ import {
     ChevronDown,
     Sparkles,
     Store,
-    Tag
+    Tag,
+    ListOrdered,
+    LayoutDashboard,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -97,7 +99,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const { appearance, updateAppearance } = useAppearance();
-    
+
     console.log(auth.user?.cart);
     const isVendor = auth.user?.role === 'vendor';
     const isCustomer = auth.user?.role === 'customer';
@@ -141,31 +143,28 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     };
 
     return (
-        <header className={cn(
-            "sticky top-0 z-50 transition-all duration-300",
-            isScrolled && "shadow-lg"
-        )}>
+        <header className={cn('sticky top-0 z-50 transition-all duration-300', isScrolled && 'shadow-lg')}>
             {/* Top Bar - Info & réseaux sociaux */}
-            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 hidden md:block">
+            <div className="hidden bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 md:block">
                 <div className="container mx-auto flex h-9 items-center justify-between px-4">
                     {/* Info gauche */}
                     <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <span className="flex items-center gap-1.5 hover:text-white transition-colors">
+                        <span className="flex items-center gap-1.5 transition-colors hover:text-white">
                             <Phone className="h-3 w-3" />
                             +237 6XX XXX XXX
                         </span>
                         <span className="text-gray-600">|</span>
-                        <span className="flex items-center gap-1.5 hover:text-white transition-colors">
+                        <span className="flex items-center gap-1.5 transition-colors hover:text-white">
                             <MapPin className="h-3 w-3" />
                             Yaoundé, Cameroun
                         </span>
                     </div>
-                    
+
                     {/* Actions droite */}
                     <div className="flex items-center gap-4">
                         {/* Langue */}
                         <DropdownMenu>
-                            <DropdownMenuTrigger className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors">
+                            <DropdownMenuTrigger className="flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-white">
                                 <span>🇫🇷 FR</span>
                                 <ChevronDown className="h-3 w-3" />
                             </DropdownMenuTrigger>
@@ -178,14 +177,14 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         {/* Dark mode toggle */}
                         <button
                             onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
-                            className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                            className="rounded-full p-1 text-gray-400 transition-all hover:bg-white/10 hover:text-white"
                             title={appearance === 'dark' ? 'Mode clair' : 'Mode sombre'}
                         >
                             {appearance === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
                         </button>
-                        
+
                         <span className="text-gray-600">|</span>
-                        
+
                         {/* Réseaux sociaux */}
                         <div className="flex items-center gap-2">
                             {[
@@ -198,7 +197,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-primary transition-colors"
+                                    className="hover:text-primary text-gray-400 transition-colors"
                                     title={social.label}
                                 >
                                     <social.icon className="h-3.5 w-3.5" />
@@ -210,23 +209,25 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
             </div>
 
             {/* Section principale du header */}
-            <div className={cn(
-                "bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-all duration-300",
-                isScrolled && "py-1"
-            )}>
+            <div
+                className={cn(
+                    'border-b border-gray-100 bg-white transition-all duration-300 dark:border-gray-800 dark:bg-gray-900',
+                    isScrolled && 'py-1',
+                )}
+            >
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between gap-4 py-3">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center flex-shrink-0 group">
+                        <Link href="/" className="group flex flex-shrink-0 items-center">
                             <AppLogo />
                         </Link>
 
                         {/* Barre de recherche - Desktop */}
-                        <div className="mx-4 hidden flex-1 max-w-2xl lg:flex">
+                        <div className="mx-4 hidden max-w-2xl flex-1 lg:flex">
                             <form onSubmit={handleSearch} className="w-full">
-                                <div className="relative flex rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/40 focus-within:border-primary transition-colors shadow-sm">
+                                <div className="border-primary/20 hover:border-primary/40 focus-within:border-primary relative flex overflow-hidden rounded-full border-2 shadow-sm transition-colors">
                                     <Select onValueChange={(value) => setSelectedSearchCategory(value)}>
-                                        <SelectTrigger className="w-36 rounded-none border-0 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 text-sm focus:ring-0">
+                                        <SelectTrigger className="w-36 rounded-none border-0 border-r border-gray-200 bg-gray-50 px-3 text-sm focus:ring-0 dark:border-gray-700 dark:bg-gray-800">
                                             <SelectValue placeholder="Catégorie" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -242,13 +243,9 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                         placeholder="Rechercher des produits, marques, vendeurs..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="flex-1 border-0 bg-white dark:bg-gray-900 py-2.5 px-4 focus-visible:ring-0 text-sm"
+                                        className="flex-1 border-0 bg-white px-4 py-2.5 text-sm focus-visible:ring-0 dark:bg-gray-900"
                                     />
-                                    <Button
-                                        type="submit"
-                                        className="rounded-none px-5 bg-primary hover:bg-primary/90"
-                                        disabled={!searchQuery.trim()}
-                                    >
+                                    <Button type="submit" className="bg-primary hover:bg-primary/90 rounded-none px-5" disabled={!searchQuery.trim()}>
                                         <Search className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -256,15 +253,15 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         </div>
 
                         {/* Actions droite - Desktop */}
-                        <div className="hidden md:flex items-center gap-2">
+                        <div className="hidden items-center gap-2 md:flex">
                             {/* Favoris */}
                             {auth.user && (
                                 <Link
                                     href="/favorites"
-                                    className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                    className="group relative rounded-full p-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                                     title="Mes favoris"
                                 >
-                                    <Heart className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                    <Heart className="group-hover:text-primary h-5 w-5 text-gray-600 transition-colors dark:text-gray-400" />
                                 </Link>
                             )}
 
@@ -272,43 +269,43 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             {auth.user && (
                                 <Link
                                     href={route('chat.index')}
-                                    className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                    className="group relative rounded-full p-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                                     title="Messages"
                                 >
-                                    <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                    <MessageCircle className="group-hover:text-primary h-5 w-5 text-gray-600 transition-colors dark:text-gray-400" />
                                 </Link>
                             )}
 
                             {/* Notifications */}
                             {auth.user && (
-                                <NotificationDropdown className="text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-2.5" />
+                                <NotificationDropdown className="hover:text-primary rounded-full p-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800" />
                             )}
 
                             {/* Panier */}
                             <Link
                                 href={route('my-cart')}
-                                className="relative p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                                className="group relative rounded-full p-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                                 title="Mon panier"
                             >
-                                <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors" />
+                                <ShoppingCart className="group-hover:text-primary h-5 w-5 text-gray-600 transition-colors dark:text-gray-400" />
                                 {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
-                                    <Badge className="absolute -top-0.5 -right-0.5 h-5 min-w-[20px] px-1.5 text-[10px] bg-primary border-2 border-white dark:border-gray-900">
+                                    <span className="bg-primary absolute -top-0.5 -right-0.5 h-5 min-w-5 rounded-full border-2 border-white px-1.5 text-[10px] dark:border-gray-900">
                                         {auth.user?.cart?.total_quantity}
-                                    </Badge>
+                                    </span>
                                 )}
                             </Link>
 
-                            <span className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+                            <span className="mx-1 h-6 w-px bg-gray-200 dark:bg-gray-700" />
 
                             {/* Menu utilisateur ou connexion */}
                             {auth.user ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="flex items-center gap-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white text-sm font-medium">
+                                            <div className="from-primary to-primary/60 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br text-sm font-medium text-white">
                                                 {auth.user.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="text-sm font-medium hidden lg:block">{auth.user.name}</span>
+                                            <span className="hidden text-sm font-medium lg:block">{auth.user.name}</span>
                                             <ChevronDown className="h-4 w-4 text-gray-400" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -334,23 +331,21 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
 
                         {/* Actions mobile */}
                         <div className="flex items-center gap-1 md:hidden">
+                            {/* Notifications */}
                             {auth.user && (
-                                <Link
-                                    href={route('my-cart')}
-                                    className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                                >
+                                <NotificationDropdown className="hover:text-primary rounded-full p-2.5 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800" />
+                            )}
+                            {auth.user && (
+                                <Link href={route('my-cart')} className="relative rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                                     <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                                     {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
-                                        <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 text-[9px] bg-primary">
+                                        <span className="bg-primary absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full px-1.5 text-[10px]">
                                             {auth.user?.cart?.total_quantity}
-                                        </Badge>
+                                        </span>
                                     )}
                                 </Link>
                             )}
-                            <button 
-                                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" 
-                                onClick={toggleMenu}
-                            >
+                            <button className="rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800" onClick={toggleMenu}>
                                 {isMenuOpen ? (
                                     <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                                 ) : (
@@ -361,22 +356,17 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                     </div>
 
                     {/* Barre de recherche mobile */}
-                    <div className="md:hidden pb-3">
+                    <div className="pb-3 md:hidden">
                         <form onSubmit={handleSearch}>
-                            <div className="relative flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                            <div className="relative flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
                                 <Input
                                     type="text"
                                     placeholder="Rechercher..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="flex-1 border-0 bg-transparent py-2 px-3 focus-visible:ring-0 text-sm"
+                                    className="flex-1 border-0 bg-transparent px-3 py-2 text-sm focus-visible:ring-0"
                                 />
-                                <Button
-                                    type="submit"
-                                    size="sm"
-                                    className="rounded-none px-4 bg-primary"
-                                    disabled={!searchQuery.trim()}
-                                >
+                                <Button type="submit" size="sm" className="bg-primary rounded-none px-4" disabled={!searchQuery.trim()}>
                                     <Search className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -397,8 +387,8 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                         <Link
                                             href={item.href}
                                             className={cn(
-                                                "px-4 py-3 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-all inline-flex items-center",
-                                                page.url === item.href && "bg-white/15 text-white"
+                                                'inline-flex items-center px-4 py-3 text-sm font-medium text-white/90 transition-all hover:bg-white/10 hover:text-white',
+                                                page.url === item.href && 'bg-white/15 text-white',
                                             )}
                                         >
                                             {item.title}
@@ -412,7 +402,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         <div className="flex items-center gap-2 py-1.5">
                             {isVendor && (
                                 <Link href={route('products.create')}>
-                                    <Button size="sm" className="bg-white text-primary hover:bg-white/90 gap-1.5 text-xs font-semibold shadow-sm">
+                                    <Button size="sm" className="text-primary gap-1.5 bg-white text-xs font-semibold shadow-sm hover:bg-white/90">
                                         <Tag className="h-3.5 w-3.5" />
                                         Vendre
                                     </Button>
@@ -420,7 +410,10 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             )}
                             {isCustomer && (
                                 <Link href={route('products.index')}>
-                                    <Button size="sm" className="bg-white/15 text-white hover:bg-white/25 gap-1.5 text-xs font-semibold border border-white/20">
+                                    <Button
+                                        size="sm"
+                                        className="gap-1.5 border border-white/20 bg-white/15 text-xs font-semibold text-white hover:bg-white/25"
+                                    >
                                         <Store className="h-3.5 w-3.5" />
                                         Acheter
                                     </Button>
@@ -428,7 +421,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             )}
                             {!auth.user && (
                                 <Link href={route('register')}>
-                                    <Button size="sm" className="bg-white text-primary hover:bg-white/90 gap-1.5 text-xs font-semibold shadow-sm">
+                                    <Button size="sm" className="text-primary gap-1.5 bg-white text-xs font-semibold shadow-sm hover:bg-white/90">
                                         <Sparkles className="h-3.5 w-3.5" />
                                         Commencer
                                     </Button>
@@ -443,43 +436,41 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
             {isMenuOpen && (
                 <>
                     {/* Overlay sombre */}
-                    <div
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
-                        onClick={() => setIsMenuOpen(false)}
-                    />
-                    <div className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl z-50 md:hidden animate-slide-in-left overflow-hidden">
+                    <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setIsMenuOpen(false)} />
+                    <div className="animate-slide-in-left fixed top-0 left-0 z-50 h-full w-80 max-w-[85vw] overflow-hidden bg-white shadow-2xl md:hidden dark:bg-gray-900">
                         {/* Header du menu */}
-                        <div className="bg-gradient-to-r from-primary to-primary/80 px-4 py-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-white font-bold text-lg">Menu</span>
-                                <button 
-                                    onClick={() => setIsMenuOpen(false)}
-                                    className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
-                                >
+                        <div className="from-primary to-primary/80 bg-gradient-to-r px-4 py-4">
+                            <div className="mb-4 flex items-center justify-between">
+                                <span className="text-lg font-bold text-white">Menu</span>
+                                <button onClick={() => setIsMenuOpen(false)} className="rounded-full p-1.5 transition-colors hover:bg-white/20">
                                     <X className="h-5 w-5 text-white" />
                                 </button>
                             </div>
-                            
+
                             {/* User info */}
                             {auth.user ? (
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white">
                                         {auth.user.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="text-white font-medium">{auth.user.name}</p>
-                                        <p className="text-white/70 text-sm">{auth.user.email}</p>
+                                        <p className="font-medium text-white">{auth.user.name}</p>
+                                        <p className="text-sm text-white/70">{auth.user.email}</p>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="flex gap-2">
                                     <Link href={route('login')} className="flex-1">
-                                        <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full border-white/30 bg-white/10 text-white hover:bg-white/20"
+                                        >
                                             Connexion
                                         </Button>
                                     </Link>
                                     <Link href={route('register')} className="flex-1">
-                                        <Button size="sm" className="w-full bg-white text-primary hover:bg-white/90">
+                                        <Button size="sm" className="text-primary w-full bg-white hover:bg-white/90">
                                             S'inscrire
                                         </Button>
                                     </Link>
@@ -488,15 +479,15 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         </div>
 
                         {/* Navigation links */}
-                        <div className="overflow-y-auto h-[calc(100%-200px)] py-4">
-                            <nav className="px-4 space-y-1">
+                        <div className="h-[calc(100%-200px)] overflow-y-auto py-4">
+                            <nav className="space-y-1 px-4">
                                 {mainNavItems.map((item) => (
                                     <Link
                                         key={item.title}
                                         href={item.href}
                                         className={cn(
-                                            "flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
-                                            page.url === item.href && "bg-primary/10 text-primary font-medium"
+                                            'flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+                                            page.url === item.href && 'bg-primary/10 text-primary font-medium',
                                         )}
                                         onClick={() => setIsMenuOpen(false)}
                                     >
@@ -511,20 +502,44 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             </div>
 
                             {/* Quick actions */}
-                            <div className="px-4 space-y-2">
+                            <div className="space-y-2 px-4">
                                 {auth.user && (
                                     <>
                                         <Link
+                                            href="/settings/profile"
+                                            className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <User className="h-5 w-5" />
+                                            Mon profil
+                                        </Link>
+                                        <Link
+                                            href="/settings/profile"
+                                            className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <LayoutDashboard className="h-5 w-5" />
+                                            Tableau de bord
+                                        </Link>
+                                        <Link
                                             href="/favorites"
-                                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             <Heart className="h-5 w-5" />
                                             Mes favoris
                                         </Link>
                                         <Link
+                                            href={route('order.index')}
+                                            className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <ListOrdered className="h-5 w-5" />
+                                            Mes commandes
+                                        </Link>
+                                        <Link
                                             href={route('chat.index')}
-                                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             <MessageCircle className="h-5 w-5" />
@@ -535,10 +550,10 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             </div>
 
                             {/* CTA buttons */}
-                            <div className="px-4 mt-4 space-y-2">
+                            <div className="mt-4 space-y-2 px-4">
                                 {isVendor && (
                                     <Link href={route('products.create')} onClick={() => setIsMenuOpen(false)}>
-                                        <Button className="w-full bg-primary text-white gap-2">
+                                        <Button className="bg-primary w-full gap-2 text-white">
                                             <Tag className="h-4 w-4" />
                                             Vendre un article
                                         </Button>
@@ -556,12 +571,12 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                         </div>
 
                         {/* Footer du menu mobile */}
-                        <div className="absolute bottom-0 left-0 right-0 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                        <div className="absolute right-0 bottom-0 left-0 border-t bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500">Thème</span>
                                 <button
                                     onClick={() => updateAppearance(appearance === 'dark' ? 'light' : 'dark')}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm"
+                                    className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm dark:bg-gray-800"
                                 >
                                     {appearance === 'dark' ? (
                                         <>
@@ -584,12 +599,12 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
             {/* Breadcrumbs */}
             {breadcrumbs.length > 0 && (
                 <>
-                <div className="bg-white dark:bg-neutral-900 container mx-auto">
-                    <div className="flex h-12 items-center px-4 md:max-w-7xl">
-                        <Breadcrumbs breadcrumbs={breadcrumbs} />
+                    <div className="container mx-auto bg-white dark:bg-neutral-900">
+                        <div className="flex h-12 items-center px-4 md:max-w-7xl">
+                            <Breadcrumbs breadcrumbs={breadcrumbs} />
+                        </div>
                     </div>
-                </div>
-                <Separator />
+                    <Separator />
                 </>
             )}
         </header>

@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/product/product-card';
-import { 
-    ArrowRight, 
-    ShoppingBag, 
-    Store, 
-    Truck, 
-    Shield, 
+import {
+    ArrowRight,
+    ShoppingBag,
+    Store,
+    Truck,
+    Shield,
     Sparkles,
     TrendingUp,
     Heart,
@@ -72,7 +72,7 @@ function AnimatedCounter({ end, duration = 2000, suffix = '' }: { end: number; d
 function ScrollingImages({ images, direction = 'up' }: { images: string[]; direction?: 'up' | 'down' }) {
     return (
         <div className="relative h-full overflow-hidden">
-            <div 
+            <div
                 className={cn(
                     "flex flex-col gap-4",
                     direction === 'up' ? 'animate-scroll-up' : 'animate-scroll-down'
@@ -80,12 +80,12 @@ function ScrollingImages({ images, direction = 'up' }: { images: string[]; direc
             >
                 {/* Double les images pour un défilement infini */}
                 {[...images, ...images].map((img, index) => (
-                    <div 
-                        key={index} 
+                    <div
+                        key={index}
                         className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl flex-shrink-0"
                     >
-                        <img 
-                            src={img} 
+                        <img
+                            src={img}
                             alt={`Hero ${index + 1}`}
                             className="w-full h-full object-cover"
                         />
@@ -122,7 +122,7 @@ function Home({ latestProducts, categories }: Props) {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Colonne 2 - défilement vers le bas */}
                     <div className="relative overflow-hidden mt-12">
                         <div className="animate-scroll-down-slow flex flex-col gap-3">
@@ -133,7 +133,7 @@ function Home({ latestProducts, categories }: Props) {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Colonne 3 - défilement vers le haut */}
                     <div className="relative overflow-hidden mt-6">
                         <div className="animate-scroll-up flex flex-col gap-3">
@@ -144,7 +144,7 @@ function Home({ latestProducts, categories }: Props) {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Colonne 4 - défilement vers le bas (visible à partir de md) */}
                     <div className="relative overflow-hidden hidden md:block mt-16">
                         <div className="animate-scroll-down flex flex-col gap-3">
@@ -155,7 +155,7 @@ function Home({ latestProducts, categories }: Props) {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Colonne 5 - défilement vers le haut (visible à partir de lg) */}
                     <div className="relative overflow-hidden hidden lg:block mt-8">
                         <div className="animate-scroll-up-slow flex flex-col gap-3">
@@ -166,7 +166,7 @@ function Home({ latestProducts, categories }: Props) {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Colonne 6 - défilement vers le bas (visible à partir de lg) */}
                     <div className="relative overflow-hidden hidden lg:block mt-20">
                         <div className="animate-scroll-down-slow flex flex-col gap-3">
@@ -181,7 +181,7 @@ function Home({ latestProducts, categories }: Props) {
 
                 {/* Overlay sombre pour lisibilité */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/85 to-gray-900/95" />
-                
+
                 {/* Éléments décoratifs animés */}
                 <div className="absolute top-20 left-20 w-72 h-72 bg-primary/30 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -197,16 +197,16 @@ function Home({ latestProducts, categories }: Props) {
                             <Sparkles className="w-4 h-4 mr-2" />
                             La marketplace #1 au Cameroun
                         </Badge>
-                        
+
                         <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
                             Achetez et vendez <span className="text-primary">tout ce qui compte</span>
                         </h1>
-                        
+
                         <p className="text-lg md:text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
-                            La marketplace camerounaise pour acheter et vendre des articles de qualité. 
+                            La marketplace camerounaise pour acheter et vendre des articles de qualité.
                             Mode, électronique, maison et bien plus encore !
                         </p>
-                        
+
                         <div className="flex flex-wrap justify-center gap-4 mb-12">
                             <Link href="/products">
                                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-white group h-14 px-10 text-lg">
@@ -311,7 +311,7 @@ function Home({ latestProducts, categories }: Props) {
                             { icon: Truck, title: 'Livraison Rapide', desc: '24-48h partout', color: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20' },
                             { icon: Heart, title: 'Satisfaction', desc: 'Garantie ou remboursé', color: 'text-pink-500 bg-pink-50 dark:bg-pink-900/20' },
                         ].map((item, index) => (
-                            <div 
+                            <div
                                 key={index}
                                 className={cn(
                                     "flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-default",
@@ -357,7 +357,7 @@ function Home({ latestProducts, categories }: Props) {
                             {/* Dégradés sur les côtés pour un effet de fade */}
                             <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none" />
                             <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none" />
-                            
+
                             {/* Container du défilement */}
                             <div className="flex animate-marquee hover:[animation-play-state:paused]">
                                 {/* Premier groupe de produits */}
@@ -400,7 +400,7 @@ function Home({ latestProducts, categories }: Props) {
                         </div>
                     </div>
                 )}
-                    
+
                 <div className="container mx-auto px-4">
                     <div className="text-center mt-10">
                         <Link href="/products">
@@ -415,14 +415,14 @@ function Home({ latestProducts, categories }: Props) {
 
             {/* Section CTA - Devenir vendeur */}
             <section className="py-20 relative overflow-hidden">
-                <div 
+                <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
                         backgroundImage: 'url("https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1920")',
                     }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/95 to-purple-600/90" />
-                
+                <div className="absolute inset-0 bg-linear-to-r from-primary/95 to-purple-600/90" />
+
                 {/* Shapes décoratives */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
@@ -435,16 +435,16 @@ function Home({ latestProducts, categories }: Props) {
                             <Star className="w-4 h-4 mr-2" />
                             Rejoignez notre communauté
                         </Badge>
-                        
+
                         <h2 className="text-3xl md:text-5xl font-bold mb-6">
                             Vendez vos articles en quelques clics
                         </h2>
-                        
+
                         <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                            Créez votre boutique gratuitement et commencez à vendre dès aujourd'hui. 
+                            Créez votre boutique gratuitement et commencez à vendre dès aujourd'hui.
                             Rejoignez plus de 500 vendeurs qui font confiance à Afroza Marketplace.
                         </p>
-                        
+
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link href="/register">
                                 <Button size="lg" className="bg-white text-primary hover:bg-gray-100 h-14 px-8 text-lg">
@@ -495,21 +495,21 @@ function Home({ latestProducts, categories }: Props) {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            { 
-                                name: 'Marie K.', 
-                                location: 'Douala', 
+                            {
+                                name: 'Marie K.',
+                                location: 'Douala',
                                 text: 'J\'ai trouvé des vêtements de marque à prix très abordables. La livraison était rapide et le service client excellent !',
                                 rating: 5
                             },
-                            { 
-                                name: 'Jean-Pierre M.', 
-                                location: 'Yaoundé', 
+                            {
+                                name: 'Jean-Pierre M.',
+                                location: 'Yaoundé',
                                 text: 'En tant que vendeur, j\'apprécie la simplicité de la plateforme. J\'ai pu vendre tous mes anciens appareils électroniques facilement.',
                                 rating: 5
                             },
-                            { 
-                                name: 'Amélie T.', 
-                                location: 'Bafoussam', 
+                            {
+                                name: 'Amélie T.',
+                                location: 'Bafoussam',
                                 text: 'Les catégories sont bien organisées et j\'ai trouvé exactement ce que je cherchais pour la chambre de bébé. Merci !',
                                 rating: 5
                             },
