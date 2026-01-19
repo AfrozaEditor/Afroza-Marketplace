@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\NewUserRegistered;
 use Inertia\Inertia;
 
 class GoogleController extends Controller
@@ -29,14 +32,14 @@ class GoogleController extends Controller
             if (!$existingUser->google_id) {
                 $existingUser->update(['google_id' => $googleUser->getId()]);
             }
-            
+
             Auth::login($existingUser);
-            
+
             // Si l'utilisateur n'a pas de rôle, rediriger vers le choix du rôle
             if ($existingUser->roles->isEmpty()) {
                 return redirect()->route('auth.choose-role');
             }
-            
+
             return redirect('/');
         }
 
@@ -61,7 +64,7 @@ class GoogleController extends Controller
     public function showChooseRole()
     {
         $user = auth()->user();
-        
+
         // Si l'utilisateur a déjà un rôle, rediriger vers l'accueil
         if ($user->roles->isNotEmpty()) {
             return redirect('/');
@@ -80,7 +83,7 @@ class GoogleController extends Controller
         ]);
 
         $user = auth()->user();
-        
+
         // Vérifier que l'utilisateur n'a pas déjà un rôle
         if ($user->roles->isNotEmpty()) {
             return redirect('/')->with('error', 'Vous avez déjà un rôle attribué.');
@@ -94,6 +97,16 @@ class GoogleController extends Controller
             'delivery' => 'Bienvenue ! Vous pouvez maintenant postuler comme livreur.',
         ];
 
-        return redirect('/')->with('success', $messages[$request->role]);
+        // Notifier les administrateurs
+        $admins = User::role('admin')->get();
+        Notification::send($admins, new NewUserRegistered($user));
+
+        event(new Registered($user));
+
+        if ($request->role === 'delivery') {
+            return redirect()->route('delivery.register')->with('success', 'Bienvenue ! Veuillez compléter votre profil de livreur pour commencer.');
+        }
+        else
+            return redirect('/')->with('success', $messages[$request->role]);
     }
 }

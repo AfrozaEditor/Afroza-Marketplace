@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn, formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 declare global {
     interface Window {
@@ -188,30 +189,21 @@ export default function NotificationDropdown({
 
     const handleMarkAsRead = async (notificationId: string) => {
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            // const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
-            if (!csrfToken) {
-                throw new Error('CSRF token non trouvé');
+            // if (!csrfToken) {
+            //     throw new Error('CSRF token non trouvé');
+            // }
+            
+            const response = await axios.post(`/api/notifications/${notificationId}/read`);
+            
+            if (!response) {
+                const errorText = await response;
+                console.error('Server response:', response, errorText);
+                throw new Error(`Erreur serveur: ${response}`);
             }
             
-            const response = await fetch(`/api/notifications/${notificationId}/read`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', response.status, errorText);
-                throw new Error(`Erreur serveur: ${response.status}`);
-            }
-            
-            const data = await response.json();
+            const data = await response;
             
             setNotifications(prev => 
                 prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
@@ -266,12 +258,7 @@ export default function NotificationDropdown({
         e.stopPropagation();
         
         try {
-            await fetch(`/api/notifications/${notificationId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-            });
+            await axios.delete(`/api/notifications/${notificationId}`);
             
             const notification = notifications.find(n => n.id === notificationId);
             setNotifications(prev => prev.filter(n => n.id !== notificationId));
