@@ -11,46 +11,56 @@ interface Props {
 }
 
 // Couleurs de fond pour les catégories
-const categoryStyles: Record<string, { gradient: string; shadow: string }> = {
+const categoryStyles: Record<string, { gradient: string; shadow: string; image: string }> = {
     'mode-accessoires': { 
         gradient: 'from-pink-500 to-rose-600', 
-        shadow: 'hover:shadow-pink-500/25' 
+        shadow: 'hover:shadow-pink-500/25',
+        image: 'cat_mode.jpg'
     },
     'electronique-high-tech': { 
         gradient: 'from-blue-500 to-indigo-600', 
-        shadow: 'hover:shadow-blue-500/25' 
+        shadow: 'hover:shadow-blue-500/25',
+        image: 'cat_tech.jpg'
     },
     'maison-decoration': { 
         gradient: 'from-amber-500 to-orange-600', 
-        shadow: 'hover:shadow-amber-500/25' 
+        shadow: 'hover:shadow-amber-500/25' ,
+        image: 'cat_maison.jpg'
     },
     'bebe-enfants': { 
         gradient: 'from-cyan-500 to-teal-600', 
-        shadow: 'hover:shadow-cyan-500/25' 
+        shadow: 'hover:shadow-cyan-500/25' ,
+        image: 'cat_bebe.jpg'
     },
     'beaute-sante': { 
         gradient: 'from-purple-500 to-violet-600', 
-        shadow: 'hover:shadow-purple-500/25' 
+        shadow: 'hover:shadow-purple-500/25' ,
+        image: 'cat_beaute.jpg'
     },
     'sports-loisirs': { 
         gradient: 'from-green-500 to-emerald-600', 
-        shadow: 'hover:shadow-green-500/25' 
+        shadow: 'hover:shadow-green-500/25' ,
+        image: 'cat_sports.jpg'
     },
     'auto-moto': { 
         gradient: 'from-slate-600 to-gray-700', 
-        shadow: 'hover:shadow-slate-500/25' 
+        shadow: 'hover:shadow-slate-500/25' ,
+        image: 'cat_auto.jpg'
     },
     'livres-education': { 
         gradient: 'from-yellow-500 to-amber-600', 
-        shadow: 'hover:shadow-yellow-500/25' 
+        shadow: 'hover:shadow-yellow-500/25' ,
+        image: 'cat_livre.jpg'
     },
     'services': { 
         gradient: 'from-sky-500 to-blue-600', 
-        shadow: 'hover:shadow-sky-500/25' 
+        shadow: 'hover:shadow-sky-500/25' ,
+        image: 'cat_service.jpg'
     },
     'divers': { 
         gradient: 'from-stone-500 to-neutral-600', 
-        shadow: 'hover:shadow-stone-500/25' 
+        shadow: 'hover:shadow-stone-500/25' ,
+        image: 'cat_divers.jpg'
     },
 };
 
@@ -107,8 +117,18 @@ function CategoryGrid({ categories }: Props) {
                                         "bg-gradient-to-br",
                                         styles.gradient,
                                         styles.shadow
-                                    )}>
-                                        <div className="relative h-36 sm:h-44 flex flex-col items-center justify-center p-4 text-white">
+                                    )}
+                                    >
+                                        <div
+                                            className="absolute inset-0 z-0 pointer-events-none"
+                                            style={{
+                                            backgroundImage: `url('${styles.image}')`,
+                                            opacity: 0.3,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center'
+                                            }}
+                                        />
+                                        <div className="relative z-10 h-36 sm:h-44 flex flex-col items-center justify-center p-4 text-white">
                                             {/* Cercle décoratif */}
                                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-150" />
                                             <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-black/10 rounded-full" />
@@ -136,6 +156,7 @@ function CategoryGrid({ categories }: Props) {
                                                 "opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
                                             )} />
                                         </div>
+                                        {/* <div className="absolute inset-0 bg-black/50 z-0" /> */}
                                     </Card>
                                 </Link>
 
