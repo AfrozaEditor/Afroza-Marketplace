@@ -289,7 +289,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                             >
                                 <ShoppingCart className="group-hover:text-primary h-5 w-5 text-gray-600 transition-colors dark:text-gray-400" />
                                 {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
-                                    <span className="bg-primary absolute -top-0.5 -right-0.5 h-5 min-w-5 rounded-full border-2 border-white px-1.5 text-[10px] dark:border-gray-900">
+                                    <span className="flex items-center bg-primary text-white font-bold absolute -top-0.5 -right-0.5 h-5 min-w-5 rounded-full border-2 border-white px-1.5 text-[10px] dark:border-gray-900">
                                         {auth.user?.cart?.total_quantity}
                                     </span>
                                 )}
@@ -339,7 +339,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                 <Link href={route('my-cart')} className="relative rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                                     <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                                     {(auth.user?.cart?.total_quantity ?? 0) > 0 && (
-                                        <span className="bg-primary absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full px-1.5 text-[10px]">
+                                        <span className="flex items-center text-white font-bold bg-primary absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full px-1.5 text-[10px]">
                                             {auth.user?.cart?.total_quantity}
                                         </span>
                                     )}

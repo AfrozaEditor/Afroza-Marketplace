@@ -266,9 +266,9 @@ function AppFooter() {
                         <p className="text-sm text-gray-500">
                             © {new Date().getFullYear()} <span className="text-primary">Afroza Marketplace</span>. Tous droits réservés. Produit
                             propriétaire de{' '}
-                            <Link href="https://afroza-editor.tech">
+                            <a href="https://afroza-editor.tech">
                                 <span className="text-primary">Afroza Editor. </span>
-                            </Link>
+                            </a>
                             {/*Développé avec ❤️ au Cameroun.*/}
                         </p>
 

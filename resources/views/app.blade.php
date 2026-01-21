@@ -10,7 +10,7 @@
         <meta property="og:title" content="Afroza Marketplace – Achetez & vendez tout en Afrique">
         <meta property="og:description" content="Téléphones, mode, maison, services… Achetez et vendez facilement sur Afroza Marketplace, la marketplace généraliste africaine.">
         <meta property="og:url" content="https://afrozamarketplace.app">
-        <meta property="og:image" content="{{ asset('logo.svg') }}">
+        <meta property="og:image" content="{{ asset('logo_vd.png') }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
