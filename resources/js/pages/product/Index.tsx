@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    Search, 
-    SlidersHorizontal, 
-    Grid3X3, 
-    List, 
+import {
+    ChevronLeft,
+    ChevronRight,
+    Search,
+    SlidersHorizontal,
+    Grid3X3,
+    List,
     Sparkles,
     TrendingUp,
     Package,
@@ -56,7 +56,7 @@ interface Props {
 function Index({products, categories, filters}: Props) {
     const defaultCategory = { id: 0, name: 'Tous', slug: 'tous' } as Category;
     const maxPrice = 60000; // Prix maximum en FCFA
-    
+
     // Fonction pour trouver une catégorie par ID (y compris dans les enfants)
     const findCategoryById = (id: number): Category | undefined => {
         for (const cat of categories) {
@@ -68,7 +68,7 @@ function Index({products, categories, filters}: Props) {
         }
         return undefined;
     };
-    
+
     // Initialiser les états avec les valeurs des filtres
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         filters?.category && categories
@@ -181,24 +181,24 @@ const handlePageChange = (url: string) => {
     console.log(products);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    
+
     // Statistiques rapides
     const stats = [
         { icon: Package, label: 'Produits', value: products.total.toLocaleString() },
         { icon: TrendingUp, label: 'Nouveautés', value: '24h' },
-        { icon: Sparkles, label: 'En promo', value: '15%' },
+        // { icon: Sparkles, label: 'En promo', value: '15%' },
     ];
 
     return (
         <AppLayout>
             <Head title="Produits - Afroza Marketplace" />
-            
+
             {/* Hero Section */}
             <div className="relative bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
                 {/* Éléments décoratifs */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl" />
-                
+
                 <div className="relative container mx-auto px-4 py-12">
                     <div className="max-w-2xl">
                         <Badge className="mb-4 bg-primary/20 text-primary border border-primary/30">
@@ -211,7 +211,7 @@ const handlePageChange = (url: string) => {
                         <p className="text-gray-300 text-lg mb-6">
                             Mode, électronique, maison et plus encore. Trouvez la perle rare parmi notre sélection.
                         </p>
-                        
+
                         {/* Barre de recherche principale */}
                         <div className="flex gap-2">
                             <div className="relative grow">
@@ -229,7 +229,7 @@ const handlePageChange = (url: string) => {
                             </Button>
                         </div>
                     </div>
-                    
+
                     {/* Stats rapides */}
                     <div className="flex gap-6 mt-8 pt-6 border-t border-white/10">
                         {stats.map((stat, index) => (
@@ -251,7 +251,7 @@ const handlePageChange = (url: string) => {
                         <div className="flex flex-wrap items-center justify-between gap-4">
                             {/* Catégories rapides */}
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-                                <Badge 
+                                <Badge
                                     variant={selectedCategory.id === 0 ? "default" : "outline"}
                                     className="cursor-pointer whitespace-nowrap"
                                     onClick={() => setSelectedCategory(defaultCategory)}
@@ -259,7 +259,7 @@ const handlePageChange = (url: string) => {
                                     Tous
                                 </Badge>
                                 {categories.slice(0, 5).map((cat) => (
-                                    <Badge 
+                                    <Badge
                                         key={cat.id}
                                         variant={selectedCategory.id === cat.id ? "default" : "outline"}
                                         className="cursor-pointer whitespace-nowrap"
@@ -269,7 +269,7 @@ const handlePageChange = (url: string) => {
                                     </Badge>
                                 ))}
                             </div>
-                            
+
                             {/* Actions */}
                             <div className="flex items-center gap-3">
                                 {/* Tri */}
@@ -283,7 +283,7 @@ const handlePageChange = (url: string) => {
                                     <option value="price-desc">Prix décroissant</option>
                                     <option value="popular">Popularité</option>
                                 </select>
-                                
+
                                 {/* Vue grille/liste */}
                                 <div className="hidden md:flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1">
                                     <button
@@ -305,7 +305,7 @@ const handlePageChange = (url: string) => {
                                         <List className="h-4 w-4" />
                                     </button>
                                 </div>
-                                
+
                                 {/* Filtres mobile */}
                                 <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                                     <SheetTrigger asChild>
@@ -350,7 +350,7 @@ const handlePageChange = (url: string) => {
                                 />
                             </div>
                         </div>
-                        
+
                         {/* Liste des produits */}
                         <div className="flex-1">
                             {/* Résultats header */}
@@ -363,7 +363,7 @@ const handlePageChange = (url: string) => {
                                         {products.total} résultat{products.total > 1 ? 's' : ''}
                                     </p>
                                 </div>
-                                
+
                                 {/* Filtres actifs */}
                                 {(selectedCategory.id !== 0 || searchTerm || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                                     <Button variant="ghost" size="sm" onClick={resetFilters} className="text-primary">
@@ -399,7 +399,7 @@ const handlePageChange = (url: string) => {
                                             {Math.min(products.current_page * products.per_page, products.total)} sur{' '}
                                             <span className="font-medium">{products.total}</span> produits
                                         </p>
-                                        
+
                                         <div className="flex items-center gap-2">
                                             <Button
                                                 variant="outline"
@@ -413,7 +413,7 @@ const handlePageChange = (url: string) => {
                                                 <ChevronLeft className="h-4 w-4 mr-1" />
                                                 Précédent
                                             </Button>
-                                            
+
                                             <div className="hidden sm:flex gap-1">
                                                 {products.links
                                                     .filter(link => !link.label.includes('Previous') && !link.label.includes('Next'))
@@ -431,7 +431,7 @@ const handlePageChange = (url: string) => {
                                                         </Button>
                                                     ))}
                                             </div>
-                                            
+
                                             <Button
                                                 variant="outline"
                                                 size="sm"
