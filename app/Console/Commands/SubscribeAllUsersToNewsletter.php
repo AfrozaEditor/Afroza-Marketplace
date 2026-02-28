@@ -20,7 +20,7 @@ class SubscribeAllUsersToNewsletter extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Subscribe all users to the newsletter';
 
     /**
      * Execute the console command.
@@ -36,6 +36,7 @@ class SubscribeAllUsersToNewsletter extends Command
             if (!$alreadySubscribed) {
                 NewsletterSubscriber::create([
                     'email' => $user->email,
+                    'name' => $user->name,
                     // Ajoutez d'autres champs si nécessaire
                 ]);
                 $count++;
