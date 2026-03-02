@@ -37,6 +37,7 @@ coverage
 docker-compose*.yml
 Dockerfile*
 docker/
+!docker/supervisord.conf
 
 # Documentation
 *.md

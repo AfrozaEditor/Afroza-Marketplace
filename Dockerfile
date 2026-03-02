@@ -14,9 +14,12 @@ COPY resources ./resources
 COPY vite.config.ts tsconfig.json tailwind.config.* postcss.config.* ./
 COPY public ./public
 
-# Build assets
-RUN npm run build
-
+# Build assets avec les variables VITE directement dans la commande
+RUN VITE_REVERB_APP_KEY=4z67llnrkamx9r4z6oy3 \
+    VITE_REVERB_HOST=afrozamarketplace.app \
+    VITE_REVERB_PORT=8080 \
+    VITE_REVERB_SCHEME=https \
+    npm run build
 
 # PHP stage
 FROM php:8.3-fpm-alpine AS php-base
@@ -124,10 +127,10 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Cache config and routes
-RUN php artisan config:cache || true \
-    && php artisan route:cache || true \
-    && php artisan view:cache || true
+# Note: config:cache and route:cache are removed from build
+# They should be run at container startup when env variables are available
+# Only cache views since they don't depend on environment
+RUN php artisan view:cache || true
 
 USER www-data
 
