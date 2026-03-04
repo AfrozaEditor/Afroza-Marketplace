@@ -314,7 +314,7 @@ function Home({ latestProducts, categories }: Props) {
                             <div
                                 key={index}
                                 className={cn(
-                                    "flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-default",
+                                    "flex items-center md:gap-4 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-default flex-col text-center gap-2",
                                     item.color
                                 )}
                             >
