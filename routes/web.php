@@ -285,6 +285,34 @@ Route::get('/help', function () {
     return Inertia::render('help');
 });
 
+// Help pages
+Route::get('/help/selling', function () {
+    return Inertia::render('help/selling');
+});
+Route::get('/help/buying', function () {
+    return Inertia::render('help/buying');
+});
+Route::get('/help/delivery', function () {
+    return Inertia::render('help/delivery');
+});
+Route::get('/help/returns', function () {
+    return Inertia::render('help/returns');
+});
+
+// Legal pages
+Route::get('/terms', function () {
+    return Inertia::render('legal/terms');
+});
+Route::get('/privacy', function () {
+    return Inertia::render('legal/privacy');
+});
+Route::get('/cookies', function () {
+    return Inertia::render('legal/cookies');
+});
+Route::get('/legal', function () {
+    return Inertia::render('legal/legal');
+});
+
 
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
