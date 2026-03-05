@@ -103,6 +103,15 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
     console.log(auth.user?.cart);
     const isVendor = auth.user?.role === 'vendor';
     const isCustomer = auth.user?.role === 'customer';
+    const isAdmin = auth.user?.role === 'admin';
+    const isDelivery = auth.user?.role === 'delivery';
+
+    const dashboardLink = () => {
+        if (isAdmin) return route('admin');
+        if (isVendor) return route('dashboard');
+        if (isDelivery) return route('delivery-dashboard');
+        return '/';
+    } 
 
     // Effet de scroll pour le header sticky
     useEffect(() => {
@@ -513,14 +522,16 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                             <User className="h-5 w-5" />
                                             Mon profil
                                         </Link>
+                                        {!isCustomer && (
                                         <Link
-                                            href="/settings/profile"
+                                            href={dashboardLink()}
                                             className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             <LayoutDashboard className="h-5 w-5" />
                                             Tableau de bord
                                         </Link>
+                                        )}
                                         <Link
                                             href="/favorites"
                                             className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
