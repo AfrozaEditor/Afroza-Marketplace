@@ -37,6 +37,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { 
     Ban, 
     Filter, 
+    MessageSquare, 
     MoreVertical, 
     Pencil, 
     PlusCircle, 
@@ -46,6 +47,7 @@ import {
     User as UserIcon, 
     X 
 } from 'lucide-react';
+
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -315,6 +317,10 @@ const Index = ({ users, roles }: Props) => {
                     <DropdownMenuItem onClick={() => openEditModal(user)}>
                         <Pencil className="h-4 w-4 mr-2" />
                         Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.post(route('chat.start', user.id))}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Envoyer un message
                     </DropdownMenuItem>
                     {user.status === 'active' ? (
                         <DropdownMenuItem onClick={() => handleBlock(user.id)}>
