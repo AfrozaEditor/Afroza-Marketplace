@@ -87,7 +87,7 @@ class PaymentController extends Controller
 //         $returnUrl = route('payment.return');
 
 //         // Description de la transaction
-//         $description = "Achat sur Vide Dressing";
+//         $description = "Achat sur Afroza Marketplace";
 
 //         try {
 //             // Initialisation de CinetPay
@@ -112,7 +112,7 @@ class PaymentController extends Controller
 //                 'channels'          => 'ALL',
 //                 'lang'              => 'fr',
 //                 'invoice_data'      => [
-//                     'product_name' => 'Achat sur Vide Dressing',
+//                     'product_name' => 'Achat sur Afroza Marketplace',
 //                     'order_id'     => $transactionId
 //                 ],
 //                 'metadata'          => json_encode(['user_id' => auth()->id()])

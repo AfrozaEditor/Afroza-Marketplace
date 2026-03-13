@@ -51,8 +51,10 @@ import {
     Clock,
     ShieldCheck,
     ShieldX,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ProductImage {
@@ -95,7 +97,14 @@ interface Props {
     products: {
         data: ProductData[];
         links: any;
-        meta?: any;
+        meta?: {
+            current_page: number;
+            last_page: number;
+            from: number;
+            to: number;
+            total: number;
+            per_page: number;
+        };
     };
     stats: {
         total_products: number;
@@ -112,6 +121,7 @@ interface Props {
         shop_id: string;
         sort: string;
         dir: string;
+        per_page: number;
     };
 }
 
@@ -121,6 +131,7 @@ const Index = ({ products, stats, filters }: Props) => {
     const [approvalFilter, setApprovalFilter] = useState(filters.approval || 'all');
     const [sortField, setSortField] = useState<keyof ProductData | null>(filters.sort as keyof ProductData || null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(filters.dir as 'asc' | 'desc' || 'desc');
+    const [perPage, setPerPage] = useState<number>(Number(filters.per_page || 15));
     const [deleteProduct, setDeleteProduct] = useState<ProductData | null>(null);
     const [rejectProduct, setRejectProduct] = useState<ProductData | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -145,58 +156,36 @@ const Index = ({ products, stats, filters }: Props) => {
         { title: 'Produits', href: '/admin/products' },
     ];
 
-    // Filtrage local
-    const filteredProducts = useMemo(() => {
-        let result = [...products.data];
+    const fetchProducts = (overrides: Record<string, string | number | undefined> = {}) => {
+        const params = {
+            search: searchQuery || undefined,
+            status: statusFilter !== 'all' ? statusFilter : undefined,
+            approval: approvalFilter !== 'all' ? approvalFilter : undefined,
+            shop_id: filters.shop_id || undefined,
+            sort: sortField || undefined,
+            dir: sortDirection,
+            per_page: perPage,
+            ...overrides,
+        };
 
-        if (searchQuery) {
-            result = result.filter((product) =>
-                product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.shop?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        if (statusFilter && statusFilter !== 'all') {
-            result = result.filter((product) => 
-                statusFilter === 'active' ? product.active : !product.active
-            );
-        }
-
-        if (approvalFilter && approvalFilter !== 'all') {
-            result = result.filter((product) => {
-                if (approvalFilter === 'approved') return product.is_approved;
-                if (approvalFilter === 'pending') return !product.is_approved && !product.rejection_reason;
-                if (approvalFilter === 'rejected') return !product.is_approved && product.rejection_reason;
-                return true;
-            });
-        }
-
-        if (sortField) {
-            result.sort((a, b) => {
-                const aValue = a[sortField];
-                const bValue = b[sortField];
-
-                if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                }
-                if (typeof aValue === 'number' && typeof bValue === 'number') {
-                    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-                }
-                return 0;
-            });
-        }
-
-        return result;
-    }, [products.data, searchQuery, statusFilter, approvalFilter, sortField, sortDirection]);
+        router.get('/admin/products', params, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    };
 
     const handleSort = (field: keyof ProductData) => {
+        const nextDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+
         if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            setSortDirection(nextDirection);
         } else {
             setSortField(field);
-            setSortDirection('asc');
+            setSortDirection(nextDirection);
         }
+
+        fetchProducts({ sort: field, dir: nextDirection, page: 1 });
     };
 
     const handleToggleActive = (product: ProductData) => {
@@ -250,7 +239,7 @@ const Index = ({ products, stats, filters }: Props) => {
         
         setIsProcessing(true);
         router.post(`/admin/products/${rejectProduct.id}/reject`, {
-            reason: rejectionReason,
+            rejection_reason: rejectionReason,
         }, {
             preserveState: true,
             onSuccess: () => {
@@ -325,6 +314,7 @@ const Index = ({ products, stats, filters }: Props) => {
                 </div>
             ),
             sortable: true,
+            sortKey: 'name' as const,
         },
         {
             title: 'Boutique',
@@ -358,6 +348,7 @@ const Index = ({ products, stats, filters }: Props) => {
                 <span className="font-medium">{formatPrice(product.price)}</span>
             ),
             sortable: true,
+            sortKey: 'price' as const,
         },
         {
             title: 'Stock',
@@ -367,6 +358,7 @@ const Index = ({ products, stats, filters }: Props) => {
                 </Badge>
             ),
             sortable: true,
+            sortKey: 'quantity' as const,
         },
         {
             title: 'Statut',
@@ -376,6 +368,7 @@ const Index = ({ products, stats, filters }: Props) => {
                 </Badge>
             ),
             sortable: true,
+            sortKey: 'active' as const,
         },
         {
             title: 'Approbation',
@@ -389,7 +382,7 @@ const Index = ({ products, stats, filters }: Props) => {
                             {status.label}
                         </Badge>
                         {product.rejection_reason && (
-                            <span className="text-xs text-destructive truncate max-w-[150px]" title={product.rejection_reason}>
+                            <span className="text-xs text-destructive truncate max-w-37.5" title={product.rejection_reason}>
                                 {product.rejection_reason}
                             </span>
                         )}
@@ -402,6 +395,7 @@ const Index = ({ products, stats, filters }: Props) => {
             title: 'Date de création',
             accessor: (product: ProductData) => formatDate(product.created_at),
             sortable: true,
+            sortKey: 'created_at' as const,
             className: 'w-[150px]',
         },
     ];
@@ -469,6 +463,8 @@ const Index = ({ products, stats, filters }: Props) => {
             </DropdownMenuContent>
         </DropdownMenu>
     );
+
+    const tablePageSize = products.data.length > 0 ? products.data.length : 10;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -555,11 +551,25 @@ const Index = ({ products, stats, filters }: Props) => {
                             placeholder="Rechercher un produit..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    fetchProducts({ page: 1, search: searchQuery || undefined });
+                                }
+                            }}
                             className="pl-10"
                         />
                     </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[150px]">
+                    <Button
+                        variant="outline"
+                        onClick={() => fetchProducts({ page: 1, search: searchQuery || undefined })}
+                    >
+                        Rechercher
+                    </Button>
+                    <Select value={statusFilter} onValueChange={(value) => {
+                        setStatusFilter(value);
+                        fetchProducts({ page: 1, status: value === 'all' ? undefined : value });
+                    }}>
+                        <SelectTrigger className="w-37.5">
                             <SelectValue placeholder="Statut" />
                         </SelectTrigger>
                         <SelectContent>
@@ -568,8 +578,11 @@ const Index = ({ products, stats, filters }: Props) => {
                             <SelectItem value="inactive">Inactifs</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select value={approvalFilter} onValueChange={setApprovalFilter}>
-                        <SelectTrigger className="w-[150px]">
+                    <Select value={approvalFilter} onValueChange={(value) => {
+                        setApprovalFilter(value);
+                        fetchProducts({ page: 1, approval: value === 'all' ? undefined : value });
+                    }}>
+                        <SelectTrigger className="w-37.5">
                             <SelectValue placeholder="Approbation" />
                         </SelectTrigger>
                         <SelectContent>
@@ -603,6 +616,24 @@ const Index = ({ products, stats, filters }: Props) => {
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    <Select
+                        value={String(perPage)}
+                        onValueChange={(value) => {
+                            const parsed = Number(value);
+                            setPerPage(parsed);
+                            fetchProducts({ page: 1, per_page: parsed });
+                        }}
+                    >
+                        <SelectTrigger className="w-32">
+                            <SelectValue placeholder="Par page" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="15">15 / page</SelectItem>
+                            <SelectItem value="30">30 / page</SelectItem>
+                            <SelectItem value="50">50 / page</SelectItem>
+                            <SelectItem value="100">100 / page</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Info filtre boutique */}
@@ -623,11 +654,45 @@ const Index = ({ products, stats, filters }: Props) => {
                 {/* Table */}
                 <DataTable
                     columns={columns}
-                    filteredTickets={filteredProducts}
+                    filteredTickets={products.data}
                     visibleColumns={visibleColumns}
                     handleSort={handleSort}
                     renderActions={renderActions}
+                    initialPageSize={tablePageSize}
+                    pageSizeOptions={[tablePageSize]}
                 />
+
+                {/* Pagination serveur */}
+                {products.meta && products.meta.last_page > 1 && (
+                    <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-muted-foreground">
+                            Affichage de {products.meta.from} à {products.meta.to} sur {products.meta.total} produits
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={products.meta.current_page <= 1}
+                                onClick={() => fetchProducts({ page: products.meta!.current_page - 1 })}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Précédent
+                            </Button>
+                            <span className="text-sm">
+                                Page {products.meta.current_page} / {products.meta.last_page}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={products.meta.current_page >= products.meta.last_page}
+                                onClick={() => fetchProducts({ page: products.meta!.current_page + 1 })}
+                            >
+                                Suivant
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Dialog de confirmation de suppression */}
                 <Dialog open={!!deleteProduct} onOpenChange={(open) => !open && setDeleteProduct(null)}>

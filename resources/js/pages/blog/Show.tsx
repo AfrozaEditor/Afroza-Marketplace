@@ -279,7 +279,7 @@ export default function Show({ blog, relatedBlogs }: Props) {
                                         </h3>
                                         <p className="text-muted-foreground text-sm">
                                             Rédacteur passionné par la mode durable et l'économie circulaire. 
-                                            Partage régulièrement des conseils et tendances sur Vide Dressing.
+                                            Partage régulièrement des conseils et tendances sur Afroza Marketplace.
                                         </p>
                                     </div>
                                 </div>

@@ -29,6 +29,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import NewsLetter from '@/components/home/news-letter';
 
 function Feature() {
@@ -207,10 +208,70 @@ function Feature() {
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
                             </Button>
-                            <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                <Play className="mr-2 h-4 w-4" />
-                                Voir la démo
-                            </Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button size="lg" variant="outline" className="h-12 px-8 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                                        <Play className="mr-2 h-4 w-4" />
+                                        Voir la démo
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-3xl p-0 overflow-hidden">
+                                    <div className="grid md:grid-cols-2">
+                                        <div className="p-6 sm:p-8">
+                                            <DialogHeader className="text-left">
+                                                <DialogTitle className="text-2xl font-bold">
+                                                    Démo rapide Afroza
+                                                </DialogTitle>
+                                                <DialogDescription>
+                                                    Découvrez le parcours complet de publication et de vente en moins d'une minute.
+                                                </DialogDescription>
+                                            </DialogHeader>
+
+                                            <div className="mt-6 space-y-4">
+                                                {steps.map((step) => (
+                                                    <div key={step.number} className="flex items-start gap-3">
+                                                        <div className="w-7 h-7 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center shrink-0">
+                                                            {step.number}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm text-gray-900 dark:text-white">
+                                                                {step.title}
+                                                            </p>
+                                                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                {step.description}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="mt-6 flex gap-3">
+                                                <Button asChild>
+                                                    <Link href="/products/create">
+                                                        Commencer à vendre
+                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="outline" asChild>
+                                                    <Link href="/products">
+                                                        Voir les articles
+                                                    </Link>
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gray-100 dark:bg-gray-800 p-4 sm:p-6">
+                                            <div className="h-full rounded-xl overflow-hidden">
+                                                <img
+                                                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900"
+                                                    alt="Aperçu démo Afroza"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                         
                         {/* Stats rapides */}

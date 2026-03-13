@@ -350,7 +350,7 @@ function Index({ shops, categories, cities = [], filters }: Props) {
                                                     
                                                     {/* Badge note */}
                                                     {avgRating && (
-                                                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1 shadow-lg">
+                                                        <div className="absolute top-3 right-3 bg-secondary backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1 shadow-lg">
                                                             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                                             <span className="text-sm font-semibold">{avgRating}</span>
                                                         </div>
