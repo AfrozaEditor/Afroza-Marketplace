@@ -10,6 +10,7 @@ interface TableColumn<T> {
     title: string;
     accessor: keyof T | ((item: T) => React.ReactNode);
     sortable?: boolean;
+    sortKey?: keyof T;
     className?: string;
 }
 
@@ -54,7 +55,7 @@ function DataTable<T>({
                                         <TableHead key={index} className={cn(column.className, 'overflow-hidden text-ellipsis whitespace-nowrap')}>
                                             {column.sortable ? (
                                                 <button
-                                                    onClick={() => handleSort(column.accessor as keyof T)}
+                                                    onClick={() => handleSort((column.sortKey ?? column.accessor) as keyof T)}
                                                     className="ml-2 flex items-center hover:bg-transparent"
                                                 >
                                                     {column.title}

@@ -15,6 +15,14 @@ class AdminProductController extends Controller
      */
     public function index(Request $request)
     {
+        $allowedSortFields = ['id', 'name', 'price', 'quantity', 'active', 'created_at'];
+        $sortBy = in_array($request->get('sort', 'created_at'), $allowedSortFields, true)
+            ? $request->get('sort', 'created_at')
+            : 'created_at';
+        $sortDir = $request->get('dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $perPage = (int) $request->get('per_page', 15);
+        $perPage = $perPage > 0 ? min($perPage, 200) : 15;
+
         $query = Product::with(['shop', 'user', 'category', 'images'])
             ->withCount(['reviews', 'favorites']);
 
@@ -57,16 +65,15 @@ class AdminProductController extends Controller
             $query->where('shop_id', $shopId);
         }
 
-        // Tri
-        $sortBy = $request->get('sort', 'created_at');
-        $sortDir = $request->get('dir', 'desc');
         $query->orderBy($sortBy, $sortDir);
 
-        $products = $query->paginate(15)->withQueryString();
+        $products = $query->paginate($perPage)->withQueryString();
 
         // Statistiques
         $stats = [
             'total_products' => Product::count(),
+            'active_products' => Product::where('active', true)->count(),
+            'inactive_products' => Product::where('active', false)->count(),
             'approved_products' => Product::where('is_approved', true)->count(),
             'pending_products' => Product::where('is_approved', false)->whereNull('rejection_reason')->count(),
             'rejected_products' => Product::where('is_approved', false)->whereNotNull('rejection_reason')->count(),
@@ -82,6 +89,7 @@ class AdminProductController extends Controller
                 'shop_id' => $request->get('shop_id', ''),
                 'sort' => $sortBy,
                 'dir' => $sortDir,
+                'per_page' => $perPage,
             ],
         ]);
     }

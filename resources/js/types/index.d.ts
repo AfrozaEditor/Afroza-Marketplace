@@ -74,8 +74,10 @@ export interface Product {
     quantity: number;
     images: Image[] | string[];
     reviews: ProductReview[];
+    reviews_avg_rating?: number | string | null;
+    reviews_count?: number | string | null;
+    is_favorite?: boolean;
     user_review?: ProductReview | null;
-
 }
 
 export interface Image {
@@ -103,9 +105,12 @@ export interface Shop {
     description: string;
     active: boolean;
     products: Product[];
+    products_count?: number;
     created_at: string;
     logo: string;
+    logo_url?: string;
     cover_image: string;
+    cover_url?: string;
     address?: string;
     city?: string;
     phone?: string;

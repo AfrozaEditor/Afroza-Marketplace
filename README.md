@@ -1,6 +1,6 @@
-# Vide Dressing Marketplace
+# Afroza Marketplace
 
-Vide Dressing Marketplace est une plateforme camerounaise dédiée à la vente et à l'achat de vêtements de seconde main. Elle permet aux utilisateurs de créer des boutiques, vendre des articles, acheter, discuter via une messagerie intégrée, laisser des avis, et bien plus encore.
+Afroza Marketplace est une plateforme camerounaise dédiée à la vente et à l'achat de produits divers. Elle permet aux utilisateurs de créer des boutiques, vendre des articles, acheter, discuter via une messagerie intégrée, laisser des avis, et bien plus encore.
 
 ## Fonctionnalités principales
 

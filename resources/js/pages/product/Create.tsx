@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Image, Package, Save, Upload, X } from 'lucide-react';
+import { Image, LoaderCircle, Package, Save, Upload, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,11 +23,8 @@ const productSchema = z.object({
     name: z.string().min(3, { message: 'Le nom doit contenir au moins 3 caractères.' }),
     description: z.string().min(10, { message: 'La description doit contenir au moins 10 caractères.' }),
     price: z.coerce.number().positive({ message: 'Le prix doit être un nombre positif.' }),
-    // discountedPrice: z.coerce.number().positive({ message: 'Le prix réduit doit être un nombre positif.' }).optional().or(z.literal('')),
-    // images: z
-    //     .array(z.string())
-    //     .min(1, { message: 'Au moins une image est requise.' }),
-    category: z.string().min(1, { message: 'Veillez sélectionner une catégorie.' }),
+    parentCategory: z.string().min(1, { message: 'Sélectionnez d’abord une catégorie parent.' }),
+    categoryId: z.string().min(1, { message: 'Sélectionnez une sous-catégorie.' }),
     stock: z.coerce.number().int().min(1, { message: 'Le stock ne peut pas être égal à 0.' }),
 });
 
@@ -36,7 +33,6 @@ type ProductFormData = z.infer<typeof productSchema>
 function Create({ categories }: Props) {
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<ProductFormData>({
         resolver: zodResolver(productSchema),
@@ -44,18 +40,21 @@ function Create({ categories }: Props) {
             name: '',
             description: '',
             price: 0,
-            category: '',
+            parentCategory: '',
+            categoryId: '',
             stock: 0,
         },
     });
+
+    const selectedParentId = form.watch('parentCategory');
+    const selectedParentCategory = categories.find((category) => String(category.id) === selectedParentId);
+    const childCategories = selectedParentCategory?.children ?? [];
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || []);
 
         if (images.length + files.length > 6) {
-            // toast.error({
-            //     description: "Vous ne pouvez ajouter que 6 images maximum.",
-            // });
+            toast.error('Vous ne pouvez ajouter que 6 images maximum.');
             return;
         }
 
@@ -79,10 +78,12 @@ function Create({ categories }: Props) {
         setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
-    console.log(images);
-
-
     const handleSubmit = (data: ProductFormData) => {
+    if (images.length === 0) {
+        toast.error('Ajoutez au moins une image du produit.');
+        return;
+    }
+
         // Créer un objet FormData pour envoyer les fichiers
     const formData = new FormData();
 
@@ -90,7 +91,7 @@ function Create({ categories }: Props) {
     formData.append('name', data.name);
     formData.append('description', data.description);
     formData.append('price', data.price.toString());
-    formData.append('category', data.category);
+    formData.append('category_id', data.categoryId);
     formData.append('stock', data.stock.toString());
 
     // Ajouter les images
@@ -125,7 +126,7 @@ function Create({ categories }: Props) {
                     <h1 className="text-3xl font-bold">Créer votre produit</h1>
                 </div>
 
-                <p className="mb-8 text-gray-600">Remplissez les informations ci-dessous pour ajouter un nouveau produit sur Vide Dressing.</p>
+                <p className="mb-8 text-gray-600">Remplissez les informations ci-dessous pour ajouter un nouveau produit sur Afroza Marketplace.</p>
                 <Form {...form}>
                     <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
                         <Card>
@@ -149,30 +150,82 @@ function Create({ categories }: Props) {
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="category"
+                                            name="parentCategory"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Catégorie *</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormLabel>Catégorie parent *</FormLabel>
+                                                    <Select
+                                                        onValueChange={(value) => {
+                                                            field.onChange(value);
+                                                            form.setValue('categoryId', '');
+                                                        }}
+                                                        value={field.value}
+                                                    >
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Sélectionnez une catégorie" />
+                                                                <SelectValue placeholder="Sélectionnez la catégorie parent" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
                                                             {categories.map((cat) => (
-                                                                <SelectItem key={cat.id} value={cat.name}>
+                                                                <SelectItem key={cat.id} value={String(cat.id)}>
                                                                     {cat.name}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
-                                                    <FormDescription>Choisissez la catégorie qui correspond à votre produit.</FormDescription>
+                                                    <FormDescription>Étape 1 : choisissez la famille principale du produit.</FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="categoryId"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Sous-catégorie (enfant) *</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParentId || childCategories.length === 0}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue
+                                                                    placeholder={
+                                                                        !selectedParentId
+                                                                            ? 'Sélectionnez d’abord une catégorie parent'
+                                                                            : childCategories.length === 0
+                                                                              ? 'Aucune sous-catégorie disponible'
+                                                                              : 'Sélectionnez la sous-catégorie'
+                                                                    }
+                                                                />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {childCategories.map((child) => (
+                                                                <SelectItem key={child.id} value={String(child.id)}>
+                                                                    {child.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormDescription>
+                                                        Étape 2 : la sous-catégorie enfant détermine où le produit sera enregistré.
+                                                    </FormDescription>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
                                     </div>
+
+                                    {selectedParentCategory && childCategories.length > 0 && form.watch('categoryId') && (
+                                        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+                                            Catégorie sélectionnée : <span className="font-semibold">{selectedParentCategory.name}</span>
+                                            {' > '}
+                                            <span className="font-semibold">
+                                                {childCategories.find((c) => String(c.id) === form.watch('categoryId'))?.name}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <FormField
                                         control={form.control}
@@ -303,8 +356,12 @@ function Create({ categories }: Props) {
                             >
                                 Annuler
                             </Button>
-                            <Button type="submit">
-                                <Save className="mr-2 h-4 w-4" />
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? (
+                                    <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
+                                ) :
+                                    <Save className="mr-2 h-4 w-4" />
+                                }
                                 Créer mon produit
                             </Button>
                         </div>

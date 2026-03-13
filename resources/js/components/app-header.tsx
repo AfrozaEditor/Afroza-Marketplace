@@ -27,6 +27,7 @@ import {
     Tag,
     ListOrdered,
     LayoutDashboard,
+    LogOut,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -555,6 +556,16 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                         >
                                             <MessageCircle className="h-5 w-5" />
                                             Messages
+                                        </Link>
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <LogOut className="h-5 w-5" />
+                                            Déconnexion
                                         </Link>
                                     </>
                                 )}

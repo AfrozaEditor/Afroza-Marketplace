@@ -35,7 +35,7 @@ function About() {
             name: 'Karel Mobutu',
             role: 'Directeur Général',
             image: 'https://placehold.co/400x400/png',
-            description: 'Passionné de mode et d\'entrepreneuriat, Karel a lancé Vide Dressing pour révolutionner la mode au Cameroun.'
+            description: 'Passionné de mode et d\'entrepreneuriat, Karel a lancé Afroza Marketplace pour révolutionner la mode au Cameroun.'
         },
         {
             name: 'Anonym',
@@ -64,7 +64,7 @@ function About() {
                 {/* Hero Section */}
                 {/*<div className="mb-16 text-center">*/}
                 {/*    <h1 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl">*/}
-                {/*        À propos de <span className="text-primary">Vide Dressing</span>*/}
+                {/*        À propos de <span className="text-primary">Afroza Marketplace</span>*/}
                 {/*    </h1>*/}
                 {/*    <p className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600">*/}
                 {/*        Nous sommes la première plateforme sénégalaise dédiée à la vente et à l'achat de vêtements de seconde main. Notre mission est*/}
@@ -79,7 +79,7 @@ function About() {
                             <h2 className="mb-6 text-3xl font-bold text-gray-900 dark:text-white">Notre Histoire</h2>
                             <div className="space-y-4 text-gray-600 dark:text-gray-400">
                                 <p>
-                                    Fondée en 2024 au Cameroun, Vide Dressing est née d'un constat simple : les Camerounais ont besoin d'une plateforme
+                                    Fondée en 2024 au Cameroun, Afroza Marketplace est née d'un constat simple : les Camerounais ont besoin d'une plateforme
                                     locale pour acheter et vendre des vêtements de qualité à prix abordables.
                                 </p>
                                 <p>

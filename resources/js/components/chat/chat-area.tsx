@@ -357,8 +357,8 @@ export default function ChatArea({
                           <div className="w-8 shrink-0">
                             {showAvatar && (
                               <img
-                                src={conversation.avatar || '/default-avatar.png'}
-                                alt=""
+                                src={msg.user?.avatar || conversation.avatar || '/default-avatar.png'}
+                                alt={msg.user?.name || conversation.name}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
                             )}

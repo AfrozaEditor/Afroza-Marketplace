@@ -19,6 +19,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\NotificationController;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -27,24 +28,103 @@ use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
 Route::get('/', function () {
-    $latestProducts = Product::with(['category', 'shop', 'user', 'reviews'])
-        ->visible()
-        ->orderBy('created_at', 'desc')
-        ->take(6)
-        ->get();
-    // Générer les URLs temporaires pour chaque produit
-    $latestProducts->transform(function ($product) {
+    $makeImageUrls = function ($product) {
         $images = $product->images()->get();
         $imagesUrls = [];
         foreach ($images as $image) {
-            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(5));
+            $imagesUrls[] = Storage::disk('s3')->temporaryUrl($image->url, now()->addMinutes(30));
         }
         $product->images = $imagesUrls;
         $product->is_favorite = $product->favorites->contains(auth()->id());
         return $product;
-    });
+    };
+
+    // Derniers produits
+    $latestProducts = Product::with(['category', 'shop', 'user', 'reviews', 'favorites'])
+        ->visible()
+        ->orderBy('created_at', 'desc')
+        ->take(12)
+        ->get()
+        ->map($makeImageUrls);
+
+    // Produits mis en avant (pilotés par les notes + nombre d'avis)
+    $ratedFeaturedProducts = Product::with(['category', 'shop', 'user', 'reviews', 'favorites'])
+        ->visible()
+        ->has('reviews')
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->orderByRaw('reviews_avg_rating DESC NULLS LAST')
+        ->orderByDesc('reviews_count')
+        ->take(8)
+        ->get();
+
+    // Fallback dynamique: on complète avec les plus récents si pas assez de produits notés
+    if ($ratedFeaturedProducts->count() < 8) {
+        $missingCount = 8 - $ratedFeaturedProducts->count();
+
+        $fallbackFeatured = Product::with(['category', 'shop', 'user', 'reviews', 'favorites'])
+            ->visible()
+            ->whereNotIn('id', $ratedFeaturedProducts->pluck('id'))
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->latest('created_at')
+            ->take($missingCount)
+            ->get();
+
+        $featuredProducts = $ratedFeaturedProducts
+            ->concat($fallbackFeatured)
+            ->map($makeImageUrls)
+            ->values();
+    } else {
+        $featuredProducts = $ratedFeaturedProducts
+            ->map($makeImageUrls)
+            ->values();
+    }
+
+    // Produits par catégorie (top 4 catégories avec le plus de produits)
+    $topCategories = Category::whereNull('parent_id')
+        ->withCount(['products' => fn($q) => $q->visible()])
+        ->orderByDesc('products_count')
+        ->take(4)
+        ->get();
+
+    $productsByCategory = $topCategories->map(function ($category) use ($makeImageUrls) {
+        $products = Product::with(['category', 'shop', 'user', 'reviews', 'favorites'])
+            ->visible()
+            ->where('category_id', $category->id)
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get()
+            ->map($makeImageUrls);
+
+        return [
+            'category' => $category,
+            'products' => $products,
+        ];
+    })->filter(fn($item) => $item['products']->count() > 0)->values();
+
+    // Boutiques disponibles
+    $shops = Shop::with(['user', 'products'])
+        ->visible()
+        ->withCount('products')
+        ->orderByDesc('products_count')
+        ->take(8)
+        ->get()
+        ->map(function ($shop) {
+            if ($shop->logo) {
+                $shop->logo_url = Storage::disk('s3')->temporaryUrl($shop->logo, now()->addMinutes(30));
+            }
+            if ($shop->cover_image) {
+                $shop->cover_url = Storage::disk('s3')->temporaryUrl($shop->cover_image, now()->addMinutes(30));
+            }
+            return $shop;
+        });
+
     return Inertia::render('home', [
         'latestProducts' => $latestProducts,
+        'featuredProducts' => $featuredProducts,
+        'productsByCategory' => $productsByCategory,
+        'shops' => $shops,
         'categories' => Category::with('children')->whereNull('parent_id')->get(),
     ]);
 })->name('home');

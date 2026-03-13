@@ -140,7 +140,7 @@ function Create() {
                 </div>
 
                 <p className="text-gray-600 mb-8">
-                    Remplissez ce formulaire pour créer votre boutique et commencer à vendre vos articles sur Vide Dressing.
+                    Remplissez ce formulaire pour créer votre boutique et commencer à vendre vos articles sur Afroza Marketplace.
                 </p>
 
                 <Form {...form}>

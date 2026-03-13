@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Notifications\NewMessage as NewMessageNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ChatController extends Controller
@@ -58,9 +60,12 @@ $conversations = Auth::user()->conversations()
     }])
     ->get()
     ->map(function ($conversation) {
+        $participant = $conversation->participants->first();
+
         return [
             'id' => $conversation->id,
-            'name' => $conversation->is_group ? $conversation->name : $conversation->participants->first()->name,
+            'name' => $conversation->is_group ? $conversation->name : ($participant?->name ?? 'Utilisateur'),
+            'avatar' => $this->resolveAvatarUrl($participant?->avatar),
             'last_message' => $conversation->lastMessage ? [
                 'content' => $conversation->lastMessage->content,
                 'created_at' => $conversation->lastMessage->created_at,
@@ -84,6 +89,7 @@ $conversations = Auth::user()->conversations()
     }
 
     $messages = $conversation->messages()
+        ->with('user:id,name,avatar')
         ->orderBy('created_at', 'asc')
         ->get()
         ->map(function ($message) {
@@ -91,7 +97,12 @@ $conversations = Auth::user()->conversations()
                 'id' => $message->id,
                 'content' => $message->content,
                 'created_at' => $message->created_at,
-                'is_mine' => $message->user_id === Auth::id()
+                'is_mine' => $message->user_id === Auth::id(),
+                'user' => [
+                    'id' => $message->user->id,
+                    'name' => $message->user->name,
+                    'avatar' => $this->resolveAvatarUrl($message->user->avatar),
+                ],
             ];
         });
 
@@ -125,6 +136,7 @@ $conversations = Auth::user()->conversations()
                     'user' => [
                         'id' => $message->user->id,
                         'name' => $message->user->name,
+                        'avatar' => $this->resolveAvatarUrl($message->user->avatar),
                     ],
                     'is_mine' => $message->user_id === Auth::id(),
                 ];
@@ -136,13 +148,14 @@ $conversations = Auth::user()->conversations()
         // Modifiez cette partie pour récupérer correctement les participants
         $participants = User::whereIn('id', $conversation->participants()->pluck('user_id'))
             ->where('id', '!=', Auth::id())
-            ->first();
+            ->first(['id', 'name', 'avatar']);
 
 
         return Inertia::render('chat/Show', [
             'conversation' => [
                 'id' => $conversation->id,
-                'name' => $conversation->is_group ? $conversation->name : $participants->name,
+                'name' => $conversation->is_group ? $conversation->name : ($participants?->name ?? 'Utilisateur'),
+                'avatar' => $this->resolveAvatarUrl($participants?->avatar),
 //                'name' => 'Conversation',
                 'is_group' => $conversation->is_group,
                 'participants' => $participants,
@@ -429,7 +442,8 @@ $conversations = Auth::user()->conversations()
                 'created_at' => $message->created_at->format('c'), // Format ISO 8601
                 'user' => [
                     'id' => Auth::id(),
-                    'name' => Auth::user()->name
+                    'name' => Auth::user()->name,
+                    'avatar' => $this->resolveAvatarUrl(Auth::user()->avatar),
                 ]
             ];
 
@@ -479,7 +493,14 @@ $conversations = Auth::user()->conversations()
     public function users()
     {
         $users = User::where('id', '!=', Auth::id())
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'avatar'])
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $this->resolveAvatarUrl($user->avatar),
+                ];
+            });
 
         return Inertia::render('chat/NewConversation', [
             'users' => $users,
@@ -561,6 +582,23 @@ $conversations = Auth::user()->conversations()
         return response()->json([
             'participants' => $participants,
         ]);
+    }
+
+    private function resolveAvatarUrl(?string $avatar): ?string
+    {
+        if (!$avatar) {
+            return null;
+        }
+
+        if (Str::startsWith($avatar, ['http://', 'https://'])) {
+            return $avatar;
+        }
+
+        try {
+            return Storage::disk('s3')->temporaryUrl($avatar, now()->addMinutes(60));
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
 }

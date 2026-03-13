@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,9 +19,17 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        $avatarUrl = null;
+        
+        if ($user->avatar) {
+            $avatarUrl = Storage::disk('s3')->temporaryUrl($user->avatar, now()->addMinutes(60));
+        }
+        
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'avatarUrl' => $avatarUrl,
         ]);
     }
 
@@ -29,13 +38,43 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar) {
+                Storage::disk('s3')->delete($user->avatar);
+            }
+            
+            // Store new avatar
+            $path = $request->file('avatar')->store('avatars', 's3');
+            $user->avatar = $path;
+        }
+        
+        $user->fill($request->only(['name', 'email']));
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        return to_route('profile.edit');
+    }
+
+    /**
+     * Delete the user's avatar.
+     */
+    public function deleteAvatar(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        if ($user->avatar) {
+            Storage::disk('s3')->delete($user->avatar);
+            $user->avatar = null;
+            $user->save();
+        }
 
         return to_route('profile.edit');
     }

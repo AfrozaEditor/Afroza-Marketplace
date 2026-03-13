@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -117,7 +118,10 @@ class ProductController extends Controller
     public function create()
     {
         return Inertia::render('product/Create',[
-            'categories'=>Category::all(),
+            'categories' => Category::whereNull('parent_id')
+                ->with('children')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -131,12 +135,32 @@ class ProductController extends Controller
             'description' => 'required|string|max:5000',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|numeric|min:1',
-            // 'category' => 'required|exists:categories,id',
-            'category' => 'required|string',
-            // 'images' => 'required|array',
-           'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'category' => 'nullable|string',
+            'images' => 'required|array|min:1|max:6',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
 
         ]);
+
+        $categoryId = $validated['category_id'] ?? null;
+
+        if (!$categoryId && !empty($validated['category'])) {
+            $categoryId = Category::where('name', $validated['category'])->value('id');
+        }
+
+        if (!$categoryId) {
+            throw ValidationException::withMessages([
+                'category_id' => 'Veuillez sélectionner une sous-catégorie valide.',
+            ]);
+        }
+
+        $selectedCategory = Category::find($categoryId);
+
+        if (!$selectedCategory || is_null($selectedCategory->parent_id)) {
+            throw ValidationException::withMessages([
+                'category_id' => 'Veuillez sélectionner une catégorie enfant (sous-catégorie).',
+            ]);
+        }
 
         $user = Auth::user();
 
@@ -145,7 +169,7 @@ class ProductController extends Controller
             'description' => $validated['description'],
             'price' => $validated['price'],
             'quantity' => $validated['stock'],
-            'category_id' => Category::where('name', $validated['category'])->first()->id,
+            'category_id' => $selectedCategory->id,
             'user_id' => Auth::id(),
             'slug' => Str::slug("$validated[name] de $user->name"),
         ];
@@ -163,6 +187,8 @@ class ProductController extends Controller
                 $product->images()->create(['url' => $path]);
             }
         }
+
+        return back()->with('success', 'Produit créé avec succès.');
     }
 
     /**

@@ -67,6 +67,7 @@ export default function ChatShow({ conversation, messages, auth }: Props) {
           user: {
             id: auth.user.id, // Will be replaced with actual user ID from server
             name: auth.user.name,
+            avatar: auth.user.avatar, // Assuming avatar is part of user data
           },
           is_mine: true,
         };
