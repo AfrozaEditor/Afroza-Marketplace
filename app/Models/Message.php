@@ -18,6 +18,7 @@ class Message extends Model
     protected $fillable = [
         'conversation_id',
         'user_id',
+        'product_id',
         'content',
         'read',
     ];
@@ -45,5 +46,13 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the product associated with this message.
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

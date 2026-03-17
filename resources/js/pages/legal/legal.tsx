@@ -11,8 +11,8 @@ function Legal() {
         registration: 'RC/YAO/2024/XXXXX',
         taxId: 'MXXXXXXXXX',
         address: 'Ngoa-Ekele, Rue de la Joie, Yaoundé, Cameroun',
-        phone: '+237 6XX XXX XXX',
-        email: 'contact@afroza-editor.cm',
+        phone: '+237 656 921 921',
+        email: 'afroza.editor@gmail.com',
         website: 'https://afroza-marketplace.cm',
         director: 'Directeur Général',
         hostingProvider: {
@@ -194,7 +194,7 @@ function Legal() {
                             Pour exercer ce droit, l'utilisateur peut contacter :
                         </p>
                         <ul className="mt-2">
-                            <li>Par email : <a href="mailto:privacy@afroza-editor.cm" className="text-primary hover:underline">privacy@afroza-editor.cm</a></li>
+                            <li>Par email : <a href="mailto:afroza.editor@gmail.com" className="text-primary hover:underline">afroza.editor@gmail.com</a></li>
                             <li>Par courrier : {companyInfo.address}</li>
                         </ul>
                         <p className="mt-4">

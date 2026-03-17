@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DataSeeder::class,
             FollowerSeeder::class,
+            SubscriptionPlanSeeder::class,
             // FavoriteSeeder::class, // Uncomment if you have a FavoriteSeeder
         ]);
 

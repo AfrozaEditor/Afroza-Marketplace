@@ -273,8 +273,8 @@ function Cookies() {
                 <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                     <p>
                         Pour toute question concernant notre utilisation des cookies, contactez-nous à{' '}
-                        <a href="mailto:privacy@afroza-editor.cm" className="text-primary hover:underline">
-                            privacy@afroza-editor.cm
+                        <a href="mailto:afroza.editor@gmail.com" className="text-primary hover:underline">
+                            afroza.editor@gmail.com
                         </a>
                     </p>
                 </div>

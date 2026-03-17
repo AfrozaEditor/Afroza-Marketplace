@@ -6,10 +6,12 @@ import { type ReactNode } from 'react';
 interface AppLayoutProps {
     children: ReactNode;
     breadcrumbs?: BreadcrumbItem[];
+    hideFooter?: boolean;
+    hideHeader?: boolean;
 }
 
-export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
-    <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
+export default ({ children, breadcrumbs, hideFooter, hideHeader, ...props }: AppLayoutProps) => (
+    <AppLayoutTemplate breadcrumbs={breadcrumbs} hideFooter={hideFooter} hideHeader={hideHeader} {...props}>
         {children}
         <Toaster richColors position="top-right" />
     </AppLayoutTemplate>

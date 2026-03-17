@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -100,11 +101,28 @@ class VendorDashboardController extends Controller
             ];
         });
 
+        // Subscription data
+        $activeSubscription = $user->activeSubscription?->load('plan');
+        $pendingSubscription = $user->pendingSubscription?->load('plan');
+        $availablePlans = SubscriptionPlan::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $subscriptionData = [
+            'current_plan' => $activeSubscription?->plan,
+            'subscription' => $activeSubscription,
+            'pending_request' => $pendingSubscription,
+            'available_plans' => $availablePlans,
+            'product_count' => $products->count(),
+            'remaining_slots' => $user->remainingProductSlots(),
+        ];
+
         return Inertia::render('vendor/dashboard', [
             'products' => $products,
             'shop' => $shop,
             'orders' => $recentOrders,
             'stats' => $stats,
+            'subscription' => $subscriptionData,
         ]);
     }
 

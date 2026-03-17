@@ -2,26 +2,29 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Send, 
-  ArrowLeft, 
-  Smile, 
-  MoreVertical, 
-  Phone, 
-  Video, 
+import {
+  Send,
+  ArrowLeft,
+  Smile,
+  MoreVertical,
+  Phone,
+  Video,
   Image as ImageIcon,
   Paperclip,
+  Check,
   CheckCheck,
   MessageCircle
 } from 'lucide-react';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Message } from '@/types';
+import { Message, ChatProduct } from '@/types';
 import debounce from 'lodash/debounce';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
+import ProductChatCard from '@/components/chat/product-chat-card';
+import SuggestedMessages from '@/components/chat/suggested-messages';
 
 interface ChatAreaProps {
   conversation: {
@@ -31,8 +34,10 @@ interface ChatAreaProps {
     online?: boolean;
   };
   messages?: Message[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, productId?: number) => void;
   setShowMobileChat: (content: boolean) => void;
+  isRecipientOnline?: boolean;
+  productContext?: ChatProduct | null;
 }
 
 interface PresenceUser {
@@ -71,7 +76,9 @@ export default function ChatArea({
   conversation,
   messages = [],
   onSendMessage,
-  setShowMobileChat
+  setShowMobileChat,
+  isRecipientOnline,
+  productContext
 }: ChatAreaProps) {
   const page = usePage();
   const currentUserId = (page.props.auth as any)?.user?.id;
@@ -89,6 +96,23 @@ export default function ChatArea({
 
   // Grouper les messages par date
   const groupedMessages = groupMessagesByDate(messages);
+
+  // Déterminer le statut d'un message (pour les icônes de flèches)
+  const getMessageStatus = (msg: Message): 'sent' | 'delivered' | 'read' => {
+    if (!msg.is_mine) return 'read';
+    if (msg.read) return 'read';
+    // isOnline = destinataire dans CETTE conversation (presence channel)
+    if (isOnline) return 'read';
+    // isRecipientOnline = destinataire en ligne globalement
+    if (isRecipientOnline) return 'delivered';
+    return 'sent';
+  };
+
+  // Handler pour les messages suggérés
+  const handleSuggestedMessage = (suggestion: string) => {
+    setMessage(suggestion);
+    messageInputRef.current?.focus();
+  };
 
     // Optimisation du défilement
   const scrollToBottom = useCallback(() => {
@@ -218,7 +242,8 @@ export default function ChatArea({
     setMessage('');
 
     try {
-      await onSendMessage(content);
+      // Envoyer le product_id si contexte produit actif
+      await onSendMessage(content, productContext ? productContext.id : undefined);
       toast.success("Message envoyé avec succès");
       messageInputRef.current?.focus();
     } catch (error) {
@@ -252,7 +277,7 @@ export default function ChatArea({
             
             <div className="relative">
               <img
-                src={conversation.avatar || '/default-avatar.png'}
+                src={conversation.avatar || '/default-user.png'}
                 alt={conversation.name[0]}
                 className="w-11 h-11 rounded-full object-cover ring-2 ring-offset-2 ring-primary/20 dark:ring-offset-gray-800 flex justify-center items-center font-bold text-xl"
               />
@@ -303,6 +328,17 @@ export default function ChatArea({
           </div>
         </div>
       </div>
+
+      {/* Carte produit épinglée + Messages suggérés */}
+      {productContext && (
+        <>
+          <ProductChatCard product={productContext} variant="pinned" />
+          <SuggestedMessages
+            productName={productContext.name}
+            onSelect={handleSuggestedMessage}
+          />
+        </>
+      )}
 
       {/* Zone des messages */}
       <div
@@ -357,7 +393,7 @@ export default function ChatArea({
                           <div className="w-8 shrink-0">
                             {showAvatar && (
                               <img
-                                src={msg.user?.avatar || conversation.avatar || '/default-avatar.png'}
+                                src={msg.user?.avatar || conversation.avatar || '/default-user.png'}
                                 alt={msg.user?.name || conversation.name}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -374,16 +410,22 @@ export default function ChatArea({
                           <div
                             className={cn(
                               "px-4 py-2.5 rounded-2xl shadow-sm transition-shadow hover:shadow-md",
-                              msg.is_mine 
-                                ? 'bg-primary text-white rounded-br-md' 
+                              msg.is_mine
+                                ? 'bg-primary text-white rounded-br-md'
                                 : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md'
                             )}
                           >
+                            {/* Carte produit dans le message */}
+                            {msg.product && (
+                              <div className="mb-2 -mx-1">
+                                <ProductChatCard product={msg.product} variant="inline" />
+                              </div>
+                            )}
                             <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
                               {msg.content}
                             </p>
                           </div>
-                          
+
                           <div className={cn(
                             "flex items-center gap-1 mt-1 px-1",
                             msg.is_mine ? 'justify-end' : 'justify-start'
@@ -391,9 +433,16 @@ export default function ChatArea({
                             <span className="text-[11px] text-gray-400 dark:text-gray-500">
                               {format(new Date(msg.created_at), 'HH:mm')}
                             </span>
-                            {msg.is_mine && (
-                              <CheckCheck className="w-4 h-4 text-blue-500" />
-                            )}
+                            {msg.is_mine && (() => {
+                              const status = getMessageStatus(msg);
+                              if (status === 'read') {
+                                return <CheckCheck className="w-4 h-4 text-blue-500" />;
+                              } else if (status === 'delivered') {
+                                return <CheckCheck className="w-4 h-4 text-gray-400" />;
+                              } else {
+                                return <Check className="w-4 h-4 text-gray-400" />;
+                              }
+                            })()}
                           </div>
                         </div>
                       </div>

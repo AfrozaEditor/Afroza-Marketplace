@@ -189,7 +189,7 @@ function About() {
                             </div>
                             <div className="flex items-center justify-center space-x-3">
                                 <Mail className="text-primary h-5 w-5" />
-                                <span className="text-gray-700">contact@videdressing.sn</span>
+                                <span className="text-gray-700">afroza.editor@gmail.com</span>
                             </div>
                             <div className="flex items-center justify-center space-x-3">
                                 <Phone className="text-primary h-5 w-5" />

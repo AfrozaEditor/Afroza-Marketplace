@@ -4,21 +4,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-    Heart, 
-    MessageCircle, 
-    Minus, 
-    Plus, 
-    ShoppingCart, 
-    Share2, 
-    Shield, 
-    Truck, 
+import {
+    Heart,
+    MessageCircle,
+    Minus,
+    Plus,
+    ShoppingCart,
+    Share2,
+    Shield,
+    Truck,
     RotateCcw,
     Star,
     Flag,
     ChevronRight,
     Package,
-    Store
+    Store,
+    User
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link, router } from '@inertiajs/react';
@@ -35,9 +36,10 @@ interface Props {
         is_favorite?: boolean;
     };
     images: string[];
+    vendorBadge?: string | null;
 }
 
-function Show({product, images}:Props) {
+function Show({product, images, vendorBadge}:Props) {
     const [quantity, setQuantity] = useState(1);
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
@@ -345,7 +347,9 @@ function Show({product, images}:Props) {
                                         variant="outline"
                                         className="flex-1 h-12 text-base"
                                         onClick={() => {
-                                            router.post(route('chat.start', { user: product.user.id }));
+                                            router.post(route('chat.start', { user: product.user.id }), {
+                                                product_id: product.id,
+                                            });
                                         }}
                                     >
                                         <MessageCircle className="mr-2 h-5 w-5" />
@@ -391,29 +395,51 @@ function Show({product, images}:Props) {
                             <Card>
                                 <CardContent className="p-4">
                                     <div className="flex items-center justify-between">
-                                        <Link 
-                                            href={product.shop ? route('marketplace.show', { marketplace: product.shop.slug }) : '#'}
+                                        <Link
+                                            href={route('vendor.profile', { id: product.user.id })}
                                             className="flex items-center gap-3 group"
                                         >
                                             <div className="w-12 h-12 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
                                                 {product.shop?.name?.charAt(0) || product.user.name.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
-                                                    {product.shop?.name || product.user.name}
-                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                                        {product.user.name}
+                                                    </p>
+                                                    {vendorBadge && (
+                                                        <Badge className={cn(
+                                                            "text-xs",
+                                                            vendorBadge === 'Enterprise'
+                                                                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0'
+                                                                : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0'
+                                                        )}>
+                                                            {vendorBadge}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                                     <Store className="h-3.5 w-3.5" />
-                                                    <span>Vendeur vérifié</span>
+                                                    <span>{product.shop?.name || 'Vendeur vérifié'}</span>
                                                 </div>
                                             </div>
                                         </Link>
-                                        <Button variant="outline" size="sm" asChild>
-                                            <Link href={product.shop ? route('marketplace.show', { marketplace: product.shop.slug }) : '#'}>
-                                                Voir la boutique
-                                                <ChevronRight className="h-4 w-4 ml-1" />
-                                            </Link>
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link href={route('vendor.profile', { id: product.user.id })}>
+                                                    <User className="h-4 w-4 mr-1" />
+                                                    Voir le profil
+                                                </Link>
+                                            </Button>
+                                            {product.shop && (
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <Link href={route('marketplace.show', { marketplace: product.shop.slug })}>
+                                                        <Store className="h-4 w-4 mr-1" />
+                                                        Boutique
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>

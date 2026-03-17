@@ -1,7 +1,7 @@
 {
-  "name": "Afroza Marketplace",
-  "short_name": "Afroza",
-  "description": "Marketplace généraliste africaine - Achetez et vendez facilement",
+  "name": "Afroza Marketplace - Marketplace généraliste africaine",
+  "short_name": "Afroza Marketplace",
+  "description": "Marketplace généraliste africaine - Achetez, vendez et livrez facilement",
   "start_url": "/",
   "icons": [
     {

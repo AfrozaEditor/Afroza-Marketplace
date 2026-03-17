@@ -1,31 +1,21 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { PlusCircle, Search, Send, MessageCircle, Users, Sparkles } from 'lucide-react';
+import { Search, Users, Sparkles, Home, ArrowLeft, ShoppingCart, Heart, Store } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import ChatArea from '@/components/chat/chat-area';
-import { Message } from '@/types';
+import { Message, ChatProduct, SharedData } from '@/types';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
-
-// interface LastMessage {
-//   content: string;
-//   created_at: string;
-//   is_mine: boolean;
-// }
-
-// interface Conversation {
-//   id: number;
-//   name: string;
-//   last_message: LastMessage | null;
-//   unread_count: number;
-// }
-
-// interface Props {
-//   conversations: Conversation[];
-// }
+import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface LastMessage {
   content: string;
@@ -54,13 +44,27 @@ const [messages, setMessages] = useState<Message[]>([]);
 const [isSending, setIsSending] = useState(false);
 const [onlineUserIds, setOnlineUserIds] = useState<number[]>([]);
 const [conversationList, setConversationList] = useState<Conversation[]>(conversations);
+const [productContext, setProductContext] = useState<ChatProduct | null>(null);
 const { data, setData, post, processing, reset } = useForm({
     content: '',
   });
 
-  const page = usePage();
+  const page = usePage<SharedData>();
   const urlParams = new URLSearchParams(window.location.search);
   const conversationIdFromUrl = urlParams.get('conversation');
+  const { auth } = page.props;
+
+  const isVendor = auth.user?.role === 'vendor';
+  const isAdmin = auth.user?.role === 'admin';
+  const isDelivery = auth.user?.role === 'delivery';
+  const isCustomer = auth.user?.role === 'customer';
+
+  const dashboardLink = () => {
+    if (isAdmin) return route('admin');
+    if (isVendor) return route('dashboard');
+    if (isDelivery) return route('delivery-dashboard');
+    return '/';
+  };
 
   // Écouter le canal global "online" pour les statuts en ligne
   useEffect(() => {
@@ -87,10 +91,9 @@ const { data, setData, post, processing, reset } = useForm({
 
   // Mettre à jour la liste des conversations avec le statut en ligne
   useEffect(() => {
-    const authUser = page.props.auth as { user?: { id: number } } | undefined;
     setConversationList(conversations.map(conv => ({
       ...conv,
-      online: onlineUserIds.some(id => id !== authUser?.user?.id)
+      online: onlineUserIds.some(id => id !== auth.user?.id)
     })));
   }, [conversations, onlineUserIds, page.props.auth]);
 
@@ -101,6 +104,18 @@ const { data, setData, post, processing, reset } = useForm({
         handleSelectConversation(conv);
         setShowMobileChat(true);
       }
+    }
+
+    // Charger le contexte produit si product_id est dans l'URL
+    const productIdFromUrl = urlParams.get('product_id');
+    if (productIdFromUrl) {
+      axios.get(route('chat.productInfo'), { params: { product_id: productIdFromUrl } })
+        .then(response => {
+          setProductContext(response.data.product);
+        })
+        .catch(err => {
+          console.error('Erreur lors du chargement du produit:', err);
+        });
     }
     // eslint-disable-next-line
   }, [conversationIdFromUrl, conversations]);
@@ -154,35 +169,35 @@ const { data, setData, post, processing, reset } = useForm({
                         }
                         return prevMessages;
                     });
-            };
+
+            // Si ce message n'est pas le mien et que la conversation est ouverte, le marquer comme lu
+            if (!event.message.is_mine) {
+                axios.post(route('chat.markRead', { conversation: selectedConversation.id }))
+                    .catch(err => console.error('Erreur markRead:', err));
+            }
+        };
+
+        // Écouter les accusés de lecture
+        const readListener = (event: { message_ids: number[]; read_by_user_id: number }) => {
+            setMessages(prevMessages =>
+                prevMessages.map(msg =>
+                    event.message_ids.includes(msg.id) ? { ...msg, read: true } : msg
+                )
+            );
+        };
 
         channel.listen('.message.new', listener);
-        //     setMessages(prevMessages => {
-        //         // Vérification plus robuste pour éviter les doublons
-        //         const isDuplicate = prevMessages.some(msg =>
-        //             msg.id === event.message.id ||
-        //             (msg.content === event.message.content &&
-        //                 Math.abs(new Date(msg.created_at).getTime() - new Date(event.message.created_at).getTime()) < 5000)
-        //         );
-        //
-        //         if (!isDuplicate) {
-        //             return [...prevMessages, event.message];
-        //         }
-        //         return prevMessages;
-        //     });
-        // };
-
-        // channel.listen('.message.new', listener);
-
+        channel.listen('.messages.read', readListener);
 
         return () => {
             channel.stopListening('.message.new');
+            channel.stopListening('.messages.read');
             channel.unsubscribe();
         };
     }, [selectedConversation]);
 
 
-    const handleSendMessage = (content: string) => {
+    const handleSendMessage = (content: string, productId?: number) => {
     if (!selectedConversation) return;
 
     setIsSending(true);
@@ -192,37 +207,20 @@ const { data, setData, post, processing, reset } = useForm({
         content: content,
         created_at: new Date().toISOString(),
         is_mine: true,
+        read: false,
         conversation_id: selectedConversation.id,
+        product: productId && productContext ? productContext : undefined,
         user: {} as any // Placeholder pour l'utilisateur
     };
 
     setMessages(prev => [...prev, optimisticMessage]);
 
-    // // Change the post call to correctly handle the response from Inertia
-    // router.post(route('chat.message', selectedConversation.id), {
-    //     content: content,
-    //     preserveScroll: true,
-    //     onSuccess: ({ props }: any) => { // Destructure props from the page object
-    //         console.log('Server response props:', props);
-    //         if (props && props.message) { // Access message from props
-    //             setMessages(prev =>
-    //                 prev.map(msg =>
-    //                     msg.id === optimisticMessage.id ? props.message : msg // Use props.message
-    //                 )
-    //             );
-    //         } else {
-    //             console.warn("Server response did not contain 'message' in props.");
-    //             setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-    //         }
-    //     },
-    //     onError: (errors: any) => {
-    //         console.error('Error:', errors);
-    //         setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-    //     }
-    // });
-      axios.post(route('chat.message', selectedConversation.id), {
-          content: content
-      })
+    const payload: { content: string; product_id?: number } = { content };
+    if (productId) {
+        payload.product_id = productId;
+    }
+
+    axios.post(route('chat.message', selectedConversation.id), payload)
           .then(response => {
               // Remplacer le message optimiste par le vrai message du serveur
               if (response.data.props && response.data.props.message) {
@@ -231,6 +229,13 @@ const { data, setData, post, processing, reset } = useForm({
                           ? response.data.props.message
                           : msg
                   ));
+              }
+              // Effacer le contexte produit après envoi du premier message avec produit
+              if (productId) {
+                  setProductContext(null);
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('product_id');
+                  window.history.replaceState({}, '', url.toString());
               }
           })
           .catch(error => {
@@ -242,95 +247,83 @@ const { data, setData, post, processing, reset } = useForm({
 
   };
 
-console.log('Last messages:', conversations.map(c => c.last_message));
-console.log('Unread Messages:', conversations.map(c => c.unread_count));
-
 
   return (
-    // <AppLayout>
-    //   <Head title="Messagerie" />
-    //   <div className="py-12">
-    //     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-    //       <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-    //         <div className="p-6">
-    //           <div className="flex justify-between items-center mb-6">
-    //             <h2 className="text-xl font-semibold">Messagerie</h2>
-    //           </div>
-
-    //           {conversations.length === 0 ? (
-    //             <div className="text-center py-8">
-    //               <p className="text-gray-500 mb-4">Vous n'avez aucune conversation</p>
-    //             </div>
-    //           ) : (
-    //             <div className="space-y-4">
-    //               {conversations.map((conversation) => (
-    //                 <Link
-    //                   key={conversation.id}
-    //                   href={route('chat.show', { conversation: conversation.id })}
-    //                   className="block"
-    //                 >
-    //                   <Card className={`hover:bg-gray-50 transition ${conversation.unread_count > 0 ? 'border-primary' : ''}`}>
-    //                     <CardContent className="p-4">
-    //                       <div className="flex justify-between items-center">
-    //                         <div>
-    //                           <h3 className="font-medium text-lg">{conversation.name}</h3>
-    //                           {conversation.last_message && (
-    //                             <p className="text-gray-600 text-sm line-clamp-1">
-    //                               {conversation.last_message.is_mine ? 'Vous: ' : ''}
-    //                               {conversation.last_message.content}
-    //                             </p>
-    //                           )}
-    //                         </div>
-    //                         <div className="text-right">
-    //                           {conversation.last_message && (
-    //                             <p className="text-xs text-gray-500">
-    //                               {formatDistanceToNow(new Date(conversation.last_message.created_at), {
-    //                                 addSuffix: true,
-    //                                 locale: fr
-    //                               })}
-    //                             </p>
-    //                           )}
-    //                           {conversation.unread_count > 0 && (
-    //                             <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-white text-xs mt-1">
-    //                               {conversation.unread_count}
-    //                             </span>
-    //                           )}
-    //                         </div>
-    //                       </div>
-    //                     </CardContent>
-    //                   </Card>
-    //                 </Link>
-    //               ))}
-    //             </div>
-    //           )}
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-    // </AppLayout>
-    <AppLayout>
+    <AppLayout hideFooter hideHeader>
       <Head title="Messagerie" />
-      <div className="container mx-auto px-4 py-6">
-        {/* Header de la page */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messagerie</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {conversations.length} conversation{conversations.length > 1 ? 's' : ''}
-              </p>
-            </div>
+      <div className="fixed inset-0 z-40 flex flex-col bg-white dark:bg-gray-900">
+        {/* Quick nav buttons - left side, centered vertically, visible on hover */}
+        <div className="group/nav absolute left-0 top-1/2 -translate-y-1/2 z-50 flex items-center">
+          {/* Trigger zone visible */}
+          <div className="h-10 w-5 rounded-r-lg bg-white/80 shadow-md backdrop-blur-sm dark:bg-gray-800/80 flex items-center justify-center cursor-pointer group-hover/nav:hidden">
+            <Home className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+          </div>
+          {/* Buttons revealed on hover */}
+          <div className="hidden group-hover/nav:flex flex-col gap-1.5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-r-2xl shadow-lg px-1.5 py-2">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Home className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Accueil</p></TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => window.history.back()}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Retour</p></TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href={route('products.index')}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Store className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Boutique</p></TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href={route('my-cart')}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <ShoppingCart className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Panier</p></TooltipContent>
+              </Tooltip>
+
+              {!isCustomer && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href={dashboardLink()}>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <Sparkles className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right"><p>Dashboard</p></TooltipContent>
+                </Tooltip>
+              )}
+            </TooltipProvider>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <div className="flex h-[calc(100vh-14rem)]">
+        {/* Chat container - full screen */}
+        <div className="flex h-full w-full">
             {/* Liste des conversations */}
             <div className={cn(
-              "w-full md:w-96 border-r dark:border-gray-700 flex flex-col",
+              "w-full md:w-96 border-r dark:border-gray-700 flex flex-col bg-white dark:bg-gray-800",
               showMobileChat ? 'hidden md:flex' : ''
             )}>
               {/* Barre de recherche */}
@@ -376,8 +369,8 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                         }}
                         className={cn(
                           "p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50",
-                          selectedConversation?.id === conversation.id 
-                            ? 'bg-primary/5 dark:bg-primary/10 border-l-4 border-primary' 
+                          selectedConversation?.id === conversation.id
+                            ? 'bg-primary/5 dark:bg-primary/10 border-l-4 border-primary'
                             : ''
                         )}
                       >
@@ -385,12 +378,12 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                           {/* Avatar avec indicateur en ligne */}
                           <div className="relative shrink-0">
                             <img
-                              src={conversation.avatar || '/default-avatar.png'}
+                              src={conversation.avatar || '/default-user.png'}
                               alt={conversation.name[0]}
                               className={cn(
                                 "w-14 h-14 rounded-full object-cover transition-all flex justify-center items-center font-bold text-xl",
-                                selectedConversation?.id === conversation.id 
-                                  ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-800' 
+                                selectedConversation?.id === conversation.id
+                                  ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-800'
                                   : ''
                               )}
                             />
@@ -398,7 +391,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                               <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
                             )}
                           </div>
-                          
+
                           {/* Contenu */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
@@ -417,13 +410,13 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                                 </span>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center justify-between">
                               {conversation.last_message ? (
                                 <p className={cn(
                                   "text-sm truncate max-w-[200px]",
-                                  conversation.unread_count > 0 
-                                    ? 'text-gray-700 dark:text-gray-300 font-medium' 
+                                  conversation.unread_count > 0
+                                    ? 'text-gray-700 dark:text-gray-300 font-medium'
                                     : 'text-gray-500 dark:text-gray-400'
                                 )}>
                                   {conversation.last_message.is_mine && (
@@ -436,7 +429,7 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                                   Aucun message
                                 </p>
                               )}
-                              
+
                               {/* Badge de messages non lus */}
                               {conversation.unread_count > 0 && (
                                 <span className="shrink-0 ml-2 bg-primary text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
@@ -464,6 +457,8 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
                   messages={messages}
                   onSendMessage={handleSendMessage}
                   setShowMobileChat={setShowMobileChat}
+                  isRecipientOnline={onlineUserIds.some(id => id !== auth.user?.id)}
+                  productContext={productContext}
                 />
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
@@ -490,7 +485,6 @@ console.log('Unread Messages:', conversations.map(c => c.unread_count));
               )}
             </div>
           </div>
-        </div>
       </div>
     </AppLayout>
   );

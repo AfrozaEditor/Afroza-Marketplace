@@ -161,7 +161,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                     <div className="flex items-center gap-4 text-xs text-gray-400">
                         <span className="flex items-center gap-1.5 transition-colors hover:text-white">
                             <Phone className="h-3 w-3" />
-                            +237 6XX XXX XXX
+                            +237 656 921 921
                         </span>
                         <span className="text-gray-600">|</span>
                         <span className="flex items-center gap-1.5 transition-colors hover:text-white">
@@ -368,7 +368,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                     {/* Barre de recherche mobile */}
                     <div className="pb-3 md:hidden">
                         <form onSubmit={handleSearch}>
-                            <div className="relative flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+                            <div className="border-primary/20 hover:border-primary/40 focus-within:border-primary relative flex overflow-hidden rounded-full border bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
                                 <Input
                                     type="text"
                                     placeholder="Rechercher..."
@@ -376,7 +376,7 @@ export function AppHeader({ breadcrumbs = [], categories = [] }: AppHeaderProps)
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="flex-1 border-0 bg-transparent px-3 py-2 text-sm focus-visible:ring-0"
                                 />
-                                <Button type="submit" size="sm" className="bg-primary rounded-none px-4" disabled={!searchQuery.trim()}>
+                                <Button type="submit" className="bg-primary rounded-none px-4" disabled={!searchQuery.trim()}>
                                     <Search className="h-4 w-4" />
                                 </Button>
                             </div>

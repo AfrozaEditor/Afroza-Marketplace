@@ -164,6 +164,17 @@ class ProductController extends Controller
 
         $user = Auth::user();
 
+        // Vérifier la limite de produits selon le plan d'abonnement
+        if (!$user->canAddProduct()) {
+            $subscription = $user->activeSubscription?->load('plan');
+            $planName = $subscription?->plan?->name ?? 'Starter';
+            $limit = $subscription?->plan?->product_limit ?? 0;
+
+            return back()->withErrors([
+                'limit' => "Vous avez atteint la limite de {$limit} produits pour le plan {$planName}. Passez au plan supérieur pour ajouter plus de produits.",
+            ]);
+        }
+
         $productData = [
             'name' => $validated['name'],
             'description' => $validated['description'],
@@ -211,9 +222,20 @@ class ProductController extends Controller
 
         $product->user_review = $userReview;
 
+        // Charger le badge du vendeur via son abonnement actif
+        $vendor = $product->user;
+        $vendorBadge = null;
+        if ($vendor) {
+            $activeSubscription = $vendor->activeSubscription?->load('plan');
+            if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->has_badge) {
+                $vendorBadge = $activeSubscription->plan->badge_label;
+            }
+        }
+
         return Inertia::render('product/Show',[
             'product' => $product,
             'images' => $imagesUrls,
+            'vendorBadge' => $vendorBadge,
         ]);
     }
 

@@ -7,13 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import SubscriptionTab from '@/components/vendor/subscription-tab';
 import AppLayout from '@/layouts/app-layout';
 import { formatDate, formatPrice } from '@/lib/utils';
-import { Product, Shop } from '@/types';
+import { Product, Shop, SubscriptionData } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     BarChart2,
     Camera,
+    CheckCircle2,
+    Clock,
     DollarSign,
     Eye,
     Loader2,
@@ -25,8 +28,10 @@ import {
     ShoppingCart,
     Store,
     Trash,
+    TrendingUp,
     Upload,
     Users,
+    Crown,
 } from 'lucide-react';
 import { useMemo, useState, useRef } from 'react';
 import { toast } from 'sonner';
@@ -64,6 +69,7 @@ interface Props {
     shop: ShopWithUrls | null;
     orders: OrderSummary[];
     stats: Stats;
+    subscription: SubscriptionData;
 }
 
 const getStatusBadgeColor = (status: string) => {
@@ -96,7 +102,7 @@ const getStatusLabel = (status: string) => {
     }
 };
 
-export default function Dashboard({ products, shop, orders, stats }: Props) {
+export default function Dashboard({ products, shop, orders, stats, subscription }: Props) {
     const [activeTab, setActiveTab] = useState<string>('overview');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortField, setSortField] = useState<keyof Product | null>(null);
@@ -303,44 +309,23 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
         );
     };
 
-    const statsCards = [
-        {
-            title: 'Ventes Totales',
-            value: formatPrice(stats.total_sales),
-            icon: <DollarSign className="h-5 w-5 text-green-600" />,
-            bgColor: 'bg-green-50',
-        },
-        {
-            title: 'Commandes',
-            value: stats.total_orders.toString(),
-            subtitle: `${stats.pending_orders} en attente`,
-            icon: <ShoppingBag className="h-5 w-5 text-blue-600" />,
-            bgColor: 'bg-blue-50',
-        },
-        {
-            title: 'Articles',
-            value: stats.total_products.toString(),
-            subtitle: `${stats.active_products} actifs`,
-            icon: <Package className="h-5 w-5 text-purple-600" />,
-            bgColor: 'bg-purple-50',
-        },
-        {
-            title: 'Abonnés',
-            value: stats.total_followers.toString(),
-            icon: <Users className="h-5 w-5 text-orange-600" />,
-            bgColor: 'bg-orange-50',
-        },
-    ];
+    const activePercent = stats.total_products > 0
+        ? Math.round((stats.active_products / stats.total_products) * 100)
+        : 0;
+
+    const completedPercent = stats.total_orders > 0
+        ? Math.round((stats.completed_orders / stats.total_orders) * 100)
+        : 0;
 
     return (
         <AppLayout>
             <Head title="Dashboard Vendeur" />
-            <div className="container mx-auto flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <div className="container mx-auto flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-                    <Heading 
-                        title="Tableau de bord vendeur" 
-                        description="Gérez vos articles, commandes et votre boutique" 
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                    <Heading
+                        title="Tableau de bord vendeur"
+                        description="Gérez vos articles, commandes et votre boutique"
                     />
                     <div className="flex gap-2 items-center">
                         <Link href={route('products.create')}>
@@ -352,31 +337,109 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
                     </div>
                 </div>
 
-                {/* Stats Cards */}
+                {/* Stats Cards - Improved */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {statsCards.map((stat, index) => (
-                        <Card key={index}>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{stat.title}</p>
-                                        <p className="text-2xl font-bold">{stat.value}</p>
-                                        {stat.subtitle && (
-                                            <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                    {/* Ventes Totales */}
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-5">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Ventes Totales</p>
+                                    <p className="text-2xl font-bold tracking-tight">{formatPrice(stats.total_sales)}</p>
+                                </div>
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                                    <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-500/20">
+                                <div className="h-full bg-green-500 transition-all" style={{ width: `${completedPercent}%` }} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Commandes */}
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-5">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Commandes</p>
+                                    <p className="text-2xl font-bold tracking-tight">{stats.total_orders}</p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        {stats.pending_orders > 0 && (
+                                            <span className="flex items-center gap-1 text-yellow-600">
+                                                <Clock className="h-3 w-3" />
+                                                {stats.pending_orders} en attente
+                                            </span>
+                                        )}
+                                        {stats.processing_orders > 0 && (
+                                            <span className="flex items-center gap-1 text-blue-600">
+                                                <TrendingUp className="h-3 w-3" />
+                                                {stats.processing_orders} en cours
+                                            </span>
                                         )}
                                     </div>
-                                    <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                                        {stat.icon}
+                                </div>
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                                    <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500/20">
+                                <div className="h-full bg-blue-500 transition-all" style={{ width: `${completedPercent}%` }} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Articles */}
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-5">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Articles</p>
+                                    <p className="text-2xl font-bold tracking-tight">{stats.total_products}</p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="flex items-center gap-1 text-green-600">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            {stats.active_products} actifs
+                                        </span>
+                                        {stats.sold_products > 0 && (
+                                            <span className="text-muted-foreground">
+                                                · {stats.sold_products} épuisés
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
+                                    <Package className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500/20">
+                                <div className="h-full bg-purple-500 transition-all" style={{ width: `${activePercent}%` }} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Abonnés */}
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-5">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Abonnés</p>
+                                    <p className="text-2xl font-bold tracking-tight">{stats.total_followers}</p>
+                                </div>
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
+                                    <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500/20">
+                                <div className="h-full bg-orange-500 transition-all" style={{ width: stats.total_followers > 0 ? '100%' : '0%' }} />
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-2 gap-2 md:grid-cols-5 h-auto">
+                    <TabsList className="grid w-full grid-cols-2 gap-2 md:grid-cols-6 h-auto">
                         <TabsTrigger value="overview" className="gap-2">
                             <BarChart2 className="h-4 w-4" />
                             <span className="hidden sm:inline">Vue d'ensemble</span>
@@ -393,6 +456,10 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
                             <Store className="h-4 w-4" />
                             <span className="hidden sm:inline">Ma boutique</span>
                         </TabsTrigger>
+                        <TabsTrigger value="subscription" className="gap-2">
+                            <Crown className="h-4 w-4" />
+                            <span className="hidden sm:inline">Abonnement</span>
+                        </TabsTrigger>
                         <TabsTrigger value="settings" className="gap-2">
                             <Settings className="h-4 w-4" />
                             <span className="hidden sm:inline">Paramètres</span>
@@ -401,32 +468,112 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
 
                     {/* Overview Tab */}
                     <TabsContent value="overview" className="space-y-6">
+                        {/* Quick Summary Bars */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <Card>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">Articles actifs</span>
+                                        <span className="text-sm font-bold text-green-600">{activePercent}%</span>
+                                    </div>
+                                    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+                                        <div
+                                            className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                            style={{ width: `${activePercent}%` }}
+                                        />
+                                    </div>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {stats.active_products} sur {stats.total_products} articles
+                                    </p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">Commandes complétées</span>
+                                        <span className="text-sm font-bold text-blue-600">{completedPercent}%</span>
+                                    </div>
+                                    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+                                        <div
+                                            className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                                            style={{ width: `${completedPercent}%` }}
+                                        />
+                                    </div>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {stats.completed_orders} sur {stats.total_orders} commandes
+                                    </p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">Résumé rapide</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        {stats.pending_orders > 0 && (
+                                            <Badge variant="outline" className="border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                                <Clock className="mr-1 h-3 w-3" />
+                                                {stats.pending_orders} en attente
+                                            </Badge>
+                                        )}
+                                        {stats.processing_orders > 0 && (
+                                            <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                                                <TrendingUp className="mr-1 h-3 w-3" />
+                                                {stats.processing_orders} en cours
+                                            </Badge>
+                                        )}
+                                        {stats.sold_products > 0 && (
+                                            <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                                                <Package className="mr-1 h-3 w-3" />
+                                                {stats.sold_products} épuisés
+                                            </Badge>
+                                        )}
+                                        {stats.pending_orders === 0 && stats.processing_orders === 0 && stats.sold_products === 0 && (
+                                            <Badge variant="outline" className="border-green-300 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                Tout est en ordre
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                             {/* Recent Products */}
                             <Card>
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <CardTitle className="text-lg">Articles récents</CardTitle>
+                                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                                    <div>
+                                        <CardTitle className="text-lg">Articles récents</CardTitle>
+                                        <CardDescription>{stats.total_products} articles au total</CardDescription>
+                                    </div>
                                     <Button variant="ghost" size="sm" onClick={() => setActiveTab('products')}>
                                         Voir tout
                                     </Button>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
+                                    <div className="divide-y">
                                         {products.slice(0, 5).map((product) => (
-                                            <div key={product.id} className="flex items-center gap-4">
-                                                <img 
-                                                    src={product.images?.[0] || '/placeholder.svg'} 
-                                                    alt={product.name} 
-                                                    className="h-12 w-12 rounded-md object-cover" 
-                                                />
+                                            <Link key={product.id} href={route('products.edit', product.id)} className="flex items-center gap-4 py-3 hover:bg-muted/50 -mx-3 px-3 rounded-lg transition-colors">
+                                                {product.images?.[0] ? (
+                                                    <img
+                                                        src={product.images[0]}
+                                                        alt={product.name}
+                                                        className="h-12 w-12 rounded-lg object-cover ring-1 ring-border"
+                                                    />
+                                                ) : (
+                                                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center ring-1 ring-border">
+                                                        <Package className="h-5 w-5 text-muted-foreground" />
+                                                    </div>
+                                                )}
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="text-sm font-medium truncate">{product.name}</h3>
-                                                    <p className="text-sm text-muted-foreground">{formatPrice(product.price)}</p>
+                                                    <p className="text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
                                                 </div>
-                                                <Badge className={product.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                                                    {product.quantity > 0 ? 'En vente' : 'Épuisé'}
+                                                <Badge className={product.quantity > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}>
+                                                    {product.quantity > 0 ? `${product.quantity} en stock` : 'Épuisé'}
                                                 </Badge>
-                                            </div>
+                                            </Link>
                                         ))}
                                         {products.length === 0 && (
                                             <p className="text-center text-muted-foreground py-4">
@@ -439,29 +586,32 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
 
                             {/* Recent Orders */}
                             <Card>
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <CardTitle className="text-lg">Commandes récentes</CardTitle>
+                                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                                    <div>
+                                        <CardTitle className="text-lg">Commandes récentes</CardTitle>
+                                        <CardDescription>{stats.total_orders} commandes au total</CardDescription>
+                                    </div>
                                     <Button variant="ghost" size="sm" onClick={() => setActiveTab('orders')}>
                                         Voir tout
                                     </Button>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
+                                    <div className="divide-y">
                                         {orders.slice(0, 5).map((order) => (
-                                            <div key={order.id} className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                            <div key={order.id} className="flex items-center gap-4 py-3">
+                                                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center ring-1 ring-border shrink-0">
                                                     {order.customer_avatar ? (
                                                         <img src={order.customer_avatar} alt={order.customer} className="h-10 w-10 rounded-full object-cover" />
                                                     ) : (
-                                                        <Users className="h-5 w-5 text-gray-500" />
+                                                        <Users className="h-5 w-5 text-muted-foreground" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="text-sm font-medium">{order.reference}</h3>
-                                                    <p className="text-xs text-muted-foreground">{order.customer}</p>
+                                                    <p className="text-xs text-muted-foreground">{order.customer} · {order.date}</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-sm font-medium">{formatPrice(order.amount)}</p>
+                                                <div className="text-right space-y-1">
+                                                    <p className="text-sm font-semibold">{formatPrice(order.amount)}</p>
                                                     <Badge className={getStatusBadgeColor(order.status)} variant="secondary">
                                                         {getStatusLabel(order.status)}
                                                     </Badge>
@@ -480,43 +630,48 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
 
                         {/* Shop Status */}
                         {shop ? (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Store className="h-5 w-5" />
-                                        Ma Boutique
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center gap-4">
+                            <Card className="overflow-hidden">
+                                {shop.cover_image_url && (
+                                    <div className="h-32 w-full overflow-hidden">
+                                        <img src={shop.cover_image_url} alt="Couverture" className="h-full w-full object-cover" />
+                                    </div>
+                                )}
+                                <CardContent className={shop.cover_image_url ? 'p-5 -mt-8 relative' : 'p-5'}>
+                                    <div className="flex items-end gap-4">
                                         {shop.logo_url ? (
-                                            <img src={shop.logo_url} alt={shop.name} className="h-16 w-16 rounded-lg object-cover" />
+                                            <img src={shop.logo_url} alt={shop.name} className="h-16 w-16 rounded-xl object-cover ring-4 ring-background shadow-sm" />
                                         ) : (
-                                            <div className="h-16 w-16 rounded-lg bg-gray-100 flex items-center justify-center">
-                                                <Store className="h-8 w-8 text-gray-400" />
+                                            <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center ring-4 ring-background shadow-sm">
+                                                <Store className="h-8 w-8 text-muted-foreground" />
                                             </div>
                                         )}
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-lg">{shop.name}</h3>
-                                            <p className="text-sm text-muted-foreground">{shop.description || 'Aucune description'}</p>
-                                            {shop.city && <p className="text-sm text-muted-foreground">{shop.city}</p>}
+                                        <div className="flex-1 min-w-0 pb-1">
+                                            <h3 className="font-semibold text-lg truncate">{shop.name}</h3>
+                                            <p className="text-sm text-muted-foreground truncate">{shop.description || 'Aucune description'}</p>
                                         </div>
-                                        <Button variant="outline" onClick={() => setActiveTab('shop')}>
+                                        <Button variant="outline" size="sm" onClick={() => setActiveTab('shop')}>
                                             <Pencil className="h-4 w-4 mr-2" />
                                             Modifier
                                         </Button>
                                     </div>
+                                    {shop.city && (
+                                        <p className="mt-3 text-sm text-muted-foreground flex items-center gap-1">
+                                            📍 {shop.city}
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         ) : (
-                            <Card className="border-dashed">
-                                <CardContent className="flex flex-col items-center justify-center py-8">
-                                    <Store className="h-12 w-12 text-muted-foreground mb-4" />
+                            <Card className="border-dashed border-2">
+                                <CardContent className="flex flex-col items-center justify-center py-10">
+                                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                                        <Store className="h-8 w-8 text-primary" />
+                                    </div>
                                     <h3 className="font-semibold text-lg mb-2">Créez votre boutique</h3>
-                                    <p className="text-muted-foreground text-center mb-4">
+                                    <p className="text-muted-foreground text-center mb-6 max-w-sm">
                                         Créez votre boutique pour personnaliser votre présence et attirer plus de clients
                                     </p>
-                                    <Button onClick={() => setActiveTab('shop')}>
+                                    <Button size="lg" onClick={() => setActiveTab('shop')}>
                                         <PlusCircle className="h-4 w-4 mr-2" />
                                         Créer ma boutique
                                     </Button>
@@ -768,7 +923,7 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
                                                 id="phone"
                                                 value={shopForm.data.phone}
                                                 onChange={(e) => shopForm.setData('phone', e.target.value)}
-                                                placeholder="+237 6XX XXX XXX"
+                                                placeholder="+237 656 921 921"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -822,6 +977,10 @@ export default function Dashboard({ products, shop, orders, stats }: Props) {
                     </TabsContent>
 
                     {/* Settings Tab */}
+                    <TabsContent value="subscription" className="space-y-4">
+                        <SubscriptionTab subscription={subscription} />
+                    </TabsContent>
+
                     <TabsContent value="settings" className="space-y-4">
                         <h2 className="text-xl font-semibold">Paramètres</h2>
                         <Card>

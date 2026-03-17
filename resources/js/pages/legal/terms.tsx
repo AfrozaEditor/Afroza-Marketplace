@@ -149,8 +149,8 @@ L'utilisation continue de la Plateforme après modification vaut acceptation des
             title: '11. Contact et Litiges',
             content: `**11.1 Service client**
 Pour toute question concernant ces CGU :
-- Email : contact@afroza-editor.cm
-- Téléphone : +237 6XX XXX XXX
+- Email : afroza.editor@gmail.com
+- Téléphone : +237 656 921 921
 - Adresse : Yaoundé, Ngoa-Ekele, Rue de la Joie
 
 **11.2 Règlement des litiges**
@@ -231,8 +231,8 @@ Les présentes CGU sont régies par le droit camerounais.`
                         En utilisant Afroza Marketplace, vous acceptez ces conditions générales d'utilisation.
                         <br />
                         Pour toute question, contactez-nous à{' '}
-                        <a href="mailto:contact@afroza-editor.cm" className="text-primary hover:underline">
-                            contact@afroza-editor.cm
+                        <a href="mailto:afroza.editor@gmail.com" className="text-primary hover:underline">
+                            afroza.editor@gmail.com
                         </a>
                     </p>
                 </div>

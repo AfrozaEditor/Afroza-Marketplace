@@ -3,21 +3,32 @@ import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
-import { Activity, BarChart3, ShoppingBag, Users, Truck } from 'lucide-react';
+import { BarChart3, Package, ShoppingBag, Store, Users } from 'lucide-react';
 import Heading from '@/components/heading';
 import { User } from '@/types';
 
-interface Props {
-    users: User[];
+interface Stats {
+    total_users: number;
+    total_vendors: number;
+    total_products: number;
+    total_orders: number;
+    total_shops: number;
+    pending_orders: number;
 }
 
-function Dashboard({users}: Props) {
+interface Props {
+    users: User[];
+    stats: Stats;
+}
+
+function Dashboard({users, stats}: Props) {
 
     const adminStats = [
-        { title: "Utilisateurs Inscrits", value: users.length, icon: <Users className="h-5 w-5 text-muted-foreground" />, change: "+5% ce mois" },
-        { title: "Vendeurs Actifs", value: "56", icon: <ShoppingBag className="h-5 w-5 text-muted-foreground" />, change: "+2 nouveaux" },
-        { title: "Transactions Globales", value: "789", icon: <BarChart3 className="h-5 w-5 text-muted-foreground" />, change: "+12% cette semaine" },
-        { title: "Tickets Support Ouverts", value: "3", icon: <Activity className="h-5 w-5 text-muted-foreground" />, change: "Haute priorité" },
+        { title: "Utilisateurs Inscrits", value: stats.total_users, icon: <Users className="h-5 w-5 text-muted-foreground" /> },
+        { title: "Vendeurs Actifs", value: stats.total_vendors, icon: <ShoppingBag className="h-5 w-5 text-muted-foreground" /> },
+        { title: "Nombre de Produits", value: stats.total_products, icon: <Package className="h-5 w-5 text-muted-foreground" /> },
+        { title: "Commandes", value: stats.total_orders, icon: <BarChart3 className="h-5 w-5 text-muted-foreground" />, subtitle: stats.pending_orders > 0 ? `${stats.pending_orders} en attente` : "Aucune en attente" },
+        { title: "Boutiques", value: stats.total_shops, icon: <Store className="h-5 w-5 text-muted-foreground" /> },
     ];
 
 
@@ -29,6 +40,7 @@ function Dashboard({users}: Props) {
         { title: "Gestion des Blogs", description: "Créer, modifier et publier des articles de blog.", action: <Link href="/admin/blogs">Gérer les blogs</Link> },
         { title: "Gestion des Newsletters", description: "Créer, modifier et publier des articles de newsletter.", action: <Link href="/admin/newsletters">Gérer les newsletters</Link> },
         { title: "Modération de Contenu", description: "Gérer les signalements et le contenu publié.", action: <Link href="/admin/moderation">Modérer le contenu</Link>},
+        { title: "Gestion des Abonnements", description: "Approuver ou rejeter les demandes d'abonnement des vendeurs.", action: <Link href="/admin/subscriptions">Gérer les abonnements</Link>},
         { title: "Paramètres de la Plateforme", description: "Configurer les options globales de l'application.", action: <Link href="">Accéder aux paramètres</Link>},
         // { title: "Rapports et Analyses", description: "Consulter les statistiques détaillées de la plateforme.", action: <Link href="">Voir les rapports</Link>},
     ];
@@ -42,7 +54,7 @@ function Dashboard({users}: Props) {
                 <Heading title="Tableau de bord Administrateur" description="Vue d'ensemble et gestion globale de la plateforme."/>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
                 {adminStats.map((stat, index) => (
                     <Card key={index}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -51,7 +63,7 @@ function Dashboard({users}: Props) {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground">{stat.change}</p>
+                            {stat.subtitle && <p className="text-xs text-muted-foreground">{stat.subtitle}</p>}
                         </CardContent>
                     </Card>
                 ))}

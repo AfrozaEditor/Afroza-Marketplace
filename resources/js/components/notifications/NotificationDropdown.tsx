@@ -217,30 +217,31 @@ export default function NotificationDropdown({
 
     const handleMarkAllAsRead = async () => {
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            // const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
-            if (!csrfToken) {
-                throw new Error('CSRF token non trouvé');
+            // if (!csrfToken) {
+            //     throw new Error('CSRF token non trouvé');
+            // }
+            
+            // const response = await fetch('/api/notifications/read-all', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Accept': 'application/json',
+            //         'X-CSRF-TOKEN': csrfToken,
+            //         'X-Requested-With': 'XMLHttpRequest',
+            //     },
+            //     credentials: 'same-origin',
+            // });
+            const response = await axios.post('/api/notifications/read-all');
+            
+            if (!response) {
+                const errorText = await response;
+                console.error('Server response:', response, errorText);
+                throw new Error(`Erreur serveur: ${response}`);
             }
             
-            const response = await fetch('/api/notifications/read-all', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', response.status, errorText);
-                throw new Error(`Erreur serveur: ${response.status}`);
-            }
-            
-            const data = await response.json();
+            const data = await response.data;
             
             setNotifications(prev => 
                 prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))

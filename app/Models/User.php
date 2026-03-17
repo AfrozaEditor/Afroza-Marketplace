@@ -232,6 +232,49 @@ class User extends Authenticatable
         return $this->hasOne(Delivery::class);
     }
 
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->where('status', 'active');
+    }
+
+    public function pendingSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->where('status', 'pending');
+    }
+
+    public function canAddProduct(): bool
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription || !$subscription->plan) {
+            return false;
+        }
+
+        if ($subscription->plan->isUnlimited()) {
+            return true;
+        }
+
+        return $this->produits()->count() < $subscription->plan->product_limit;
+    }
+
+    public function remainingProductSlots(): ?int
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription || !$subscription->plan) {
+            return 0;
+        }
+
+        if ($subscription->plan->isUnlimited()) {
+            return null;
+        }
+
+        return max(0, $subscription->plan->product_limit - $this->produits()->count());
+    }
+
     /**
      * Check if user is blocked.
      */

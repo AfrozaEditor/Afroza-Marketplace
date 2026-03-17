@@ -124,13 +124,23 @@ export interface Shop {
     is_approved?: boolean;
 }
 
+export interface ChatProduct {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    image?: string | null;
+}
+
 export interface Message {
   id: number;
   content: string;
   created_at: string;
   user: User;
   is_mine: boolean;
+  read?: boolean;
   conversation_id?: number;
+  product?: ChatProduct;
 }
 
 export interface Article {
@@ -251,4 +261,48 @@ export interface Delivery {
     current_latitude?: number;
     current_longitude?: number;
     created_at: string;
+}
+
+export interface SubscriptionPlan {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    price: number;
+    product_limit: number | null;
+    commission_rate: number;
+    has_badge: boolean;
+    badge_label: string | null;
+    priority_search: boolean;
+    featured_placement: boolean;
+    dedicated_support: boolean;
+    sort_order: number;
+}
+
+export interface Subscription {
+    id: number;
+    user_id: number;
+    subscription_plan_id: number;
+    status: 'active' | 'pending' | 'expired' | 'cancelled' | 'rejected';
+    starts_at: string | null;
+    ends_at: string | null;
+    requested_at: string | null;
+    approved_at: string | null;
+    rejection_reason: string | null;
+    rejected_at: string | null;
+    notes: string | null;
+    plan: SubscriptionPlan;
+    user?: User;
+    user_active_plan?: SubscriptionPlan | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SubscriptionData {
+    current_plan: SubscriptionPlan | null;
+    subscription: Subscription | null;
+    pending_request: Subscription | null;
+    available_plans: SubscriptionPlan[];
+    product_count: number;
+    remaining_slots: number | null;
 }
