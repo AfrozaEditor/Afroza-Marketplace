@@ -20,6 +20,7 @@ use App\Http\Controllers\NotificationController;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -159,6 +160,10 @@ Route::middleware(['auth', 'verified', 'role:vendor'])->group(function () {
     Route::get('vendor/orders/{order}', [App\Http\Controllers\Vendor\VendorOrderController::class, 'show'])->name('vendor.orders.show');
     Route::patch('vendor/orders/{order}/status', [App\Http\Controllers\Vendor\VendorOrderController::class, 'updateStatus'])->name('vendor.orders.update-status');
 
+    // Vendor subscription routes
+    Route::post('vendor/subscription/request-upgrade', [App\Http\Controllers\Vendor\SubscriptionController::class, 'requestUpgrade'])->name('vendor.subscription.request-upgrade');
+    Route::post('vendor/subscription/cancel-request', [App\Http\Controllers\Vendor\SubscriptionController::class, 'cancelRequest'])->name('vendor.subscription.cancel-request');
+
 });
 
 Route::middleware(['auth', 'role:delivery'])->group(function () {
@@ -173,8 +178,23 @@ Route::middleware(['auth', 'role:delivery'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('admin', function () {
+        $users = User::all();
+        $vendors = $users->where('role', 'vendor');
+        $totalProducts = Product::count();
+        $totalOrders = Order::count();
+        $totalShops = Shop::count();
+        $pendingOrders = Order::where('status', 'pending')->count();
+
         return Inertia::render('admin/dashboard', [
-            'users' => User::all(),
+            'users' => $users,
+            'stats' => [
+                'total_users' => $users->count(),
+                'total_vendors' => $vendors->count(),
+                'total_products' => $totalProducts,
+                'total_orders' => $totalOrders,
+                'total_shops' => $totalShops,
+                'pending_orders' => $pendingOrders,
+            ],
         ]);
     })->name('admin');
     
@@ -258,6 +278,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/admin/products/{product}/reject', [App\Http\Controllers\Admin\AdminProductController::class, 'reject'])->name('admin.products.reject');
     Route::post('/admin/products/{product}/toggle-active', [App\Http\Controllers\Admin\AdminProductController::class, 'toggleActive'])->name('admin.products.toggle-active');
     Route::delete('/admin/products/{product}', [App\Http\Controllers\Admin\AdminProductController::class, 'destroy'])->name('admin.products.destroy');
+
+    // Subscription management routes
+    Route::get('/admin/subscriptions', [App\Http\Controllers\Admin\AdminSubscriptionController::class, 'index'])->name('admin.subscriptions.index');
+    Route::post('/admin/subscriptions/{subscription}/approve', [App\Http\Controllers\Admin\AdminSubscriptionController::class, 'approve'])->name('admin.subscriptions.approve');
+    Route::post('/admin/subscriptions/{subscription}/reject', [App\Http\Controllers\Admin\AdminSubscriptionController::class, 'reject'])->name('admin.subscriptions.reject');
 });
 
 Route::middleware('auth')->group(function () {
@@ -289,11 +314,13 @@ Route::middleware('auth')->group(function () {
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/users', [ChatController::class, 'users'])->name('chat.users');
+    Route::get('/chat/product-info', [ChatController::class, 'getProductForChat'])->name('chat.productInfo');
     Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
     Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/start/{user}', [ChatController::class, 'startConversation'])->name('chat.start');
     Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.message');
     Route::post('/chat/{conversation}/typing', [ChatController::class, 'typing'])->name('chat.typing');
+    Route::post('/chat/{conversation}/mark-read', [ChatController::class, 'markRead'])->name('chat.markRead');
     Route::get('/chat/{conversation}/online-status', [ChatController::class, 'getOnlineStatus'])->name('chat.online-status');
 
     // Cart routes
@@ -346,6 +373,7 @@ Route::get('/product-reviews/user/{product}', [ProductReviewController::class, '
 
 Route::resource('marketplace', MarketplaceController::class)->only(['index', 'show']);
 Route::resource('products', ProductController::class)->only(['index', 'show']);
+Route::get('/vendor/{id}/profile', [App\Http\Controllers\Vendor\VendorProfileController::class, 'show'])->name('vendor.profile');
 Route::resource('promotions', PromotionController::class);
 Route::resource('blog', BlogController::class)->only(['index', 'show']);
 

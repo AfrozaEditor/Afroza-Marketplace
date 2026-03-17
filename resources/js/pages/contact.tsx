@@ -83,7 +83,7 @@ function Contact() {
                                         <Mail className="h-5 w-5 text-primary mt-1" />
                                         <div>
                                             <h4 className="font-medium dark:text-white">Email</h4>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">contact@videdressing.sn</p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">afroza.editor@gmail.com</p>
                                         </div>
                                     </div>
 

@@ -6,13 +6,19 @@ import type { PropsWithChildren } from 'react';
 import AppFooter from '@/components/app-footer';
 import { usePage } from '@inertiajs/react';
 
-export default function AppHeaderLayout({ children, breadcrumbs }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+interface AppHeaderLayoutProps {
+    breadcrumbs?: BreadcrumbItem[];
+    hideFooter?: boolean;
+    hideHeader?: boolean;
+}
+
+export default function AppHeaderLayout({ children, breadcrumbs, hideFooter = false, hideHeader = false }: PropsWithChildren<AppHeaderLayoutProps>) {
     const { categories = [] } = usePage().props;
     return (
         <AppShell>
-            <AppHeader breadcrumbs={breadcrumbs} categories={categories}/>
+            {!hideHeader && <AppHeader breadcrumbs={breadcrumbs} categories={categories}/>}
             <AppContent>{children}</AppContent>
-            <AppFooter/>
+            {!hideFooter && <AppFooter/>}
         </AppShell>
     );
 }

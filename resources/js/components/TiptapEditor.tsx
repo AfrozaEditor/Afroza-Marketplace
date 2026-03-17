@@ -13,7 +13,7 @@ import {Color} from '@tiptap/extension-color';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import { Button } from '@/components/ui/button';
-import { Toggle } from '@/components/ui/toggle';
+
 import { Separator } from '@/components/ui/separator';
 import {
     Select,
@@ -67,29 +67,33 @@ interface TiptapEditorProps {
     editable?: boolean;
 }
 
-const MenuButton = ({ 
-    onClick, 
-    isActive = false, 
+const MenuButton = ({
+    onClick,
+    isActive = false,
     disabled = false,
     children,
     title
-}: { 
-    onClick: () => void; 
-    isActive?: boolean; 
+}: {
+    onClick: () => void;
+    isActive?: boolean;
     disabled?: boolean;
     children: React.ReactNode;
     title?: string;
 }) => (
-    <Toggle
-        size="sm"
-        pressed={isActive}
-        onPressedChange={onClick}
+    <button
+        type="button"
+        onMouseDown={(e) => {
+            e.preventDefault();
+            onClick();
+        }}
         disabled={disabled}
         title={title}
-        className="h-8 w-8 p-0"
+        className={`inline-flex items-center justify-center rounded-md h-8 w-8 p-0 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-50 ${
+            isActive ? 'bg-accent text-accent-foreground' : 'bg-transparent'
+        }`}
     >
         {children}
-    </Toggle>
+    </button>
 );
 
 export default function TiptapEditor({ 
@@ -108,20 +112,22 @@ export default function TiptapEditor({
         extensions: [
             StarterKit.configure({
                 codeBlock: false,
+                link: false,
+                underline: false,
             }),
-            // Underline,
-            // TextAlign.configure({
-            //     types: ['heading', 'paragraph'],
-            // }),
+            Underline,
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+            }),
             Highlight.configure({
                 multicolor: true,
             }),
-            // Link.configure({
-            //     openOnClick: false,
-            //     HTMLAttributes: {
-            //         class: 'text-primary underline cursor-pointer',
-            //     },
-            // }),
+            Link.configure({
+                openOnClick: false,
+                HTMLAttributes: {
+                    class: 'text-primary underline cursor-pointer',
+                },
+            }),
             Image.configure({
                 HTMLAttributes: {
                     class: 'rounded-lg max-w-full h-auto mx-auto',
@@ -138,6 +144,7 @@ export default function TiptapEditor({
         ],
         content,
         editable,
+        immediatelyRender: false,
         onUpdate: ({ editor }) => {
             onChange(editor.getHTML());
         },
@@ -247,7 +254,7 @@ export default function TiptapEditor({
                     <SelectTrigger className="w-32 h-8">
                         <SelectValue placeholder="Style" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                         <SelectItem value="p">
                             <span className="flex items-center gap-2">
                                 <Pilcrow className="h-4 w-4" /> Paragraphe
@@ -386,15 +393,15 @@ export default function TiptapEditor({
                 <Separator orientation="vertical" className="mx-1 h-8" />
 
                 {/* Lists */}
-                <MenuButton 
-                    onClick={() => editor.chain().focus().toggleBulletList().run()} 
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
                     isActive={editor.isActive('bulletList')}
                     title="Liste à puces"
                 >
                     <List className="h-4 w-4" />
                 </MenuButton>
-                <MenuButton 
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()} 
+                <MenuButton
+                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
                     isActive={editor.isActive('orderedList')}
                     title="Liste numérotée"
                 >
@@ -555,9 +562,9 @@ export default function TiptapEditor({
             </div>
 
             {/* Editor Content */}
-            <EditorContent 
-                editor={editor} 
-                className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none p-4 min-h-[400px] focus:outline-none [&_.ProseMirror]:min-h-[400px] [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child]:before:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child]:before:float-left [&_.ProseMirror_p.is-editor-empty:first-child]:before:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child]:before:h-0"
+            <EditorContent
+                editor={editor}
+                className="max-w-none p-4 min-h-[400px] [&_.ProseMirror]:min-h-[400px] [&_.ProseMirror_p.is-editor-empty:first-child]:before:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child]:before:float-left [&_.ProseMirror_p.is-editor-empty:first-child]:before:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child]:before:h-0"
             />
 
             {/* Bubble Menu for quick formatting */}

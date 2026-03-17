@@ -10,6 +10,8 @@ use Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Notifications\NewUserRegistered;
 use Inertia\Inertia;
 
@@ -90,6 +92,19 @@ class GoogleController extends Controller
         }
 
         $user->assignRole($request->role);
+
+        // Assigner le plan Starter aux vendeurs
+        if ($request->role === 'vendor') {
+            $starterPlan = SubscriptionPlan::where('slug', 'starter')->first();
+            if ($starterPlan) {
+                Subscription::create([
+                    'user_id' => $user->id,
+                    'subscription_plan_id' => $starterPlan->id,
+                    'status' => 'active',
+                    'starts_at' => now(),
+                ]);
+            }
+        }
 
         $messages = [
             'customer' => 'Bienvenue ! Vous pouvez maintenant faire vos achats.',

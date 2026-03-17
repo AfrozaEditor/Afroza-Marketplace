@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmailVerification;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Notifications\EmailVerificationOtp;
 use App\Notifications\NewUserRegistered;
@@ -94,6 +96,19 @@ class EmailVerificationController extends Controller
         ]);
 
         $user->assignSingleRole($registrationData['role']);
+
+        // Assigner le plan Starter aux vendeurs
+        if ($registrationData['role'] === 'vendor') {
+            $starterPlan = SubscriptionPlan::where('slug', 'starter')->first();
+            if ($starterPlan) {
+                Subscription::create([
+                    'user_id' => $user->id,
+                    'subscription_plan_id' => $starterPlan->id,
+                    'status' => 'active',
+                    'starts_at' => now(),
+                ]);
+            }
+        }
 
         // Notifier les administrateurs
         $admins = User::role('admin')->get();

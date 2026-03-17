@@ -351,7 +351,7 @@ function Create({cart, deliveries = []}: Props) {
                                                 value={shippingForm.phone}
                                                 onChange={(e) => handleShippingChange('phone', e.target.value)}
                                                 className={errors.phone ? 'border-red-500' : ''}
-                                                placeholder="+237 6XX XXX XXX"
+                                                placeholder="+237 656 921 921"
                                             />
                                             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                                         </div>

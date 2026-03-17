@@ -1,9 +1,76 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
+        @php
+            $defaultTitle = 'Afroza Marketplace – Achetez & vendez tout en Afrique';
+            $defaultDescription = 'Téléphones, mode, maison, services… Achetez et vendez facilement sur Afroza Marketplace, la marketplace généraliste africaine.';
+            $defaultImage = asset('android-chrome-512x512.png');
+
+            $metaTitle = $defaultTitle;
+            $metaDescription = $defaultDescription;
+            $metaImage = $defaultImage;
+            $metaUrl = request()->fullUrl();
+
+            $component = data_get($page ?? [], 'component');
+            $props = data_get($page ?? [], 'props', []);
+
+            if ($component === 'product/Show') {
+                $productName = data_get($props, 'product.name');
+                $productDescription = data_get($props, 'product.description');
+                $productImage = data_get($props, 'images.0');
+
+                if (!empty($productName)) {
+                    $metaTitle = $productName . ' – Afroza Marketplace';
+                }
+
+                if (!empty($productDescription)) {
+                    $metaDescription = \Illuminate\Support\Str::limit(strip_tags($productDescription), 180);
+                }
+
+                if (!empty($productImage)) {
+                    $metaImage = $productImage;
+                }
+            } elseif ($component === 'blog/Show') {
+                $blogTitle = data_get($props, 'blog.title');
+                $blogExcerpt = data_get($props, 'blog.excerpt');
+                $blogImage = data_get($props, 'blog.featured_image_url') ?: data_get($props, 'blog.featured_image');
+
+                if (!empty($blogTitle)) {
+                    $metaTitle = $blogTitle . ' – Blog Afroza Marketplace';
+                }
+
+                if (!empty($blogExcerpt)) {
+                    $metaDescription = \Illuminate\Support\Str::limit(strip_tags($blogExcerpt), 180);
+                }
+
+                if (!empty($blogImage)) {
+                    $metaImage = $blogImage;
+                }
+            } elseif ($component === 'marketplace/Show') {
+                $shopName = data_get($props, 'shop.name');
+                $shopDescription = data_get($props, 'shop.description');
+                $shopImage = data_get($props, 'shop.cover_image_url')
+                    ?: data_get($props, 'shop.cover_image')
+                    ?: data_get($props, 'shop.logo_url')
+                    ?: data_get($props, 'shop.logo');
+
+                if (!empty($shopName)) {
+                    $metaTitle = $shopName . ' – Boutique Afroza Marketplace';
+                }
+
+                if (!empty($shopDescription)) {
+                    $metaDescription = \Illuminate\Support\Str::limit(strip_tags($shopDescription), 180);
+                }
+
+                if (!empty($shopImage)) {
+                    $metaImage = $shopImage;
+                }
+            }
+        @endphp
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Afroza Marketplace est une marketplace généraliste africaine pour acheter et vendre facilement des produits neufs ou d’occasion : électronique, mode, maison, services et plus.">
+        <meta name="description" content="{{ $metaDescription }}">
         <meta name="keywords" content="afroza, afroza marketplace, marketplace africaine, marketplace généraliste, e-commerce Afrique, acheter en ligne Afrique, vendre en ligne Afrique, produits neufs, produits d’occasion">
         <meta name="author" content="{{ config('app.name', 'Afroza Marketplace') }}">
 
@@ -11,21 +78,21 @@
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Afroza Marketplace">
         <meta property="og:locale" content="fr_FR">
-        <meta property="og:title" content="Afroza Marketplace – Achetez & vendez tout en Afrique">
-        <meta property="og:description" content="Téléphones, mode, maison, services… Achetez et vendez facilement sur Afroza Marketplace, la marketplace généraliste africaine.">
-        <meta property="og:url" content="https://afrozamarketplace.app">
-        <meta property="og:image" content="{{ asset('android-chrome-512x512.png') }}">
+        <meta property="og:title" content="{{ $metaTitle }}">
+        <meta property="og:description" content="{{ $metaDescription }}">
+        <meta property="og:url" content="{{ $metaUrl }}">
+        <meta property="og:image" content="{{ $metaImage }}">
         <meta property="og:image:width" content="512">
         <meta property="og:image:height" content="512">
-        <meta property="og:image:alt" content="Afroza Marketplace Logo">
+        <meta property="og:image:alt" content="{{ $metaTitle }}">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:site" content="@afrozamarket">
-        <meta name="twitter:title" content="Afroza Marketplace – Achetez & vendez tout en Afrique">
-        <meta name="twitter:description" content="Téléphones, mode, maison, services… Achetez et vendez facilement sur Afroza Marketplace, la marketplace généraliste africaine.">
-        <meta name="twitter:image" content="{{ asset('android-chrome-512x512.png') }}">
-        <meta name="twitter:image:alt" content="Afroza Marketplace Logo">
+        <meta name="twitter:site" content="@afrozamarketplace">
+        <meta name="twitter:title" content="{{ $metaTitle }}">
+        <meta name="twitter:description" content="{{ $metaDescription }}">
+        <meta name="twitter:image" content="{{ $metaImage }}">
+        <meta name="twitter:image:alt" content="{{ $metaTitle }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -53,7 +120,7 @@
             }
         </style>
 
-        <title>Afroza Marketplace – Marketplace généraliste africaine</title>
+        <title>{{ $metaTitle }}</title>
 
         <!-- <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any"> -->
         <!-- <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml"> -->

@@ -134,7 +134,7 @@ Vous pouvez vous opposer au traitement de vos données à des fins de marketing.
 Vous pouvez demander l'export de vos données dans un format lisible.
 
 **6.6 Comment exercer vos droits**
-Contactez-nous à : privacy@afroza-editor.cm
+Contactez-nous à : afroza.editor@gmail.com
 Nous répondrons à votre demande dans un délai de 30 jours.`
         },
         {
@@ -198,8 +198,8 @@ Nous vous encourageons à consulter régulièrement cette politique.`
 
 **Responsable de la protection des données**
 Afroza Editor
-Email : privacy@afroza-editor.cm
-Téléphone : +237 6XX XXX XXX
+Email : afroza.editor@gmail.com
+Téléphone : +237 656 921 921
 Adresse : Yaoundé, Ngoa-Ekele, Rue de la Joie, Cameroun
 
 Nous nous efforçons de répondre à toutes les demandes dans un délai de 30 jours.`
@@ -298,8 +298,8 @@ Nous nous efforçons de répondre à toutes les demandes dans un délai de 30 jo
                 <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
                     <p>
                         Pour toute question sur notre politique de confidentialité, contactez-nous à{' '}
-                        <a href="mailto:privacy@afroza-editor.cm" className="text-primary hover:underline">
-                            privacy@afroza-editor.cm
+                        <a href="mailto:afroza.editor@gmail.com" className="text-primary hover:underline">
+                            afroza.editor@gmail.com
                         </a>
                     </p>
                 </div>

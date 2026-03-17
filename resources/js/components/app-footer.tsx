@@ -201,14 +201,14 @@ function AppFooter() {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone className="text-primary h-5 w-5 flex-shrink-0" />
-                                <a href="tel:+237600000000" className="hover:text-primary text-sm text-gray-400 transition-colors">
-                                    +237 6XX XXX XXX
+                                <a href="https://wa.me/237656921921" className="hover:text-primary text-sm text-gray-400 transition-colors">
+                                    +237 656 921 921
                                 </a>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="text-primary h-5 w-5 flex-shrink-0" />
-                                <a href="mailto:contact@Afroza Marketplac.cm" className="hover:text-primary text-sm text-gray-400 transition-colors">
-                                    contact@afroza-editor.cm
+                                <a href="mailto:afroza.editor@gmail.com" className="hover:text-primary text-sm text-gray-400 transition-colors">
+                                    afroza.editor@gmail.com
                                 </a>
                             </li>
                         </ul>

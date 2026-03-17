@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessagesRead;
 use App\Events\NewMessage;
 use App\Events\UserTyping;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Product;
 use App\Models\User;
 use App\Notifications\NewMessage as NewMessageNotification;
 use Illuminate\Http\Request;
@@ -88,22 +90,38 @@ $conversations = Auth::user()->conversations()
         abort(403);
     }
 
+    // Marquer les messages comme lus
+    $this->markMessagesAsRead($conversation);
+
     $messages = $conversation->messages()
-        ->with('user:id,name,avatar')
+        ->with(['user:id,name,avatar', 'product.images'])
         ->orderBy('created_at', 'asc')
         ->get()
         ->map(function ($message) {
-            return [
+            $data = [
                 'id' => $message->id,
                 'content' => $message->content,
                 'created_at' => $message->created_at,
                 'is_mine' => $message->user_id === Auth::id(),
+                'read' => $message->read,
                 'user' => [
                     'id' => $message->user->id,
                     'name' => $message->user->name,
                     'avatar' => $this->resolveAvatarUrl($message->user->avatar),
                 ],
             ];
+
+            if ($message->product) {
+                $data['product'] = [
+                    'id' => $message->product->id,
+                    'name' => $message->product->name,
+                    'slug' => $message->product->slug,
+                    'price' => $message->product->price,
+                    'image' => $this->resolveProductImageUrl($message->product),
+                ];
+            }
+
+            return $data;
         });
 
     return response()->json(['props' => ['messages' => $messages]]);
@@ -422,6 +440,7 @@ $conversations = Auth::user()->conversations()
             // Validation
             $validated = $request->validate([
                 'content' => 'required|string|max:5000',
+                'product_id' => 'nullable|exists:products,id',
             ]);
 
             \Log::info('Validation réussie', ['content_length' => strlen($validated['content'])]);
@@ -430,6 +449,7 @@ $conversations = Auth::user()->conversations()
             $message = $conversation->messages()->create([
                 'user_id' => Auth::id(),
                 'content' => $validated['content'],
+                'product_id' => $validated['product_id'] ?? null,
                 'read' => false,
             ]);
 
@@ -440,12 +460,27 @@ $conversations = Auth::user()->conversations()
                 'id' => $message->id,
                 'content' => $message->content,
                 'created_at' => $message->created_at->format('c'), // Format ISO 8601
+                'read' => false,
                 'user' => [
                     'id' => Auth::id(),
                     'name' => Auth::user()->name,
                     'avatar' => $this->resolveAvatarUrl(Auth::user()->avatar),
                 ]
             ];
+
+            // Ajouter les données du produit si présent
+            if ($message->product_id) {
+                $product = $message->product()->with('images')->first();
+                if ($product) {
+                    $messageData['product'] = [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'slug' => $product->slug,
+                        'price' => $product->price,
+                        'image' => $this->resolveProductImageUrl($product),
+                    ];
+                }
+            }
 
             \Log::info('Données de message pour broadcasting', ['data' => $messageData]);
 
@@ -507,8 +542,10 @@ $conversations = Auth::user()->conversations()
         ]);
     }
 
-    public function startConversation(User $user)
+    public function startConversation(Request $request, User $user)
     {
+        $productId = $request->input('product_id');
+
         // Vérifie si une conversation existe déjà entre les deux utilisateurs
         $existingConversation = auth()->user()->conversations()
             ->whereHas('participants', function ($query) use ($user) {
@@ -535,8 +572,12 @@ $conversations = Auth::user()->conversations()
             $conversation = $existingConversation;
         }
 
-        // return redirect()->route('chat.index', $conversation->id);
-       return redirect()->route('chat.index', ['conversation' => $conversation->id]);
+        $params = ['conversation' => $conversation->id];
+        if ($productId) {
+            $params['product_id'] = $productId;
+        }
+
+        return redirect()->route('chat.index', $params);
     }
 
     /**
@@ -595,10 +636,93 @@ $conversations = Auth::user()->conversations()
         }
 
         try {
-            return Storage::disk('s3')->temporaryUrl($avatar, now()->addMinutes(60));
+            return Storage::disk('s3')->url($avatar);
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function resolveProductImageUrl($product): ?string
+    {
+        $image = $product->images->first();
+        if (!$image) {
+            return null;
+        }
+
+        $url = $image->url;
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+
+        try {
+            return Storage::disk('s3')->url($url);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function markMessagesAsRead(Conversation $conversation): array
+    {
+        $unreadMessages = $conversation->messages()
+            ->where('user_id', '!=', Auth::id())
+            ->where('read', false)
+            ->get();
+
+        if ($unreadMessages->isEmpty()) {
+            return [];
+        }
+
+        $messageIds = $unreadMessages->pluck('id')->toArray();
+
+        $conversation->messages()
+            ->whereIn('id', $messageIds)
+            ->update(['read' => true]);
+
+        try {
+            broadcast(new MessagesRead(
+                $conversation->id,
+                Auth::id(),
+                $messageIds
+            ))->toOthers();
+        } catch (\Exception $e) {
+            \Log::error('Erreur broadcasting MessagesRead', ['error' => $e->getMessage()]);
+        }
+
+        return $messageIds;
+    }
+
+    public function markRead(Request $request, Conversation $conversation)
+    {
+        if (!$conversation->participants()->where('user_id', Auth::id())->exists()) {
+            abort(403);
+        }
+
+        $messageIds = $this->markMessagesAsRead($conversation);
+
+        return response()->json([
+            'success' => true,
+            'marked_ids' => $messageIds,
+        ]);
+    }
+
+    public function getProductForChat(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $product = Product::with('images')
+            ->findOrFail($validated['product_id']);
+
+        return response()->json([
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'price' => $product->price,
+                'image' => $this->resolveProductImageUrl($product),
+            ],
+        ]);
     }
 
 }
